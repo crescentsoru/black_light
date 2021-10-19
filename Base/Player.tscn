@@ -284,8 +284,3 @@ anims/gorelease = SubResource( 3 )
 anims/goright = SubResource( 4 )
 anims/gospecial = SubResource( 5 )
 anims/stand = SubResource( 6 )
-
-[node name="RayGround" type="RayCast2D" parent="."]
-position = Vector2( -10, 25 )
-cast_to = Vector2( 0, 4 )
-collision_mask = 6

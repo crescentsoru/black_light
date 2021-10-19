@@ -27,7 +27,7 @@ func _process(delta):
 	pass
 
 onready var examplechar = $Stage/ExampleChar
-var ispause = false
+var ispause = false 
 var whopause = '' #the player who paused the game is specified here
 var pauseframe = 0 #for forwarding by 1 frame
 

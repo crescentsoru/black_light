@@ -155,8 +155,8 @@ const ZAIR = 'zair'
 
 	#Movement vars
 
-onready var RayGround = get_node('RayGround')
 var collisions = []
+var collisions_projected = []
 
 
 var traction = 200 #unused
@@ -219,7 +219,6 @@ func analogconvert(floatL,floatR,floatD,floatU):
 	return Vector2(round(analogX),round(analogY))
 
 func analogdeadzone(stick,zone): #applies a deadzone to a stick value
-	pass
 	if not( stick.x <= 127-zone or stick.x >= 127+zone):
 		if not (stick.y <= 127-zone or stick.y >= 127+zone):
 			return Vector2(127,127)
@@ -362,27 +361,6 @@ func motionqueueprocess():
 	elif tiltinput(up):
 		motionappend("8")
 	else: motionappend("5")
-
-#Backup of the input-only version of motionqueue
-#	if inputheld(left) and not inputheld(right):
-#		if inputheld(down):
-#			motionappend("1")
-#		if inputheld(up):
-#			motionappend("7")
-#		if not inputheld(up) and not inputheld(down):
-#			motionappend("4")
-#	elif inputheld(right) and not inputheld(left):
-#		if inputheld(down):
-#			motionappend("3")
-#		if inputheld(up):
-#			motionappend("9")
-#		if not inputheld(up) and not inputheld(down):
-#			motionappend("6")
-#	elif inputheld(down):
-#		motionappend("2")
-#	elif inputheld(up):
-#		motionappend("8")
-#	else: motionappend("5")
 
 func motionappend(number):
 	if motionqueue[-1] != number:
@@ -577,13 +555,11 @@ func testlogic():
 			state('stand')
 
 
-
 func actionablelogic(): #a function I made to make ordering stuff that doesn't happen during impactstop easier
 	#direction updates. Sprite happens at the end
 	$ECB.scale.x = direction
 	$Hurtbox.scale.x = direction
 	$pECB.scale.x = direction
-	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 	state_handler()
 	char_state_handler()
 	testlogic() #will be removed eventually
@@ -595,52 +571,65 @@ func state_handler():
 	if state_check(WALK): walk_state()
 
 
-func has_collision(namae): #checks the name of any collided object, returns true if it starts with the namae param
-	for x in collisions:
+func has_collision_projected(namae):  #checks the name of objects colliding with PROJECTED ECB, returns true if it starts w the name.
+	for x in collisions_projected:
+		if x.substr(0,len(namae)) == namae:
+			return true
+		else: return false
+
+func has_collision(namae):  #checks the name of objects colliding with PROJECTED ECB, returns true if it starts w the name.
+	for x in collisions_projected:
 		if x.substr(0,len(namae)) == namae:
 			return true
 		else: return false
 
 
-
-
+func ecb_up(): #returns the scene position of the top point of your pECB.
+	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[0]
+func ecb_down(): #returns the scene position of the lower point of your pECB. 
+	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[2]
+func ecb_left(): #left point. Note that this is right-facing, so the left point will become the rightmost point when direction == -1
+	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[1]
+func ecb_right(): #right point. same directional concern as ecb_left()
+	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[3]
 
 
 func collision_handler(): #For platform/floor/wall collision. Might contain state checks. That's probably fine? 
-
-
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
 	var snap_vector = Vector2(0, 0) if snap && is_on_floor() else Vector2() #this is basically copypasted from Project Tension
 	velocity = move_and_slide_with_snap(velocity, snap_vector, Vector2(0, -1), slope_slide_threshold) #theres probably something better than this
+	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
+
+	for i in $pECB.get_overlapping_bodies(): 
+		collisions_projected.append(i.name) 
+#  ^^^^ this returns the objects your projected ECB is touching. Essentially, "this will be collided with on the next frame".
+#Only returns objects that pECB touches, but ECB doesn't. Also doesn't return the ECB itself. Why? I have absolutely no clue.
+#This works out in my favor though. Godot docu says it's better to use signals, I'll switch over to that if there's any issues.
+
+
+
 	
 
-	for i in get_slide_count():
-		collisions.append(get_slide_collision(i).collider.name)
-	
-
-	enable_platform()
-	if inputheld(down): disable_platform() #once state machine is back make this freefall and air only? 
-	if RayGround.is_colliding():
-		print ('fuck')
+	if velocity.y < 0: disable_platform()
+	for i in $pECB.get_overlapping_bodies():
+		print ('something happened  ' + str(i.position) + "      " + str(ecb_down()))
+		if i.position.y > ecb_down().y:
+			print ('pos check success!! ' + str(i.position.y) + " " + str(ecb_down().y))
+			enable_platform()
 
 
 
-
-
-
-
-
-
-
+	if inputheld(down):
+		disable_platform() #once state machine is back make this freefall and air only? 
 
 
 
 
 
 	collisions = [] #wipes the collisions so they can be read over the next frame
-	
+	collisions_projected = [] #same thing but for projected 
 
-	
+
 
 
 func char_state_handler(): #Replace this in character script to have character specific states
@@ -657,6 +646,7 @@ func _ready():
 func _process(delta):
 	pass
 func _physics_process(delta):
+	
 #inputs update
 	base_setanalog()
 #buffer update
@@ -704,10 +694,8 @@ func _physics_process(delta):
 #Add ability to SDI if state == HITSTUN in persistent_logic().
 
 
-#Analogue update-
-
-#Right now, it is possible to find an analog value where a diagonal motionqueue input and an orthogonal input will
-#be spammed quickly for a few frames because the value is at the borders of those inputs and my human finger
-#is constantly doing small movements that hop in and out of the border values. 
-#This seems like an expected behavior of analog input.
-#It feels like something games usually solve, though?
+#Raycasts-
+#It would be good if there was a script always running that set the raycast 
+#positions automatically relative to the points of the diamond ECB.
+#This will help with scaling characters and creating new ones(all you have to do is just create the ray nodes in the scene),
+#and just sounds like good practice in general? 

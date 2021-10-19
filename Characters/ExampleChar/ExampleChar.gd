@@ -4,9 +4,14 @@ extends 'res://Base/Player.gd'
 func _ready():
 	#Stats
 	pass
-	#Animation offsets
 
-#Hello github GITHUB are you gonna make this change happen
+
+
+
+func char_state_handler():
+	pass
+
+
 
 func _process(delta):
 	pass

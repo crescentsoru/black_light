@@ -307,17 +307,19 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 frames = ExtResource( 2 )
 animation = "walk"
-offset = Vector2( 25, -10 )
+offset = Vector2( 62, -5 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 visible = false
 position = Vector2( 0, 18 )
 
 [node name="ECB" type="CollisionPolygon2D" parent="."]
+self_modulate = Color( 1, 0.843137, 0.686275, 1 )
 position = Vector2( 0, 18 )
 polygon = PoolVector2Array( 0, -135, -50, 0, 0, 182, 50, 0 )
 
 [node name="pECB" parent="." instance=ExtResource( 4 )]
+modulate = Color( 1, 1, 1, 0.807843 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 playback_speed = 0.25
@@ -328,8 +330,3 @@ anims/goright = SubResource( 4 )
 anims/gospecial = SubResource( 5 )
 anims/stand = SubResource( 6 )
 anims/walk = SubResource( 7 )
-
-[node name="RayGround" type="RayCast2D" parent="."]
-position = Vector2( 0, 201 )
-cast_to = Vector2( 0, 4 )
-collision_mask = 6

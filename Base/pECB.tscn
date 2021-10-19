@@ -1,6 +1,7 @@
 [gd_scene format=2]
 
 [node name="pECB" type="Area2D"]
+collision_mask = 6
 
 [node name="pECB_collision" type="CollisionPolygon2D" parent="."]
 modulate = Color( 0.054902, 0.0941176, 0.101961, 1 )
