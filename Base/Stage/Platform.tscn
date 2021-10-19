@@ -4,5 +4,5 @@
 
 [node name="platform_collision" type="CollisionPolygon2D" parent="."]
 modulate = Color( 0.0235294, 0.690196, 0.67451, 1 )
-position = Vector2( 0, -16 )
+position = Vector2( 0, -32 )
 polygon = PoolVector2Array( 0, 0, 512, 0, 512, 32, 0, 32 )

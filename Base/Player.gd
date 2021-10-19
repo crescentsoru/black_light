@@ -609,13 +609,14 @@ func collision_handler(): #For platform/floor/wall collision. Might contain stat
 
 
 	
-
 	if velocity.y < 0: disable_platform()
 	for i in $pECB.get_overlapping_bodies():
 		print ('something happened  ' + str(i.position) + "      " + str(ecb_down()))
+		
 		if i.position.y > ecb_down().y:
-			print ('pos check success!! ' + str(i.position.y) + " " + str(ecb_down().y))
-			enable_platform()
+			if velocity.y >= 0:
+				print ('pos check success!! ' + str(i.position.y) + " " + str(ecb_down().y))
+				enable_platform()
 
 
 
