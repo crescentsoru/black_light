@@ -33,10 +33,120 @@ var uptaunt = ''
 var sidetaunt = ''
 var downtaunt = ''
 
-
-var controllable = true #will probably remove this
+var controllable = true #false when replay
 var motionqueue = "5"
 var motiontimer = 8
+
+		#Gameplay
+
+
+	#Constants
+#These basically make the code more readable and make the process of working with state machines slightly quicker.
+	#Ground movement
+const STAND = 'stand'
+const WALK = 'walk'
+const WALKBACK = 'walkback'
+const DASH = 'dash'
+const RUN = 'run'
+const CROUCH = 'crouch'
+const LAND = 'land'
+const JUMPSQUAT = 'jumpsquat'
+const SHORTHOP = 'shorthop'
+const FULLHOP = 'fullhop'
+const SKID = 'skid'
+	#Air movement
+const AIR = 'air'
+const F_AIRDASH = 'f_airdash'
+const B_AIRDASH = 'b_airdash'
+const AIRDODGE = 'airdodge'
+const FREEFALL = 'freefall'
+const WALLJUMP_L = 'walljump_l'
+const WALLJUMP_R = 'walljump_r'
+	#Pressure
+const SHIELD = 'shield'
+const SHIELDRELEASE = 'shieldrelease'
+const SHIELDBREAK = 'shieldbreak'
+const BLOCKSTUN = 'blockstun'
+
+const HITSTUN = 'hitstun'
+const TUMBLE = 'tumble'
+const LANDSTUN = 'landstun' #this is the 4f air-to-ground transition that ASDI down makes use of, which I made into a separate state.
+const UKEMISS = 'ukemiss' #ukemi refers to ground teching. Given a different name in code to differentiate from throw teching
+const UKEMISTAND = 'ukemistand'
+const UKEMIBACK = 'ukemiback'
+const UKEMIFORTH = 'ukemiforth'
+const HARDKNOCKDOWN = 'hardknockdown'
+const SPECIALFALL = 'specialfall'
+
+	#Attacks
+const NAIR = 'nair'
+const FAIR = 'fair'
+const UAIR = 'uair'
+const BAIR =  'bair'
+const DAIR =  'dair'
+const NOVAIR = 'novair' #up-forward aerial
+const SEVAIR = 'sevair' #up-backward aerial
+const TRIAIR = 'triair' #down-forward aerial
+const UNOAIR = 'unoair' #down-backward aerial
+const ZAIR = 'zair'
+
+	#Movement vars
+
+
+
+
+var traction = 200 #unused
+var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
+var skidmodifier = 1 #unused
+
+var walk_accel = 200
+var walk_max = 1600
+var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. 
+var dashspeed = 300 #unused
+var runspeed = 800 #unused
+var runaccel = 800 #unused
+var shorthopspeed = 650 #unused
+var fullhopspeed = 1000
+var airjumpspeed = 900
+var airjump_max = 2 
+var airjumps = 0 
+var airdash_max = 1 #unused
+var airdashes = 0 #unused
+var recoverymomentum_current = 500#Momentum value for moves like Mars Side B.
+var recoverymomentum_default = 500#_current returns to this value upon landing.
+var walljump_count = 0 #Unused. Consecutive walljumps lose momentum with each jump. 
+
+var hardland = 4
+var softland = 2
+
+
+
+	#State definitions
+var groundedstates = [] #States that will not slide off the ground 
+var landingstates = [] #States that will enter LAND when you land on the ground.
+
+
+
+	#Pressure vars
+var rooted = false #Will determine if you will slide off into the air with too much velocity on the ground. Unused
+var blocking = false #Unused
+var extrablockstun = 0 #Don't use
+
+
+
+
+
+
+
+#movement engine, copypasted from Project Tension. If there's something better to use please replace this 
+var slope_slide_threshold = 50
+var snap = false
+
+	##################
+		##INPUTS##
+	##################
+
+
 #x[0] = input name
 #x[1] = frames the input has been held
 #x[2] = frames since this button has been pressed last (standard buffer)
@@ -100,101 +210,6 @@ var currentreplay = {
 }
 #[up,down,left,right,jump,attack,special,ex,dodge,grab,cstickup,cstickdown,cstickleft,cstickright,uptaunt,sidetaunt,downtaunt]
 
-		#Gameplay
-
-
-	#Constants
-#These basically make the code more readable and make the process of working with state machines slightly quicker.
-	#Ground movement
-const STAND = 'stand'
-const WALK = 'walk'
-const WALKBACK = 'walkback'
-const DASH = 'dash'
-const RUN = 'run'
-const CROUCH = 'crouch'
-const LAND = 'land'
-const JUMPSQUAT = 'jumpsquat'
-const SHORTHOP = 'shorthop'
-const FULLHOP = 'fullhop'
-const SKID = 'skid'
-	#Air movement
-const AIR = 'air'
-const F_AIRDASH = 'f_airdash'
-const B_AIRDASH = 'b_airdash'
-const AIRDODGE = 'airdodge'
-const FREEFALL = 'freefall'
-const WALLJUMP_L = 'walljump_l'
-const WALLJUMP_R = 'walljump_r'
-	#Pressure
-const SHIELD = 'shield'
-const SHIELDRELEASE = 'shieldrelease'
-const SHIELDBREAK = 'shieldbreak'
-const BLOCKSTUN = 'blockstun'
-
-const HITSTUN = 'hitstun'
-const TUMBLE = 'tumble'
-const LANDSTUN = 'landstun' #this is the 4f air-to-ground transition that ASDI down makes use of, which I made into a separate state.
-const UKEMISS = 'ukemiss' #ukemi refers to ground teching. Given a different name in code to differentiate from throw teching
-const UKEMISTAND = 'ukemistand'
-const UKEMIBACK = 'ukemiback'
-const UKEMIFORTH = 'ukemiforth'
-const HARDKNOCKDOWN = 'hardknockdown'
-const SPECIALFALL = 'specialfall'
-
-	#Attacks
-const NAIR = 'nair'
-const FAIR = 'fair'
-const UAIR = 'uair'
-const BAIR =  'bair'
-const DAIR =  'dair'
-const NOVAIR = 'novair' #up-forward aerial
-const SEVAIR = 'sevair' #up-backward aerial
-const TRIAIR = 'triair' #down-forward aerial
-const UNOAIR = 'unoair' #down-backward aerial
-const ZAIR = 'zair'
-
-	#Movement vars
-
-var collisions = []
-var collisions_projected = []
-
-
-var traction = 200 #unused
-var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
-var skidmodifier = 1 #unused
-
-var walk_accel = 200
-var walk_max = 1600
-var walk_range = 80 #analog range for maximum walk acceleration. 
-var dashspeed = 300 #unused
-var runspeed = 800 #unused
-var runaccel = 800 #unused
-var shorthopspeed = 650 #unused
-var fullhopspeed = 1000
-var airjumpspeed = 900
-var airjump_max = 2 
-var airjumps = 0 
-var airdash_max = 1 #unused
-var airdashes = 0 #unused
-var recoverymomentum_current = 500#Momentum value for moves like Mars Side B.
-var recoverymomentum_default = 500#_current returns to this value upon landing.
-var walljump_count = 0 #Unused. Consecutive walljumps lose momentum with each jump. 
-
-	#Pressure vars
-var rooted = false #Will determine if you will slide off into the air with too much velocity on the ground. Unused
-var blocking = false #Unused
-var extrablockstun = 0 #Don't use
-
-
-
-
-
-
-
-#movement engine, copypasted from Project Tension. If there's something better to use please replace this 
-var slope_slide_threshold = 50
-var snap = false
-
 
 var analogstick = Vector2(0,0)
 var analog_deadzone = 24 #should probably be the same as analog_tilt
@@ -217,7 +232,6 @@ func analogconvert(floatL,floatR,floatD,floatU):
 		analogY = 127 + 128*floatU
 	#return finished calculations
 	return Vector2(round(analogX),round(analogY))
-
 func analogdeadzone(stick,zone): #applies a deadzone to a stick value
 	if not( stick.x <= 127-zone or stick.x >= 127+zone):
 		if not (stick.y <= 127-zone or stick.y >= 127+zone):
@@ -316,15 +330,10 @@ func inputjustreleased(inp): #button released this frame, no buffer
 			if x[3] == 0:
 				return true
 			else: return false
-
-
-
-
 func replayprep(): #called on _ready to make your character controllable or not
 	if global.replaying == true:
 		controllable = false
 		currentreplay = global.fullreplay
-
 func tiltinput(inp): #returns true if you have an analog input beyond analog_tilt on the control stick, which is 24 by default.
 	if inp == up: 
 		if analogstick.y <= 255 and analogstick.y > 127+analog_tilt: return true
@@ -334,9 +343,6 @@ func tiltinput(inp): #returns true if you have an analog input beyond analog_til
 		if analogstick.x >= 0 and analogstick.x < 127-analog_tilt: return true
 	if inp == right:
 		if analogstick.x <= 255 and analogstick.x > 127+analog_tilt: return true
-
-
-
 func motionqueueprocess():
 	motiontimer = motiontimer - 1
 	if motiontimer == 0:
@@ -361,12 +367,10 @@ func motionqueueprocess():
 	elif tiltinput(up):
 		motionappend("8")
 	else: motionappend("5")
-
 func motionappend(number):
 	if motionqueue[-1] != number:
 		motionqueue = motionqueue + number
 		motiontimer = 8
-
 
 
 var animexception = [] #this will be useful later for the AIR state 
@@ -426,9 +430,6 @@ func persistentlogic(): #this will contain character functions that happen durin
 
 
 
-
-
-
 func state_check(statecompare):#state handler function for checking if the state is correct AND if it's been processed before.
 	if state == statecompare:
 		if not (state in state_called):
@@ -445,12 +446,10 @@ func refresh_air_options():
 	airjumps = 0
 	airdashes = 0
 	recoverymomentum_current = recoverymomentum_default
+	walljump_count = 0
 
 func debug():
 #function for testing, please do not use this for legit game logic
-
-
-
 	#replay debug
 	if Input.is_action_just_pressed("d_load"):
 		global.replaying = true
@@ -486,11 +485,11 @@ func stand_state(): #Test
 
 func walk_analogconvert(): #logic aid, might put in WALK once I get it straight in me head
 	pass
-	var leftslack = 127 - walk_range #what the fuck am I doing
+	var leftslack = 127 - action_range #what the fuck am I doing
 	if analogstick.x <= 127:
-		return min(walk_range,leftslack + (walk_range -analogstick.x))
+		return min(action_range,leftslack + (action_range -analogstick.x))
 	if analogstick.x > 127:
-		return min(walk_range,analogstick.x-127)
+		return min(action_range,analogstick.x-127)
 
 
 func walk_state():#Test, still
@@ -503,8 +502,8 @@ func walk_state():#Test, still
 		state(STAND) #go to STAND if nothing is held
 	if inputheld(down): state(STAND) #should go into crouch.
 	#acceleration
-	if abs(velocity.x) < (walk_max * walk_analogconvert()/walk_range):
-		velocity.x += min(abs(abs(velocity.x) - (walk_max * walk_analogconvert()/walk_range)),(walk_accel * walk_analogconvert()/walk_range)) * direction 
+	if abs(velocity.x) < (walk_max * walk_analogconvert()/action_range):
+		velocity.x += min(abs(abs(velocity.x) - (walk_max * walk_analogconvert()/action_range)),(walk_accel * walk_analogconvert()/action_range)) * direction 
 
 
 
@@ -555,34 +554,6 @@ func testlogic():
 			state('stand')
 
 
-func actionablelogic(): #a function I made to make ordering stuff that doesn't happen during impactstop easier
-	#direction updates. Sprite happens at the end
-	$ECB.scale.x = direction
-	$Hurtbox.scale.x = direction
-	$pECB.scale.x = direction
-	state_handler()
-	char_state_handler()
-	testlogic() #will be removed eventually
-	collision_handler()
-
-
-func state_handler():
-	if state_check(STAND): stand_state()
-	if state_check(WALK): walk_state()
-
-
-func has_collision_projected(namae):  #checks the name of objects colliding with PROJECTED ECB, returns true if it starts w the name.
-	for x in collisions_projected:
-		if x.substr(0,len(namae)) == namae:
-			return true
-		else: return false
-
-func has_collision(namae):  #checks the name of objects colliding with PROJECTED ECB, returns true if it starts w the name.
-	for x in collisions_projected:
-		if x.substr(0,len(namae)) == namae:
-			return true
-		else: return false
-
 
 func ecb_up(): #returns the scene position of the top point of your pECB.
 	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[0]
@@ -593,49 +564,38 @@ func ecb_left(): #left point. Note that this is right-facing, so the left point 
 func ecb_right(): #right point. same directional concern as ecb_left()
 	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[3]
 
+func actionablelogic(): #a function I made to make ordering stuff that doesn't happen during impactstop easier
+	#direction updates. Sprite happens at the end
+	$ECB.scale.x = direction
+	$Hurtbox.scale.x = direction
+	$pECB.scale.x = direction
+	state_handler()
+	char_state_handler()
+	testlogic() #will be removed eventually
+	collision_handler()
 
+func state_handler():
+	if state_check(STAND): stand_state()
+	if state_check(WALK): walk_state()
+func char_state_handler(): #Replace this in character script to have character specific states
+	pass 
 func collision_handler(): #For platform/floor/wall collision. Might contain state checks. That's probably fine? 
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
 	var snap_vector = Vector2(0, 0) if snap && is_on_floor() else Vector2() #this is basically copypasted from Project Tension
 	velocity = move_and_slide_with_snap(velocity, snap_vector, Vector2(0, -1), slope_slide_threshold) #theres probably something better than this
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 
-	for i in $pECB.get_overlapping_bodies(): 
-		collisions_projected.append(i.name) 
-#  ^^^^ this returns the objects your projected ECB is touching. Essentially, "this will be collided with on the next frame".
-#Only returns objects that pECB touches, but ECB doesn't. Also doesn't return the ECB itself. Why? I have absolutely no clue.
-#This works out in my favor though. Godot docu says it's better to use signals, I'll switch over to that if there's any issues.
-
-
-
-	
 	if velocity.y < 0: disable_platform()
 	for i in $pECB.get_overlapping_bodies():
-		print ('something happened  ' + str(i.position) + "      " + str(ecb_down()))
-		
+# ^^^^ this returns the objects your projected ECB is touching. Essentially, "this will be collided with on the next frame".
+#Only returns objects that pECB touches, but ECB doesn't. Also doesn't return the ECB itself. Why? I have absolutely no clue.
+#This works out in my favor though. Godot docu says it's better to use signals, I'll switch over to that if there's any issues.
 		if i.position.y > ecb_down().y:
 			if velocity.y >= 0:
-				print ('pos check success!! ' + str(i.position.y) + " " + str(ecb_down().y))
 				enable_platform()
-
-
-
+				print ('landing ok ' + str(frame))
 	if inputheld(down):
 		disable_platform() #once state machine is back make this freefall and air only? 
-
-
-
-
-
-	collisions = [] #wipes the collisions so they can be read over the next frame
-	collisions_projected = [] #same thing but for projected 
-
-
-
-
-func char_state_handler(): #Replace this in character script to have character specific states
-	pass 
-
 
 
 func _ready():
@@ -644,10 +604,8 @@ func _ready():
 	$pECB.scale = $ECB.scale
 	#should make pECB copy the collision of ECB at startup as well
 
-func _process(delta):
-	pass
+
 func _physics_process(delta):
-	
 #inputs update
 	base_setanalog()
 #buffer update
@@ -693,10 +651,3 @@ func _physics_process(delta):
 #2. SDI is easily implementable only for defenders.
 #Put the defender into hitstun first, add impactstop based on damage values.
 #Add ability to SDI if state == HITSTUN in persistent_logic().
-
-
-#Raycasts-
-#It would be good if there was a script always running that set the raycast 
-#positions automatically relative to the points of the diamond ECB.
-#This will help with scaling characters and creating new ones(all you have to do is just create the ray nodes in the scene),
-#and just sounds like good practice in general? 
