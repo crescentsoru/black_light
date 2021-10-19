@@ -266,13 +266,13 @@ modulate = Color( 0.835294, 0.231373, 0.0901961, 1 )
 frames = ExtResource( 1 )
 animation = "stand"
 
-[node name="ECB" type="CollisionPolygon2D" parent="."]
-position = Vector2( 0, 17 )
-polygon = PoolVector2Array( 0, -135, -50, 0, 0, 182, 50, 0 )
-
 [node name="Hurtbox" parent="." instance=ExtResource( 3 )]
 visible = false
 modulate = Color( 0.423529, 0.196078, 0.341176, 1 )
+
+[node name="ECB" type="CollisionPolygon2D" parent="."]
+position = Vector2( 0, 17 )
+polygon = PoolVector2Array( 0, -135, -50, 0, 0, 182, 50, 0 )
 
 [node name="pECB" parent="." instance=ExtResource( 4 )]
 
@@ -284,3 +284,8 @@ anims/gorelease = SubResource( 3 )
 anims/goright = SubResource( 4 )
 anims/gospecial = SubResource( 5 )
 anims/stand = SubResource( 6 )
+
+[node name="RayGround" type="RayCast2D" parent="."]
+position = Vector2( -10, 25 )
+cast_to = Vector2( 0, 4 )
+collision_mask = 6

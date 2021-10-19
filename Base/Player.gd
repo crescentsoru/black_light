@@ -155,7 +155,9 @@ const ZAIR = 'zair'
 
 	#Movement vars
 
+onready var RayGround = get_node('RayGround')
 var collisions = []
+
 
 var traction = 200 #unused
 var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
@@ -583,6 +585,7 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	$pECB.scale.x = direction
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 	state_handler()
+	char_state_handler()
 	testlogic() #will be removed eventually
 	collision_handler()
 
@@ -597,6 +600,12 @@ func has_collision(namae): #checks the name of any collided object, returns true
 		if x.substr(0,len(namae)) == namae:
 			return true
 		else: return false
+
+
+
+
+
+
 func collision_handler(): #For platform/floor/wall collision. Might contain state checks. That's probably fine? 
 
 
@@ -607,30 +616,38 @@ func collision_handler(): #For platform/floor/wall collision. Might contain stat
 
 	for i in get_slide_count():
 		collisions.append(get_slide_collision(i).collider.name)
-
-
-	if velocity.y < 0:
-		disable_platform()
-	if inputheld(down): disable_platform()
-		
-
-	if has_collision('Platform'): #oh yeah this literally doesn't do anything if the mask is disabled
-		print ("colliding w plat!!")
-		if (velocity.y >= 0 and not inputheld(down)):
-				enable_platform()
 	
 
+	enable_platform()
+	if inputheld(down): disable_platform() #once state machine is back make this freefall and air only? 
+	if RayGround.is_colliding():
+		print ('fuck')
 
 
 
 
-		#this is deceptively simple, but it's also probably wrong
 
 
-	
-	
+
+
+
+
+
+
+
+
+
 	collisions = [] #wipes the collisions so they can be read over the next frame
 	
+
+	
+
+
+func char_state_handler(): #Replace this in character script to have character specific states
+	pass 
+
+
+
 func _ready():
 	replayprep()
 	$pECB.position = $ECB.position
