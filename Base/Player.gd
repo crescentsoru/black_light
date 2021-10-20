@@ -95,7 +95,7 @@ const ZAIR = 'zair'
 
 
 
-var traction = 200 #unused
+var traction = 100 #unused
 var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
 var skidmodifier = 1 #unused
 
@@ -477,7 +477,7 @@ func debug():
 		flip()
 
 func stand_state():
-	velocity.x = 0 #pls remove
+
 	if motionqueue[-1] == "4": #walk left
 		state(WALK)
 		direction= -1
@@ -490,9 +490,19 @@ func stand_state():
 		state('gospecial')
 	if inputreleased(special,releasebuffer,''): #same as inputreleased without params
 		state('gorelease')
+	
 	if not is_on_floor():
 		state(AIR)
-
+		
+		
+	#traction
+	if abs(velocity.x) - traction < 0:
+		velocity.x = 0
+	else:
+		if velocity.x > 0:
+			velocity.x-=traction
+		else:
+			velocity.x+=traction
 
 func action_analogconvert(): #returns how hard you're pressing your stick.x from 0 to 80(action_range)
 	if analogstick.x <= 127:
@@ -529,8 +539,6 @@ func enable_platform():
 func disable_platform():
 	self.set_collision_mask_bit(2,false)
 
-func platform_check(): #checks if plat collision is enabled
-	return self.get_collision_mask_bit(2)
 
 
 
@@ -549,10 +557,14 @@ func aerial_acceleration(drift=drift_accel,ff=true):
 
 var rooted = false #if true, then check for pECB collision 
 func apply_traction():
-	
-	if velocity.x * direction > 0:
-		pass
-		
+	if abs(velocity.x) - traction < 0:
+		velocity.x = 0
+	else:
+		if velocity.x > 0:
+			velocity.x-=traction
+		else:
+			velocity.x+=traction
+
 
 
 func check_landing():
