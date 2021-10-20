@@ -105,30 +105,38 @@ var action_range = 80 #analog range for maximum walk acceleration, drifting, das
 var dashspeed = 300 #unused
 var runspeed = 800 #unused
 var runaccel = 800 #unused
+
+var drift_accel = 400
+var drift_max = 1250
+var fall_accel = 40
+var fall_max = 1400
+
+var jumpsquat = 3
 var shorthopspeed = 650 #unused
 var fullhopspeed = 1000
-var airjumpspeed = 900
+var airjumpspeed = 900 #this is velocity.y not drifting
 var airjump_max = 2 
 var airjumps = 0 
 var airdash_max = 1 #unused
 var airdashes = 0 #unused
 var recoverymomentum_current = 500#Momentum value for moves like Mars Side B.
 var recoverymomentum_default = 500#_current returns to this value upon landing.
-var walljump_count = 0 #Unused. Consecutive walljumps lose momentum with each jump. 
+var walljump_count = 0 #Consecutive walljumps lose momentum with each jump. 
 
+var fastfall = false #true if you're fastfalling 
 var hardland = 4
-var softland = 2
-
+var softland = 2 #probably will remain unused for a long while. Landing lag for when you're landing normally without fastfalling. 
+var landlag = 4 #changed all the time in states that can land. 
 
 
 	#State definitions
-var groundedstates = [] #States that will not slide off the ground 
-var landingstates = [] #States that will enter LAND when you land on the ground.
+var groundedstates = [] #States that will not slide off the ground and experience traction.
+var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
 
 
 	#Pressure vars
-var rooted = false #Will determine if you will slide off into the air with too much velocity on the ground. Unused
+
 var blocking = false #Unused
 var extrablockstun = 0 #Don't use
 
@@ -439,6 +447,7 @@ func state_check(statecompare):#state handler function for checking if the state
 			return false
 	else: return false
 
+
 func refresh_air_options():
 	#This function is called when you land on the ground.
 	#It will refresh your jumps, airdashes, recovery option momentum (think Mars side B)
@@ -467,8 +476,8 @@ func debug():
 	if Input.is_action_just_pressed("d_a"):
 		flip()
 
-func stand_state(): #Test
-	velocity.x = 0
+func stand_state():
+	velocity.x = 0 #pls remove
 	if motionqueue[-1] == "4": #walk left
 		state(WALK)
 		direction= -1
@@ -481,13 +490,13 @@ func stand_state(): #Test
 		state('gospecial')
 	if inputreleased(special,releasebuffer,''): #same as inputreleased without params
 		state('gorelease')
+	if not is_on_floor():
+		state(AIR)
 
 
-func walk_analogconvert(): #logic aid, might put in WALK once I get it straight in me head
-	pass
-	var leftslack = 127 - action_range #what the fuck am I doing
+func action_analogconvert(): #returns how hard you're pressing your stick.x from 0 to 80(action_range)
 	if analogstick.x <= 127:
-		return min(action_range,leftslack + (action_range -analogstick.x))
+		return min(action_range, 127-analogstick.x)
 	if analogstick.x > 127:
 		return min(action_range,analogstick.x-127)
 
@@ -502,8 +511,13 @@ func walk_state():#Test, still
 		state(STAND) #go to STAND if nothing is held
 	if inputheld(down): state(STAND) #should go into crouch.
 	#acceleration
-	if abs(velocity.x) < (walk_max * walk_analogconvert()/action_range):
-		velocity.x += min(abs(abs(velocity.x) - (walk_max * walk_analogconvert()/action_range)),(walk_accel * walk_analogconvert()/action_range)) * direction 
+	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
+		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
+
+func air_state():
+	aerial_acceleration()
+
+
 
 
 
@@ -519,14 +533,35 @@ func platform_check(): #checks if plat collision is enabled
 	return self.get_collision_mask_bit(2)
 
 
+
+func aerial_acceleration(drift=drift_accel,ff=true):
+	#drift lets you set custom drift potential to use for specials.
+	#ff=false will disallow fastfalling.
+	if motionqueue[-1] in ['4','7','1']: #if drifting left
+		velocity.x = max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-drift_accel*action_analogconvert()/action_range)
+	if motionqueue[-1] in ['6','9','3']: #if drifting right
+		velocity.x = min(drift_max*action_analogconvert()/action_range,velocity.x+drift_accel*action_analogconvert()/action_range)
+	
+	#falling
+	velocity.y += fall_accel
+	if velocity.y > fall_max:
+		velocity.y = fall_max 
+
+var rooted = false #if true, then check for pECB collision 
+func apply_traction():
+	
+	if velocity.x * direction > 0:
+		pass
+		
+
+
+func check_landing():
+#Character scripts could either overwrite landingstates on _ready with every default state and their own or just .append() to it.
+	if is_on_floor():
+		state(STAND)
+
 func testlogic():
 #function for testing, everything here will eventually be replaced by something actually good in other functions
-
-#gravity
-	velocity.y+=45
-	if  not is_on_floor(): if velocity.y > 900: velocity.y = 900
-
-#go through platforms when rising
 
 
 
@@ -554,7 +589,6 @@ func testlogic():
 			state('stand')
 
 
-
 func ecb_up(): #returns the scene position of the top point of your pECB.
 	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[0]
 func ecb_down(): #returns the scene position of the lower point of your pECB. 
@@ -571,29 +605,37 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	$pECB.scale.x = direction
 	state_handler()
 	char_state_handler()
+	if state in groundedstates:
+		apply_traction()
+	if state in landingstates:
+		check_landing()
 	testlogic() #will be removed eventually
 	collision_handler()
 
 func state_handler():
 	if state_check(STAND): stand_state()
 	if state_check(WALK): walk_state()
+	if state_check(AIR): air_state()
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
+
+
 func collision_handler(): #For platform/floor/wall collision. Might contain state checks. That's probably fine? 
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
 	var snap_vector = Vector2(0, 0) if snap && is_on_floor() else Vector2() #this is basically copypasted from Project Tension
-	velocity = move_and_slide_with_snap(velocity, snap_vector, Vector2(0, -1), slope_slide_threshold) #theres probably something better than this
+	velocity = move_and_slide_with_snap(velocity, snap_vector, Vector2(0, -1), slope_slide_threshold)
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 
+	
 	if velocity.y < 0: disable_platform()
 	for i in $pECB.get_overlapping_bodies():
+		print (i)
 # ^^^^ this returns the objects your projected ECB is touching. Essentially, "this will be collided with on the next frame".
 #Only returns objects that pECB touches, but ECB doesn't. Also doesn't return the ECB itself. Why? I have absolutely no clue.
 #This works out in my favor though. Godot docu says it's better to use signals, I'll switch over to that if there's any issues.
 		if i.position.y > ecb_down().y:
 			if velocity.y >= 0:
 				enable_platform()
-				print ('landing ok ' + str(frame))
 	if inputheld(down):
 		disable_platform() #once state machine is back make this freefall and air only? 
 
