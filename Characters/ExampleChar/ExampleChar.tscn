@@ -300,7 +300,9 @@ tracks/2/keys = {
 }
 
 [node name="Examplechar" type="KinematicBody2D"]
+input_pickable = true
 collision_mask = 6
+collision/safe_margin = 0.1
 script = ExtResource( 3 )
 
 [node name="Sprite" type="AnimatedSprite" parent="."]

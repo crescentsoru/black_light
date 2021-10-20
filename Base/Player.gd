@@ -147,7 +147,7 @@ var extrablockstun = 0 #Don't use
 
 
 #movement engine, copypasted from Project Tension. If there's something better to use please replace this 
-var slope_slide_threshold = 50
+var slope_slide_threshold = 0
 var snap = false
 
 	##################
@@ -492,6 +492,7 @@ func stand_state():
 		state('gorelease')
 	
 	if not is_on_floor():
+		print('why the fuck are you not on floor')
 		state(AIR)
 		
 		
@@ -522,7 +523,7 @@ func walk_state():#Test, still
 	if inputheld(down): state(STAND) #should go into crouch.
 	#acceleration
 	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
-		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
+		velocity.x += round(min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction )
 
 func air_state():
 	aerial_acceleration()
@@ -546,10 +547,10 @@ func aerial_acceleration(drift=drift_accel,ff=true):
 	#drift lets you set custom drift potential to use for specials.
 	#ff=false will disallow fastfalling.
 	if motionqueue[-1] in ['4','7','1']: #if drifting left
-		velocity.x = max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-drift_accel*action_analogconvert()/action_range)
+		velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-drift_accel*action_analogconvert()/action_range))
 	if motionqueue[-1] in ['6','9','3']: #if drifting right
-		velocity.x = min(drift_max*action_analogconvert()/action_range,velocity.x+drift_accel*action_analogconvert()/action_range)
-	
+		velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+drift_accel*action_analogconvert()/action_range))
+
 	#falling
 	velocity.y += fall_accel
 	if velocity.y > fall_max:
@@ -632,16 +633,20 @@ func char_state_handler(): #Replace this in character script to have character s
 	pass 
 
 
-func collision_handler(): #For platform/floor/wall collision. Might contain state checks. That's probably fine? 
+func collision_handler(): #For platform/floor/wall collision. Might contain state checks. That's probably fine?
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
-	var snap_vector = Vector2(0, 0) if snap && is_on_floor() else Vector2() #this is basically copypasted from Project Tension
-	velocity = move_and_slide_with_snap(velocity, snap_vector, Vector2(0, -1), slope_slide_threshold)
+	var angle = 0 #I don't know what this does 
+	var slope_factor = Vector2(cos(deg2rad(angle))*velocity.x - sin(deg2rad(angle))*velocity.y, sin(deg2rad(angle))*velocity.x + cos(deg2rad(angle))*velocity.y ) 
+	#move_and_slide(slope_factor,Vector2(0,1),50)
+	velocity = move_and_slide(velocity, Vector2(0, -1), slope_slide_threshold)
+	#var collision = move_and_collide(velocity)
+	#if collision: velocity = velocity.slide(collision.normal)
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 
-	
+
+
 	if velocity.y < 0: disable_platform()
 	for i in $pECB.get_overlapping_bodies():
-		print (i)
 # ^^^^ this returns the objects your projected ECB is touching. Essentially, "this will be collided with on the next frame".
 #Only returns objects that pECB touches, but ECB doesn't. Also doesn't return the ECB itself. Why? I have absolutely no clue.
 #This works out in my favor though. Godot docu says it's better to use signals, I'll switch over to that if there's any issues.
