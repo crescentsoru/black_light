@@ -132,7 +132,8 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var groundedstates = [JUMPSQUAT] #Traction + rooted state.
+var rootedstates = [JUMPSQUAT] #Rooted state. Ground attacks should be this.
+var tractionstates = [] #Only adds traction
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
 
@@ -303,10 +304,10 @@ func writebuffer():
 			x[1]=0
 			x[3]=0
 			if currentreplay[x[0]] != []: currentreplay[x[0]][-1][1] = global.gametime
-func inputheld(inp): #button held. pretty simple
+func inputheld(inp,below=900000000,above=0): #button held. pretty simple
 	for x in buffer:
 		if x[0] == inp:
-			if x[1] > 0:
+			if x[1] > above and x[1] <= below:
 				return true
 			else: return false 
 
@@ -433,9 +434,8 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 			impactstop_trigger = true
 
 func persistentlogic(): #this will contain character functions that happen during impactstop.
-	pass  #This includes tech buffering/lockout and SDI. 
-
-	#might as well put this here, don't see a reason not to atm
+#This includes tech buffering/lockout and SDI. 
+	#Might as well put this here, don't see a reason not to atm
 	state_called = []
 
 
@@ -527,13 +527,18 @@ func walk_state():#Test, still
 	if inputpressed(jump): state(JUMPSQUAT)
 	#acceleration
 	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
-		velocity.x += round(min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction )
+		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
 	apply_gravity()
 	if not is_on_floor():
 		state(AIR)
 
+func velocity_w_max(acc,maxx):#add x velocity with a maximum value and an acceleration. Doesn't override existing velocity.
+	return min(abs(abs(velocity.x) - maxx),(acc * maxx)) * direction
+
+
 func dash_state():
-	pass
+	if frame>0:
+		velocity.x += velocity_w_max(dashspeed,dashspeed)
 
 func run_state():
 	pass
@@ -556,7 +561,7 @@ func jumpsquat_state():
 		if inputheld(jump): #fullhop
 			velocity.y-= fullhopspeed
 			state(AIR)
-		else:
+		if not inputheld(jump): #shorthop
 			velocity.y-=shorthopspeed
 			state(AIR)
 
@@ -662,10 +667,9 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	$pECB.scale.x = direction
 	state_handler()
 	char_state_handler()
-	if state in groundedstates:
-		apply_traction()
+	if state in rootedstates:
 		apply_gravity()
-		#+ the rooted thing
+		rooted = true
 	if state in landingstates:
 		check_landing()
 	testlogic() #will be removed eventually
@@ -687,9 +691,8 @@ func collision_handler(): #For platform/floor/wall collision.
 	#if collision: velocity = velocity.slide(collision.normal)
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 
-
 #	for i in get_slide_count(): #not used
-#		collisions.append(get_slide_collision(i)) #not used 
+#		collisions.append(get_slide_collision(i)) #not used
 	if velocity.y < 0: disable_platform()
 	for i in $pECB.get_overlapping_bodies():
 # ^^^^ this returns the objects your projected ECB is touching. Essentially, "this will be collided with on the next frame".
@@ -703,6 +706,8 @@ func collision_handler(): #For platform/floor/wall collision.
 	else: in_platform = true
 	if inputheld(down):
 		disable_platform() #once state machine is back make this freefall and air only? 
+
+	rooted = false
 #	collisions = [] #not used rn 
 
 func _ready():
