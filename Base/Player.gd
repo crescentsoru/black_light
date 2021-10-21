@@ -513,6 +513,7 @@ func action_analogconvert(): #returns how hard you're pressing your stick.x from
 
 
 func walk_state():#Test, still
+	apply_gravity()
 	if motionqueue[-1] == "4":
 		if direction != -1:
 			state(STAND)
