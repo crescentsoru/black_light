@@ -96,7 +96,7 @@ const ZAIR = 'zair'
 
 
 
-var traction = 100 #unused
+var traction = 100
 var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
 var skidmodifier = 1 #unused
 
@@ -104,7 +104,8 @@ var skidmodifier = 1 #unused
 var walk_accel = 100
 var walk_max = 1000
 var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. 
-var dashspeed = 2000 
+var dashspeed = 2000
+var dashaccel = 500
 var dashframes = 16
 
 var runspeed = 2000 #unused
@@ -138,7 +139,8 @@ var landinglag = 4 #changed all the time in states that can land.
 
 	#State definitions
 var rootedstates = [JUMPSQUAT] #Rooted state. Ground attacks should be this.
-var tractionstates = [] #Only adds traction
+var slidestates = [STAND,WALK,DASH,RUN,LAND] #Usually ground movement, will slide off when not grounded.
+var tractionstates = [STAND,LAND] #Only adds traction
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
 
@@ -156,7 +158,7 @@ var extrablockstun = 0 #Don't use
 
 #movement engine, copypasted from Project Tension. If there's something better to use please replace this 
 var slope_slide_threshold = 0
-var snap = false
+
 
 	##################
 		##INPUTS##
@@ -314,8 +316,7 @@ func inputheld(inp,below=900000000,above=0): #button held. pretty simple
 		if x[0] == inp:
 			if x[1] > above and x[1] <= below:
 				return true
-			else: return false 
-
+			else: return false
 func inputpressed(inp,custombuffer=pressbuffer,prevstate=''): 
 	for x in buffer:
 		if x[0] == inp:
@@ -387,7 +388,6 @@ func motionappend(number):
 	if motionqueue[-1] != number:
 		motionqueue = motionqueue + number
 		motiontimer = 8
-
 
 var animexception = [] #this will be useful later for the AIR state 
 func state_exception(state_array):
@@ -481,9 +481,10 @@ func debug():
 		global.replaying = true
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
-		flip()
+		pass
 
 func stand_state():
+	if frame == 0: refresh_air_options()
 	if inputheld(left,2) and not inputheld(up): #might increase below to 3? idk send your feedback
 		state(DASH)
 		direction= -1
@@ -503,20 +504,10 @@ func stand_state():
 	if inputreleased(special,releasebuffer,''): #same as inputreleased without params
 		state('gorelease')
 	if inputpressed(jump): state(JUMPSQUAT)
-	
-	apply_gravity()
-	if not is_on_floor():
-		state(AIR)
 
 
-	#traction
-	if abs(velocity.x) - traction < 0:
-		velocity.x = 0
-	else:
-		if velocity.x > 0:
-			velocity.x-=traction
-		else:
-			velocity.x+=traction
+
+
 
 func action_analogconvert(): #returns how hard you're pressing your stick.x from 0 to 80(action_range)
 	if analogstick.x <= 127:
@@ -544,9 +535,7 @@ func walk_state():#Test, still
 	#acceleration
 	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
 		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
-	apply_gravity()
-	if not is_on_floor():
-		state(AIR)
+
 
 func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an acceleration.
 	if veldir == 1: #Meant to not override existing velocity such as from hitstun.
@@ -564,16 +553,42 @@ func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an 
 
 
 func dash_state():
-	if frame>0:
-		velocity.x = velocity_wmax(dashspeed,dashspeed,direction)
+	
+	if frame <= dashframes:
+		if inputpressed(left) and direction == 1:
+			direction = -1
+			state(TURN)
+		if inputpressed(right) and direction == -1:
+			direction = 1
+			state(TURN)
+	
 	if frame == dashframes:
 		state(STAND)
+
+
+	velocity.x = velocity_wmax(dashspeed,dashspeed,direction)
+	
+
 
 func run_state():
 	pass
 
 func turn_state():
-	pass
+	if frame == 1:
+		if inputheld(left):
+			direction = -1
+			state(DASH)
+		elif inputheld(right):
+			direction = 1
+			state(DASH)
+		else:
+			state(STAND)
+	if frame > 1: #I dunno what to do here exactly, I do not want to recreate the slow turn from Smash
+		apply_traction()
+	if frame == 15: #random number idc
+		state(STAND)	
+	
+
 
 func air_state():
 	aerial_acceleration()
@@ -595,8 +610,8 @@ func jumpsquat_state():
 			state(AIR)
 
 func land_state():
-	apply_traction()
-	apply_gravity()
+	if frame == 0:
+		refresh_air_options()
 	if frame == landinglag:
 		if inputheld(down): state(STAND) #switch to crouch
 		else: state(STAND)
@@ -645,10 +660,9 @@ func apply_gravity(): #this is called in ground states as well to prevent bugs r
 #I'll go with that solution for floor collision for now, but I'm sure as hell open to other collision systems 
 	velocity.y += fall_accel
 	if velocity.y > fall_max:
-		velocity.y = fall_max 
+		velocity.y = fall_max
 
-func unrooted_traction():
-	pass
+
 
 
 func check_landing():
@@ -661,9 +675,6 @@ func testlogic():
 #function for testing, everything here will eventually be replaced by something actually good in other functions
 
 
-
-#limited jumps, refresh air option test
-	if is_on_floor(): refresh_air_options() #replace w refresh in STAND, LAND at f0
 
 #state machination
 	if state == 'goattack':
@@ -679,7 +690,7 @@ func testlogic():
 		if frame == 8:
 			state('stand')
 
-
+#Unused funcs have fun with these
 func ecb_up(): #returns the scene position of the top point of your pECB.
 	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[0]
 func ecb_down(): #returns the scene position of the lower point of your pECB. 
@@ -699,6 +710,13 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	if state in rootedstates:
 		apply_gravity()
 		rooted = true
+	if state in tractionstates:
+		apply_traction()
+	if state in slidestates:
+		apply_gravity()
+		if not is_on_floor():
+			velocity.x = velocity.x/3
+			state(AIR)
 	if state in landingstates:
 		check_landing()
 	testlogic() #will be removed eventually
@@ -715,10 +733,11 @@ func collision_handler(): #For platform/floor/wall collision.
 	#var angle = 0 #I don't know what this does 
 	#var slope_factor = Vector2(cos(deg2rad(angle))*velocity.x - sin(deg2rad(angle))*velocity.y, sin(deg2rad(angle))*velocity.x + cos(deg2rad(angle))*velocity.y ) 
 	#move_and_slide(slope_factor,Vector2(0,1),50)
+	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 	velocity = move_and_slide(velocity, Vector2(0, -1))
 	#var collision = move_and_collide(velocity)
 	#if collision: velocity = velocity.slide(collision.normal)
-	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
+
 
 #	for i in get_slide_count(): #not used
 #		collisions.append(get_slide_collision(i)) #not used
