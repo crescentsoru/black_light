@@ -484,7 +484,7 @@ func debug():
 		flip()
 
 func stand_state():
-	if inputheld(left,2) and not inputheld(up):
+	if inputheld(left,2) and not inputheld(up): #might increase below to 3? idk send your feedback
 		state(DASH)
 		direction= -1
 	elif motionqueue[-1] in ["4","7"]: #walk left
@@ -534,6 +534,13 @@ func walk_state():#Test, still
 		state(STAND) #go to STAND if nothing is held
 	if inputheld(down): state(STAND) #should go into crouch.
 	if inputpressed(jump): state(JUMPSQUAT)
+	if frame <= 1 and not inputheld(up): #UCF
+		if inputpressed(left):
+			state(DASH)
+			direction = -1
+		if inputpressed(right):
+			state(DASH)
+			direction = 1
 	#acceleration
 	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
 		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
@@ -541,13 +548,24 @@ func walk_state():#Test, still
 	if not is_on_floor():
 		state(AIR)
 
-func velocity_w_max(acc,maxx):#add x velocity with a maximum value and an acceleration. Doesn't override existing velocity.
-	return min(abs(abs(velocity.x) - maxx),(acc * maxx)) * direction
+func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an acceleration.
+	if veldir == 1: #Meant to not override existing velocity such as from hitstun.
+		return min(veldir*maxx,velocity.x + acc)
+	if veldir == -1:
+		return max(veldir*maxx,velocity.x-acc)
+
+
+#left
+#		velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-drift_accel*action_analogconvert()/action_range))
+#	if motionqueue[-1] in ['6','9','3']: #if drifting right
+#		velocity.x = round( min(maxx,velocity.x+acc))
+
+
 
 
 func dash_state():
 	if frame>0:
-		velocity.x += velocity_w_max(dashspeed,dashspeed)
+		velocity.x = velocity_wmax(dashspeed,dashspeed,direction)
 	if frame == dashframes:
 		state(STAND)
 
