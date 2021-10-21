@@ -28,19 +28,24 @@
 
 [resource]
 animations = [ {
+"frames": [ ExtResource( 15 ) ],
+"loop": true,
+"name": "air",
+"speed": 5.0
+}, {
 "frames": [ ExtResource( 1 ) ],
 "loop": false,
 "name": "goattack",
 "speed": 0.0
 }, {
-"frames": [ ExtResource( 15 ), ExtResource( 16 ), ExtResource( 20 ), ExtResource( 18 ), ExtResource( 19 ), ExtResource( 17 ) ],
-"loop": false,
-"name": "stand",
-"speed": 0.0
-}, {
 "frames": [ ExtResource( 3 ) ],
 "loop": false,
 "name": "gorelease",
+"speed": 0.0
+}, {
+"frames": [ ExtResource( 15 ), ExtResource( 16 ), ExtResource( 20 ), ExtResource( 18 ), ExtResource( 19 ), ExtResource( 17 ) ],
+"loop": false,
+"name": "stand",
 "speed": 0.0
 }, {
 "frames": [ ExtResource( 2 ) ],

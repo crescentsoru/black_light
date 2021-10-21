@@ -490,11 +490,12 @@ func stand_state():
 		state('gospecial')
 	if inputreleased(special,releasebuffer,''): #same as inputreleased without params
 		state('gorelease')
-	
+
+	apply_gravity()
 	if not is_on_floor():
 		state(AIR)
-		
-		
+
+
 	#traction
 	if abs(velocity.x) - traction < 0:
 		velocity.x = 0
@@ -523,6 +524,9 @@ func walk_state():#Test, still
 	#acceleration
 	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
 		velocity.x += round(min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction )
+	apply_gravity()
+	if not is_on_floor():
+		state(AIR)
 
 func air_state():
 	aerial_acceleration()
@@ -551,9 +555,7 @@ func aerial_acceleration(drift=drift_accel,ff=true):
 		velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+drift_accel*action_analogconvert()/action_range))
 
 	#falling
-	velocity.y += fall_accel
-	if velocity.y > fall_max:
-		velocity.y = fall_max 
+	apply_gravity()
 
 var rooted = false #if true, then check for pECB collision 
 func apply_traction():
@@ -565,6 +567,15 @@ func apply_traction():
 		else:
 			velocity.x+=traction
 
+func apply_gravity(): #this is called in ground states as well to prevent bugs regarding collision not working if you don't have a
+#downward vector at all times.
+#I'll go with that solution for floor collision for now, but I'm sure as hell open to other collision systems 
+	velocity.y += fall_accel
+	if velocity.y > fall_max:
+		velocity.y = fall_max 
+
+func unrooted_traction():
+	pass
 
 
 func check_landing():
@@ -593,6 +604,7 @@ func testlogic():
 			impactstop+=10
 		if frame == 18:
 			state('stand')
+		apply_gravity() 
 	if state == 'gospecial':
 		if frame == 26:
 			state('stand')
@@ -619,6 +631,8 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	char_state_handler()
 	if state in groundedstates:
 		apply_traction()
+		apply_gravity()
+		#+ the rooted thing
 	if state in landingstates:
 		check_landing()
 	testlogic() #will be removed eventually
@@ -631,30 +645,35 @@ func state_handler():
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
 
-
-func collision_handler(): #For platform/floor/wall collision. Might contain state checks. That's probably fine?
+var collisions = []
+func collision_handler(): #For platform/floor/wall collision.
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
-	var angle = 0 #I don't know what this does 
-	var slope_factor = Vector2(cos(deg2rad(angle))*velocity.x - sin(deg2rad(angle))*velocity.y, sin(deg2rad(angle))*velocity.x + cos(deg2rad(angle))*velocity.y ) 
+	#var angle = 0 #I don't know what this does 
+	#var slope_factor = Vector2(cos(deg2rad(angle))*velocity.x - sin(deg2rad(angle))*velocity.y, sin(deg2rad(angle))*velocity.x + cos(deg2rad(angle))*velocity.y ) 
 	#move_and_slide(slope_factor,Vector2(0,1),50)
-	velocity = move_and_slide(velocity, Vector2(0, -1), slope_slide_threshold)
+	velocity = move_and_slide(velocity, Vector2(0, -1))
 	#var collision = move_and_collide(velocity)
 	#if collision: velocity = velocity.slide(collision.normal)
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 
 
+	for i in get_slide_count():
+		collisions.append(get_slide_collision(i))
+
+	if inputheld(up): print (collisions)
 
 	if velocity.y < 0: disable_platform()
 	for i in $pECB.get_overlapping_bodies():
 # ^^^^ this returns the objects your projected ECB is touching. Essentially, "this will be collided with on the next frame".
 #Only returns objects that pECB touches, but ECB doesn't. Also doesn't return the ECB itself. Why? I have absolutely no clue.
-#This works out in my favor though. Godot docu says it's better to use signals, I'll switch over to that if there's any issues.
+#This works out so far, but it needs to be replaced with a system that is based on signals instead. 
 		if i.position.y > ecb_down().y:
 			if velocity.y >= 0:
 				enable_platform()
 	if inputheld(down):
 		disable_platform() #once state machine is back make this freefall and air only? 
 
+	collisions = []
 
 func _ready():
 	replayprep()
@@ -689,7 +708,7 @@ func _physics_process(delta):
 
 
 #physics process order-
-
+#set analog values
 #writebuffer()
 #motionqueueprocess()
 #state machine.			  ignored if impactstop > 0
