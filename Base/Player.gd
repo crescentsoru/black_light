@@ -100,13 +100,18 @@ var traction = 100 #unused
 var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
 var skidmodifier = 1 #unused
 
+
 var walk_accel = 100
 var walk_max = 1000
 var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. 
-var dashspeed = 2000 #unused
+var dashspeed = 2000 
+var dashframes = 16
+
 var runspeed = 2000 #unused
 var runaccel = 0 #unused
 var run_max = 2000 #unused
+
+
 
 var drift_accel = 400
 var drift_max = 1250
@@ -479,11 +484,16 @@ func debug():
 		flip()
 
 func stand_state():
-
-	if motionqueue[-1] == "4": #walk left
-		state(WALK)
+	if inputheld(left,2) and not inputheld(up):
+		state(DASH)
 		direction= -1
-	if motionqueue[-1] == "6": #walk right
+	elif motionqueue[-1] in ["4","7"]: #walk left
+		state(WALK)
+		direction=- 1
+	if inputheld(right,2) and not inputheld(up):
+		state(DASH)
+		direction= 1
+	elif motionqueue[-1] in ["6","9"]: #walk right
 		state(WALK)
 		direction= 1
 	if inputpressed(attack):
@@ -516,12 +526,11 @@ func action_analogconvert(): #returns how hard you're pressing your stick.x from
 
 
 func walk_state():#Test, still
-	if motionqueue[-1] == "4":
-		if direction != -1:
-			state(STAND)
-	if motionqueue[-1] == "6":
+	if motionqueue[-1] in ["4","7"]:
+		if direction != -1: state(STAND)
+	if motionqueue[-1] in ["6","9"]:
 		if direction != 1: state(STAND)
-	if motionqueue[-1] == "5":
+	if motionqueue[-1] in ["5","8"]:
 		state(STAND) #go to STAND if nothing is held
 	if inputheld(down): state(STAND) #should go into crouch.
 	if inputpressed(jump): state(JUMPSQUAT)
@@ -539,6 +548,8 @@ func velocity_w_max(acc,maxx):#add x velocity with a maximum value and an accele
 func dash_state():
 	if frame>0:
 		velocity.x += velocity_w_max(dashspeed,dashspeed)
+	if frame == dashframes:
+		state(STAND)
 
 func run_state():
 	pass
