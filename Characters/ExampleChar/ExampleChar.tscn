@@ -309,8 +309,8 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 frames = ExtResource( 2 )
 animation = "walk"
-frame = 1
-offset = Vector2( 0, -5 )
+frame = 2
+offset = Vector2( 20, -5 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 visible = false
