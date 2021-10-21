@@ -259,7 +259,7 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id=7]
 resource_name = "walk"
-length = 0.283334
+length = 0.25
 loop = true
 step = 0.0166667
 tracks/0/type = "value"
@@ -281,10 +281,10 @@ tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/keys = {
-"times": PoolRealArray( 0, 0.0166667, 0.0333333, 0.05, 0.0666667, 0.0833333, 0.116667, 0.133333, 0.15, 0.166667, 0.183333, 0.2 ),
-"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
+"times": PoolRealArray( 0, 0.0166667, 0.0333333, 0.05, 0.0666667, 0.0833333, 0.1, 0.116667, 0.133333, 0.15, 0.166667, 0.183333, 0.2, 0.216667, 0.233333 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
 "update": 1,
-"values": [ Vector2( 0, -5 ), Vector2( 20, -5 ), Vector2( 15, -5 ), Vector2( 0, -5 ), Vector2( -10, -5 ), Vector2( -15, -5 ), Vector2( -15, -5 ), Vector2( 10, -5 ), Vector2( 30, -5 ), Vector2( 25, -5 ), Vector2( 0, -5 ), Vector2( -10, -5 ) ]
+"values": [ Vector2( 0, -5 ), Vector2( 20, -5 ), Vector2( 16, -5 ), Vector2( -4, -5 ), Vector2( -16, -5 ), Vector2( -24, -5 ), Vector2( -24, -5 ), Vector2( -24, -5 ), Vector2( 0, -5 ), Vector2( 20, -5 ), Vector2( 16, -5 ), Vector2( -4, -5 ), Vector2( -16, -5 ), Vector2( -24, -5 ), Vector2( -24, -5 ) ]
 }
 tracks/2/type = "value"
 tracks/2/path = NodePath("AnimationPlayer:playback_speed")
@@ -309,8 +309,8 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 frames = ExtResource( 2 )
 animation = "walk"
-frame = 1
-offset = Vector2( 0, -5 )
+frame = 13
+offset = Vector2( -16, -5 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 visible = false

@@ -125,12 +125,12 @@ var walljump_count = 0 #Consecutive walljumps lose momentum with each jump.
 
 var fastfall = false #true if you're fastfalling 
 var hardland = 4
-var softland = 2 #probably will remain unused for a long while. Landing lag for when you're landing normally without fastfalling. 
+var softland = 2 #probably will remain unused for a while. Landing lag for when you're landing normally without fastfalling. 
 var landlag = 4 #changed all the time in states that can land. 
 
 
 	#State definitions
-var groundedstates = [] #States that will not slide off the ground and experience traction.
+var groundedstates = [] #Traction + rooted state.
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
 
@@ -492,7 +492,6 @@ func stand_state():
 		state('gorelease')
 	
 	if not is_on_floor():
-		print('why the fuck are you not on floor')
 		state(AIR)
 		
 		
