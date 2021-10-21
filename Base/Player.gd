@@ -48,6 +48,7 @@ const WALK = 'walk'
 const WALKBACK = 'walkback'
 const DASH = 'dash'
 const RUN = 'run'
+const TURN = 'turn'
 const CROUCH = 'crouch'
 const LAND = 'land'
 const JUMPSQUAT = 'jumpsquat'
@@ -99,19 +100,20 @@ var traction = 100 #unused
 var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
 var skidmodifier = 1 #unused
 
-var walk_accel = 200
-var walk_max = 1600
+var walk_accel = 100
+var walk_max = 1000
 var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. 
-var dashspeed = 300 #unused
-var runspeed = 800 #unused
-var runaccel = 800 #unused
+var dashspeed = 2000 #unused
+var runspeed = 2000 #unused
+var runaccel = 0 #unused
+var run_max = 2000 #unused
 
 var drift_accel = 400
 var drift_max = 1250
 var fall_accel = 120
 var fall_max = 1600
 
-var jumpsquat = 4
+var jumpsquat = 3
 var shorthopspeed = 1300
 var fullhopspeed = 3000
 var airjumpspeed = 2700 #this is velocity.y not drifting
@@ -126,7 +128,7 @@ var walljump_count = 0 #Consecutive walljumps lose momentum with each jump.
 var fastfall = false #true if you're fastfalling 
 var hardland = 4
 var softland = 2 #probably will remain unused for a while. Landing lag for when you're landing normally without fastfalling. 
-var landlag = 4 #changed all the time in states that can land. 
+var landinglag = 4 #changed all the time in states that can land. 
 
 
 	#State definitions
@@ -514,7 +516,6 @@ func action_analogconvert(): #returns how hard you're pressing your stick.x from
 
 
 func walk_state():#Test, still
-	apply_gravity()
 	if motionqueue[-1] == "4":
 		if direction != -1:
 			state(STAND)
@@ -531,11 +532,19 @@ func walk_state():#Test, still
 	if not is_on_floor():
 		state(AIR)
 
+func dash_state():
+	pass
+
+func run_state():
+	pass
+
+func turn_state():
+	pass
+
 func air_state():
 	aerial_acceleration()
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
-
 
 func doublejump():
 	velocity.y = -1 * airjumpspeed
@@ -551,12 +560,23 @@ func jumpsquat_state():
 			velocity.y-=shorthopspeed
 			state(AIR)
 
+func land_state():
+	apply_traction()
+	apply_gravity()
+	if frame == landinglag:
+		if inputheld(down): state(STAND) #switch to crouch
+		else: state(STAND)
 
 func state_handler():
 	if state_check(STAND): stand_state()
 	if state_check(WALK): walk_state()
-	if state_check(AIR): air_state()
+	if state_check(DASH): dash_state()
+	if state_check(RUN): run_state()
+	if state_check(TURN): turn_state()
 	if state_check(JUMPSQUAT): jumpsquat_state()
+	if state_check(AIR): air_state()
+	if state_check(LAND): land_state()
+
 
 #enables platform collision
 func enable_platform():
@@ -600,7 +620,8 @@ func unrooted_traction():
 func check_landing():
 #Character scripts could either overwrite landingstates on _ready with every default state and their own or just .append() to it.
 	if is_on_floor() and frame > 0:
-		state(STAND) #LAND pls
+		state(LAND)
+		refresh_air_options()
 
 func testlogic():
 #function for testing, everything here will eventually be replaced by something actually good in other functions
@@ -667,10 +688,8 @@ func collision_handler(): #For platform/floor/wall collision.
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 
 
-	for i in get_slide_count():
-		collisions.append(get_slide_collision(i))
-
-
+#	for i in get_slide_count(): #not used
+#		collisions.append(get_slide_collision(i)) #not used 
 	if velocity.y < 0: disable_platform()
 	for i in $pECB.get_overlapping_bodies():
 # ^^^^ this returns the objects your projected ECB is touching. Essentially, "this will be collided with on the next frame".
@@ -684,8 +703,7 @@ func collision_handler(): #For platform/floor/wall collision.
 	else: in_platform = true
 	if inputheld(down):
 		disable_platform() #once state machine is back make this freefall and air only? 
-
-	collisions = [] #not used rn 
+#	collisions = [] #not used rn 
 
 func _ready():
 	replayprep()
