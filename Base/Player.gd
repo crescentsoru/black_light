@@ -48,7 +48,6 @@ const WALK = 'walk'
 const WALKBACK = 'walkback'
 const DASH = 'dash'
 const RUN = 'run'
-const TURN = 'turn'
 const CROUCH = 'crouch'
 const LAND = 'land'
 const JUMPSQUAT = 'jumpsquat'
@@ -96,33 +95,26 @@ const ZAIR = 'zair'
 
 
 
-var traction = 100
+var traction = 100 #unused
 var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
 var skidmodifier = 1 #unused
 
-
-var walk_accel = 100
-var walk_max = 1000
+var walk_accel = 200
+var walk_max = 1600
 var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. 
-var dashspeed = 2000
-var dashaccel = 500
-var dashframes = 16
-
-var runspeed = 2000 #unused
-var runaccel = 0 #unused
-var run_max = 2000 #unused
-
-
+var dashspeed = 300 #unused
+var runspeed = 800 #unused
+var runaccel = 800 #unused
 
 var drift_accel = 400
 var drift_max = 1250
-var fall_accel = 120
-var fall_max = 1600
+var fall_accel = 40
+var fall_max = 1400
 
 var jumpsquat = 3
-var shorthopspeed = 1300
-var fullhopspeed = 3000
-var airjumpspeed = 2700 #this is velocity.y not drifting
+var shorthopspeed = 650 #unused
+var fullhopspeed = 1000
+var airjumpspeed = 900 #this is velocity.y not drifting
 var airjump_max = 2 
 var airjumps = 0 
 var airdash_max = 1 #unused
@@ -133,14 +125,12 @@ var walljump_count = 0 #Consecutive walljumps lose momentum with each jump.
 
 var fastfall = false #true if you're fastfalling 
 var hardland = 4
-var softland = 2 #probably will remain unused for a while. Landing lag for when you're landing normally without fastfalling. 
-var landinglag = 4 #changed all the time in states that can land. 
+var softland = 2 #probably will remain unused for a long while. Landing lag for when you're landing normally without fastfalling. 
+var landlag = 4 #changed all the time in states that can land. 
 
 
 	#State definitions
-var rootedstates = [JUMPSQUAT] #Rooted state. Ground attacks should be this.
-var slidestates = [STAND,WALK,DASH,RUN,LAND] #Usually ground movement, will slide off when not grounded.
-var tractionstates = [STAND,LAND] #Only adds traction
+var groundedstates = [] #States that will not slide off the ground and experience traction.
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
 
@@ -158,7 +148,7 @@ var extrablockstun = 0 #Don't use
 
 #movement engine, copypasted from Project Tension. If there's something better to use please replace this 
 var slope_slide_threshold = 0
-
+var snap = false
 
 	##################
 		##INPUTS##
@@ -311,12 +301,13 @@ func writebuffer():
 			x[1]=0
 			x[3]=0
 			if currentreplay[x[0]] != []: currentreplay[x[0]][-1][1] = global.gametime
-func inputheld(inp,below=900000000,above=0): #button held. pretty simple
+func inputheld(inp): #button held. pretty simple
 	for x in buffer:
 		if x[0] == inp:
-			if x[1] > above and x[1] <= below:
+			if x[1] > 0:
 				return true
-			else: return false
+			else: return false 
+
 func inputpressed(inp,custombuffer=pressbuffer,prevstate=''): 
 	for x in buffer:
 		if x[0] == inp:
@@ -389,6 +380,7 @@ func motionappend(number):
 		motionqueue = motionqueue + number
 		motiontimer = 8
 
+
 var animexception = [] #this will be useful later for the AIR state 
 func state_exception(state_array):
 	for each_state in state_array:
@@ -439,8 +431,9 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 			impactstop_trigger = true
 
 func persistentlogic(): #this will contain character functions that happen during impactstop.
-#This includes tech buffering/lockout and SDI. 
-	#Might as well put this here, don't see a reason not to atm
+	pass  #This includes tech buffering/lockout and SDI. 
+
+	#might as well put this here, don't see a reason not to atm
 	state_called = []
 
 
@@ -481,20 +474,14 @@ func debug():
 		global.replaying = true
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
-		pass
+		flip()
 
 func stand_state():
-	if frame == 0: refresh_air_options()
-	if inputheld(left,2) and not inputheld(up): #might increase below to 3? idk send your feedback
-		state(DASH)
-		direction= -1
-	elif motionqueue[-1] in ["4","7"]: #walk left
+
+	if motionqueue[-1] == "4": #walk left
 		state(WALK)
-		direction=- 1
-	if inputheld(right,2) and not inputheld(up):
-		state(DASH)
-		direction= 1
-	elif motionqueue[-1] in ["6","9"]: #walk right
+		direction= -1
+	if motionqueue[-1] == "6": #walk right
 		state(WALK)
 		direction= 1
 	if inputpressed(attack):
@@ -503,11 +490,20 @@ func stand_state():
 		state('gospecial')
 	if inputreleased(special,releasebuffer,''): #same as inputreleased without params
 		state('gorelease')
-	if inputpressed(jump): state(JUMPSQUAT)
-
-
-
-
+	
+	if not is_on_floor():
+		print('why the fuck are you not on floor')
+		state(AIR)
+		
+		
+	#traction
+	if abs(velocity.x) - traction < 0:
+		velocity.x = 0
+	else:
+		if velocity.x > 0:
+			velocity.x-=traction
+		else:
+			velocity.x+=traction
 
 func action_analogconvert(): #returns how hard you're pressing your stick.x from 0 to 80(action_range)
 	if analogstick.x <= 127:
@@ -517,114 +513,24 @@ func action_analogconvert(): #returns how hard you're pressing your stick.x from
 
 
 func walk_state():#Test, still
-	if motionqueue[-1] in ["4","7"]:
-		if direction != -1: state(STAND)
-	if motionqueue[-1] in ["6","9"]:
+	if motionqueue[-1] == "4":
+		if direction != -1:
+			state(STAND)
+	if motionqueue[-1] == "6":
 		if direction != 1: state(STAND)
-	if motionqueue[-1] in ["5","8"]:
+	if motionqueue[-1] == "5":
 		state(STAND) #go to STAND if nothing is held
 	if inputheld(down): state(STAND) #should go into crouch.
-	if inputpressed(jump): state(JUMPSQUAT)
-	if frame <= 1 and not inputheld(up): #UCF
-		if inputpressed(left):
-			state(DASH)
-			direction = -1
-		if inputpressed(right):
-			state(DASH)
-			direction = 1
 	#acceleration
 	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
-		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
-
-
-func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an acceleration.
-	if veldir == 1: #Meant to not override existing velocity such as from hitstun.
-		return min(veldir*maxx,velocity.x + acc)
-	if veldir == -1:
-		return max(veldir*maxx,velocity.x-acc)
-
-
-#left
-#		velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-drift_accel*action_analogconvert()/action_range))
-#	if motionqueue[-1] in ['6','9','3']: #if drifting right
-#		velocity.x = round( min(maxx,velocity.x+acc))
-
-
-
-
-func dash_state():
-	
-	if frame <= dashframes:
-		if inputpressed(left) and direction == 1:
-			direction = -1
-			state(TURN)
-		if inputpressed(right) and direction == -1:
-			direction = 1
-			state(TURN)
-	
-	if frame == dashframes:
-		state(STAND)
-
-
-	velocity.x = velocity_wmax(dashspeed,dashspeed,direction)
-	
-
-
-func run_state():
-	pass
-
-func turn_state():
-	if frame == 1:
-		if inputheld(left):
-			direction = -1
-			state(DASH)
-		elif inputheld(right):
-			direction = 1
-			state(DASH)
-		else:
-			state(STAND)
-	if frame > 1: #I dunno what to do here exactly, I do not want to recreate the slow turn from Smash
-		apply_traction()
-	if frame == 15: #random number idc
-		state(STAND)	
-	
-
+		velocity.x += round(min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction )
 
 func air_state():
 	aerial_acceleration()
-	if inputpressed(jump) and airjumps < airjump_max:
-		doublejump()
 
-func doublejump():
-	velocity.y = -1 * airjumpspeed
-	airjumps+=1
-	#play animation
 
-func jumpsquat_state():
-	if frame == jumpsquat:
-		if inputheld(jump): #fullhop
-			velocity.y-= fullhopspeed
-			state(AIR)
-		if not inputheld(jump): #shorthop
-			velocity.y-=shorthopspeed
-			state(AIR)
 
-func land_state():
-	if frame == 0:
-		refresh_air_options()
-	if frame == landinglag:
-		if inputheld(down): state(STAND) #switch to crouch
-		else: state(STAND)
 
-func state_handler():
-	if state_check(STAND): stand_state()
-	if state_check(WALK): walk_state()
-	if state_check(DASH): dash_state()
-	if state_check(RUN): run_state()
-	if state_check(TURN): turn_state()
-	if state_check(JUMPSQUAT): jumpsquat_state()
-	if state_check(AIR): air_state()
-	if state_check(LAND): land_state()
 
 
 #enables platform collision
@@ -633,6 +539,9 @@ func enable_platform():
 #disables platform collision
 func disable_platform():
 	self.set_collision_mask_bit(2,false)
+
+
+
 
 func aerial_acceleration(drift=drift_accel,ff=true):
 	#drift lets you set custom drift potential to use for specials.
@@ -643,7 +552,9 @@ func aerial_acceleration(drift=drift_accel,ff=true):
 		velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+drift_accel*action_analogconvert()/action_range))
 
 	#falling
-	apply_gravity()
+	velocity.y += fall_accel
+	if velocity.y > fall_max:
+		velocity.y = fall_max 
 
 var rooted = false #if true, then check for pECB collision 
 func apply_traction():
@@ -655,26 +566,27 @@ func apply_traction():
 		else:
 			velocity.x+=traction
 
-func apply_gravity(): #this is called in ground states as well to prevent bugs regarding collision not working if you don't have a
-#downward vector at all times.
-#I'll go with that solution for floor collision for now, but I'm sure as hell open to other collision systems 
-	velocity.y += fall_accel
-	if velocity.y > fall_max:
-		velocity.y = fall_max
-
-
 
 
 func check_landing():
 #Character scripts could either overwrite landingstates on _ready with every default state and their own or just .append() to it.
-	if is_on_floor() and frame > 0:
-		state(LAND)
-		refresh_air_options()
+	if is_on_floor():
+		state(STAND)
 
 func testlogic():
 #function for testing, everything here will eventually be replaced by something actually good in other functions
 
 
+
+#limited jumps, refresh air option test
+	if is_on_floor(): refresh_air_options()
+	if inputpressed(jump):
+		if is_on_floor():
+			velocity.y-=airjumpspeed
+		else:
+			if airjumps < airjump_max:
+				velocity.y-=airjumpspeed
+				airjumps+=1
 
 #state machination
 	if state == 'goattack':
@@ -682,7 +594,6 @@ func testlogic():
 			impactstop+=10
 		if frame == 18:
 			state('stand')
-		apply_gravity() 
 	if state == 'gospecial':
 		if frame == 26:
 			state('stand')
@@ -690,7 +601,7 @@ func testlogic():
 		if frame == 8:
 			state('stand')
 
-#Unused funcs have fun with these
+
 func ecb_up(): #returns the scene position of the top point of your pECB.
 	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[0]
 func ecb_down(): #returns the scene position of the lower point of your pECB. 
@@ -707,56 +618,44 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	$pECB.scale.x = direction
 	state_handler()
 	char_state_handler()
-	if state in rootedstates:
-		apply_gravity()
-		rooted = true
-	if state in tractionstates:
+	if state in groundedstates:
 		apply_traction()
-	if state in slidestates:
-		apply_gravity()
-		if not is_on_floor():
-			velocity.x = velocity.x/3
-			state(AIR)
 	if state in landingstates:
 		check_landing()
 	testlogic() #will be removed eventually
 	collision_handler()
 
-
+func state_handler():
+	if state_check(STAND): stand_state()
+	if state_check(WALK): walk_state()
+	if state_check(AIR): air_state()
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
 
-var collisions = []
-var in_platform = true #will trigger dfghjduhpfsdlnjk;hblhnjk;sdfgb;luhjkfsdg
-func collision_handler(): #For platform/floor/wall collision.
+
+func collision_handler(): #For platform/floor/wall collision. Might contain state checks. That's probably fine?
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
-	#var angle = 0 #I don't know what this does 
-	#var slope_factor = Vector2(cos(deg2rad(angle))*velocity.x - sin(deg2rad(angle))*velocity.y, sin(deg2rad(angle))*velocity.x + cos(deg2rad(angle))*velocity.y ) 
+	var angle = 0 #I don't know what this does 
+	var slope_factor = Vector2(cos(deg2rad(angle))*velocity.x - sin(deg2rad(angle))*velocity.y, sin(deg2rad(angle))*velocity.x + cos(deg2rad(angle))*velocity.y ) 
 	#move_and_slide(slope_factor,Vector2(0,1),50)
-	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
-	velocity = move_and_slide(velocity, Vector2(0, -1))
+	velocity = move_and_slide(velocity, Vector2(0, -1), slope_slide_threshold)
 	#var collision = move_and_collide(velocity)
 	#if collision: velocity = velocity.slide(collision.normal)
+	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 
 
-#	for i in get_slide_count(): #not used
-#		collisions.append(get_slide_collision(i)) #not used
+
 	if velocity.y < 0: disable_platform()
 	for i in $pECB.get_overlapping_bodies():
 # ^^^^ this returns the objects your projected ECB is touching. Essentially, "this will be collided with on the next frame".
 #Only returns objects that pECB touches, but ECB doesn't. Also doesn't return the ECB itself. Why? I have absolutely no clue.
-#This works out so far, but it needs to be replaced with a signal system so you could return the objects you're colliding w at any time. 
-		if in_platform == false:
+#This works out in my favor though. Godot docu says it's better to use signals, I'll switch over to that if there's any issues.
+		if i.position.y > ecb_down().y:
 			if velocity.y >= 0:
 				enable_platform()
-	if $pECB.get_overlapping_bodies() == []:
-		in_platform = false
-	else: in_platform = true
 	if inputheld(down):
 		disable_platform() #once state machine is back make this freefall and air only? 
 
-	rooted = false
-#	collisions = [] #not used rn 
 
 func _ready():
 	replayprep()
@@ -791,7 +690,7 @@ func _physics_process(delta):
 
 
 #physics process order-
-#set analog values
+
 #writebuffer()
 #motionqueueprocess()
 #state machine.			  ignored if impactstop > 0

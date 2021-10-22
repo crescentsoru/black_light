@@ -1,10 +1,6 @@
-[gd_scene load_steps=2 format=2]
-
-[sub_resource type="PhysicsMaterial" id=1]
-friction = 0.0
+[gd_scene format=2]
 
 [node name="Platform" type="StaticBody2D"]
-physics_material_override = SubResource( 1 )
 
 [node name="platform_collision" type="CollisionPolygon2D" parent="."]
 modulate = Color( 0.0235294, 0.690196, 0.67451, 1 )
