@@ -31,29 +31,29 @@ pause_mode = 2
 position = Vector2( 1280, 720 )
 zoom = Vector2( 3, 3 )
 
+[node name="ExampleChar" parent="Stage" instance=ExtResource( 1 )]
+position = Vector2( 5021.19, 3276.87 )
+
 [node name="Floor" parent="Stage" instance=ExtResource( 3 )]
-position = Vector2( 40, 1200 )
+position = Vector2( 3293.01, 3755.67 )
 scale = Vector2( 5, 1 )
 collision_layer = 2
 collision_mask = 0
 
-[node name="ExampleChar" parent="Stage" instance=ExtResource( 1 )]
-position = Vector2( 1426.34, 923.073 )
-
 [node name="PlatformL" parent="Stage" instance=ExtResource( 5 )]
-position = Vector2( 180, 665 )
+position = Vector2( 3513.99, 3286.9 )
+scale = Vector2( 1.5, 1 )
+collision_layer = 4
+collision_mask = 0
+
+[node name="PlatformT" parent="Stage" instance=ExtResource( 5 )]
+position = Vector2( 4232.37, 2797.51 )
 scale = Vector2( 1.5, 1 )
 collision_layer = 4
 collision_mask = 0
 
 [node name="PlatformR" parent="Stage" instance=ExtResource( 5 )]
-position = Vector2( 1661.77, 651.53 )
-scale = Vector2( 1.5, 1 )
-collision_layer = 4
-collision_mask = 0
-
-[node name="PlatformR2" parent="Stage" instance=ExtResource( 5 )]
-position = Vector2( 974.825, 153.157 )
+position = Vector2( 4934.04, 3283.94 )
 scale = Vector2( 1.5, 1 )
 collision_layer = 4
 collision_mask = 0
