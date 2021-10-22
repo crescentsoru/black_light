@@ -1,6 +1,11 @@
-[gd_scene format=2]
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="PhysicsMaterial" id=1]
+friction = 0.0
 
 [node name="Floor" type="StaticBody2D"]
+physics_material_override = SubResource( 1 )
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+position = Vector2( 0.0022583, 0.110725 )
 polygon = PoolVector2Array( 0, 0, 512, 0, 512, 96, 0, 96 )
