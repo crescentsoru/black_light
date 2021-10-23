@@ -112,7 +112,7 @@ var dashframes = 16
 var runjumpmod = 1.0 #A modifier on your momentum when you ground jump.
 var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
-var runspeed = 2100
+var runspeed = 2100 
 var runaccel = 50 #applied after dash momentum 
 
 
@@ -420,6 +420,8 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 	state_called.append(newstate) #wip
 	state_handler()
 
+	
+
 
 func framechange(): #increments the frames, decrements the impactstop timer and stops decrementing frame if impactstop > 0.
 	if impactstop == 0: #moved to a separate function for brevity
@@ -443,7 +445,6 @@ func state_check(statecompare):#state handler function for checking if the state
 		if not (state in state_called):
 			return true
 		else:
-		#	print ("double state function call prevented " + state) #do this later
 			return false
 	else: return false
 
@@ -477,7 +478,8 @@ func debug():
 		velocity.x = 4000
 
 func stand_state():
-	if frame == 0: refresh_air_options()
+	if frame == 0:
+		refresh_air_options()
 	if inputheld(left,3) and not inputheld(up): #might increase below to 3? idk send your feedback
 		state(DASH)
 		direction= -1
@@ -490,12 +492,6 @@ func stand_state():
 	elif motionqueue[-1] in ["6","9"]: #walk right
 		state(WALK)
 		direction= 1
-	if inputpressed(attack):
-		state('goattack')
-	if inputpressed(special,pressbuffer,""): #same as inputpressed without specifying the optional params
-		state('gospecial')
-	if inputreleased(special,releasebuffer,''): #same as inputreleased without params
-		state('gorelease')
 	if inputpressed(jump): state(JUMPSQUAT)
 
 func crouch_state():
@@ -523,16 +519,18 @@ func walk_state():#Test, still
 	if inputheld(down): state(STAND) #should go into crouch.
 	if inputpressed(jump): state(JUMPSQUAT)
 	if frame <= 1 and not inputheld(up): #UCF
-		if inputheld(left):
+		if inputheld(left,2):
 			state(DASH)
 			direction = -1
-		if inputheld(right):
+		if inputheld(right,2):
 			state(DASH)
 			direction = 1
 	#acceleration
 	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
 		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
 
+
+#find out how much analog dash influences inputs
 
 func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an acceleration.
 	if veldir == 1: #Meant to not override existing velocity such as from hitstun.
@@ -550,13 +548,15 @@ func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an 
 
 
 func dash_state():
-	
+#analog dashing in Melee is complex and actually leads to issues like inconsistent 1.0 cardinal sooo I'm not gonna recreat 
 	if frame <= dashframes:
 		if inputpressed(left) and direction == 1:
 			direction = -1
+			velocity.x -= dashaccel * 1.5
 			state(TURN)
 		if inputpressed(right) and direction == -1:
 			direction = 1
+			velocity.x += dashaccel * 1.5
 			state(TURN)
 
 	if frame > dashframes:
@@ -565,25 +565,27 @@ func dash_state():
 	if inputpressed(jump):
 		
 		state(JUMPSQUAT)
+	
+	velocity.x = velocity_wmax(dashaccel*0.75+dashaccel*action_analogconvert()/action_range*0.25,dashspeed*0.75+dashspeed*action_analogconvert()/action_range*0.25,direction)
 
-	velocity.x = velocity_wmax(dashaccel,dashspeed,direction)
-
-
+#action_analogconvert()/action_range
 
 func run_state():
 
 	#momentum only applies if you're holding left/right
-	if (inputpressed(left) and direction == -1) or (inputpressed(right) and direction == 1):
+	if (inputheld(left) and direction == -1) or (inputheld(right) and direction == 1):
 		if abs(velocity.x) < dashspeed: velocity.x = velocity_wmax(dashaccel,dashspeed,direction)
 		else: velocity.x = velocity_wmax(runaccel,runspeed,direction)
-	if inputpressed(left) and direction == 1:
+	if inputheld(left) and direction == 1:
 		apply_traction() #for 1 frame, should make it feel a little better to use
 		flip()
 		state(SKID)
-	if inputpressed(right) and direction == -1:
+	if inputheld(right) and direction == -1:
 		apply_traction() #for 1 frame, should make it feel a little better to use
 		flip()
 		state(SKID)
+	if not (inputheld(left) or inputheld(right)):
+		apply_traction()
 	if abs(velocity.x) < 100 and motionqueue[-1] == '5': #completely arbitrary numbers
 		state(STAND)
 	if inputpressed(jump): state(JUMPSQUAT)
@@ -591,7 +593,7 @@ func run_state():
 func skid_state():
 	if frame >= 2 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
 
-	if (abs(velocity.x) < 100 and frame == 20) or frame == 55: #the frame thing is for exceptional situations where you get stuck
+	if (abs(velocity.x) < 100 and frame == 20) or frame == 30:
 			state(STAND)
 		
 
@@ -612,8 +614,7 @@ func turn_state():
 	if frame > 1: #I dunno what to do here exactly, I do not want to recreate the slow turn from Smash
 		apply_traction()
 	if frame == 15: #random number idc
-		state(STAND)	
-
+		state(STAND)
 
 
 func air_state():
@@ -668,9 +669,11 @@ func aerial_acceleration(drift=drift_accel,ff=true):
 	#drift lets you set custom drift potential to use for specials.
 	#ff=false will disallow fastfalling.
 	if motionqueue[-1] in ['4','7','1']: #if drifting left
-		velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-drift_accel*action_analogconvert()/action_range))
+		if velocity.x > -1*drift_max: #so that drifting wouldn't cancel out existing run momentum
+			velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-drift_accel*action_analogconvert()/action_range))
 	if motionqueue[-1] in ['6','9','3']: #if drifting right
-		velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+drift_accel*action_analogconvert()/action_range))
+		if velocity.x < drift_max:
+			velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+drift_accel*action_analogconvert()/action_range))
 
 	#falling
 	apply_gravity()
@@ -701,24 +704,6 @@ func check_landing():
 		state(LAND)
 		refresh_air_options()
 
-func testlogic():
-#function for testing, everything here will eventually be replaced by something actually good in other functions
-
-
-
-#state machination
-	if state == 'goattack':
-		if frame == 5:
-			impactstop+=10
-		if frame == 18:
-			state('stand')
-		apply_gravity() 
-	if state == 'gospecial':
-		if frame == 26:
-			state('stand')
-	if state == 'gorelease':
-		if frame == 8:
-			state('stand')
 
 #Unused funcs have fun with these
 func ecb_up(): #returns the scene position of the top point of your pECB.
@@ -749,7 +734,7 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 			state(AIR)
 	if state in landingstates:
 		check_landing()
-	testlogic() #will be removed eventually
+
 	collision_handler()
 
 
