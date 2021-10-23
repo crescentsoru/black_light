@@ -44,17 +44,19 @@ var motiontimer = 8
 #These basically make the code more readable and make the process of working with state machines slightly quicker.
 	#Ground movement
 const STAND = 'stand'
+const CROUCH = 'crouch'
+const CROUCHSTART = 'crouchstart'
 const WALK = 'walk'
 const WALKBACK = 'walkback'
 const DASH = 'dash'
 const RUN = 'run'
 const TURN = 'turn'
-const CROUCH = 'crouch'
+const SKID = 'skid'
 const LAND = 'land'
 const JUMPSQUAT = 'jumpsquat'
 const SHORTHOP = 'shorthop'
 const FULLHOP = 'fullhop'
-const SKID = 'skid'
+
 	#Air movement
 const AIR = 'air'
 const F_AIRDASH = 'f_airdash'
@@ -101,26 +103,23 @@ var postwalktraction = 0 #This might be a fucking stupid idea, but it might make
 var skidmodifier = 1 #unused
 
 
-var walk_accel = 100
-var walk_max = 1000
+var walk_accel = 80
+var walk_max = 900
 var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. 
-var dashaccel = 800
-var dashspeed = 2000
-
+var dashaccel = 700
+var dashspeed = 1900
 var dashframes = 16
 var runjumpmod = 1.0 #A modifier on your momentum when you ground jump.
 var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
-var runspeed = 2000 #unused
-var runaccel = 0 #unused
-var run_max = 2000 #unused
+var runspeed = 2100
+var runaccel = 50 #applied after dash momentum 
 
 
-
-var drift_accel = 400
+var drift_accel = 350
 var drift_max = 1250
 var fall_accel = 120
-var fall_max = 1600
+var fall_max = 1800
 
 var jumpsquat = 3
 var shorthopspeed = 1300
@@ -141,15 +140,14 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var rootedstates = [JUMPSQUAT] #Rooted state. Ground attacks should be this.
-var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN] #Usually ground movement, will slide off when not grounded.
-var tractionstates = [STAND,LAND] #Only adds traction
+var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK] #Rooted state. Ground attacks should be this.
+var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN,SKID] #Usually ground movement, will slide off when not grounded.
+var tractionstates = [STAND,LAND,SKID] #Only adds traction
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
 
 
 	#Pressure vars
-
 var blocking = false #Unused
 var extrablockstun = 0 #Don't use
 
@@ -292,7 +290,6 @@ func base_inputheld(inp):
 				for n in currentreplay[x]:
 					if n[1] > global.gametime and n[0] <= global.gametime:
 						return true
-
 func writebuffer():
 	for x in buffer:
 		x[2]+=1
@@ -434,7 +431,8 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 			impactstop_trigger = true
 
 func persistentlogic(): #this will contain character functions that happen during impactstop.
-#This includes tech buffering/lockout and SDI. 
+#This includes tech buffering/lockout and SDI.
+ 
 	#Might as well put this here, don't see a reason not to atm
 	state_called = []
 
@@ -476,7 +474,7 @@ func debug():
 		global.replaying = true
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
-		pass
+		velocity.x = 4000
 
 func stand_state():
 	if frame == 0: refresh_air_options()
@@ -500,7 +498,11 @@ func stand_state():
 		state('gorelease')
 	if inputpressed(jump): state(JUMPSQUAT)
 
+func crouch_state():
+	pass
 
+func crouchstart_state():
+	pass
 
 
 
@@ -569,7 +571,33 @@ func dash_state():
 
 
 func run_state():
-	pass
+
+	#momentum only applies if you're holding left/right
+	if (inputpressed(left) and direction == -1) or (inputpressed(right) and direction == 1):
+		if abs(velocity.x) < dashspeed: velocity.x = velocity_wmax(dashaccel,dashspeed,direction)
+		else: velocity.x = velocity_wmax(runaccel,runspeed,direction)
+	if inputpressed(left) and direction == 1:
+		apply_traction() #for 1 frame, should make it feel a little better to use
+		flip()
+		state(SKID)
+	if inputpressed(right) and direction == -1:
+		apply_traction() #for 1 frame, should make it feel a little better to use
+		flip()
+		state(SKID)
+	if abs(velocity.x) < 100 and motionqueue[-1] == '5': #completely arbitrary numbers
+		state(STAND)
+	if inputpressed(jump): state(JUMPSQUAT)
+
+func skid_state():
+	if frame >= 2 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
+
+	if (abs(velocity.x) < 100 and frame == 20) or frame == 55: #the frame thing is for exceptional situations where you get stuck
+			state(STAND)
+		
+
+
+
+
 
 func turn_state():
 	if frame == 1:
@@ -618,9 +646,12 @@ func land_state():
 
 func state_handler():
 	if state_check(STAND): stand_state()
+	if state_check(CROUCH): crouch_state()
+	if state_check(CROUCHSTART): crouchstart_state()
 	if state_check(WALK): walk_state()
 	if state_check(DASH): dash_state()
 	if state_check(RUN): run_state()
+	if state_check(SKID): skid_state()
 	if state_check(TURN): turn_state()
 	if state_check(JUMPSQUAT): jumpsquat_state()
 	if state_check(AIR): air_state()

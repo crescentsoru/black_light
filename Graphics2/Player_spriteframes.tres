@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=2]
+[gd_resource type="SpriteFrames" load_steps=27 format=2]
 
 [ext_resource path="res://Graphics2/master_jab3.png" type="Texture" id=1]
 [ext_resource path="res://Graphics2/master_testspecial.png" type="Texture" id=2]
@@ -25,22 +25,23 @@
 [ext_resource path="res://Graphics2/walk (10).png" type="Texture" id=23]
 [ext_resource path="res://Graphics2/walk (9).png" type="Texture" id=24]
 [ext_resource path="res://Graphics2/walk (15).png" type="Texture" id=25]
+[ext_resource path="res://Graphics2/sprite_5-0.png" type="Texture" id=26]
 
 [resource]
 animations = [ {
-"frames": [ ExtResource( 15 ) ],
+"frames": [ ExtResource( 26 ) ],
 "loop": true,
-"name": "air",
+"name": "turn",
 "speed": 5.0
+}, {
+"frames": [ ExtResource( 15 ) ],
+"loop": false,
+"name": "air",
+"speed": 0.0
 }, {
 "frames": [ ExtResource( 1 ) ],
 "loop": false,
 "name": "goattack",
-"speed": 0.0
-}, {
-"frames": [ ExtResource( 3 ) ],
-"loop": false,
-"name": "gorelease",
 "speed": 0.0
 }, {
 "frames": [ ExtResource( 15 ), ExtResource( 16 ), ExtResource( 20 ), ExtResource( 18 ), ExtResource( 19 ), ExtResource( 17 ) ],
@@ -53,8 +54,13 @@ animations = [ {
 "name": "gospecial",
 "speed": 0.0
 }, {
+"frames": [ ExtResource( 3 ) ],
+"loop": false,
+"name": "gorelease",
+"speed": 0.0
+}, {
 "frames": [ ExtResource( 9 ), ExtResource( 11 ), ExtResource( 10 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 6 ), ExtResource( 5 ), ExtResource( 4 ), ExtResource( 24 ), ExtResource( 23 ), ExtResource( 21 ), ExtResource( 13 ), ExtResource( 14 ), ExtResource( 22 ), ExtResource( 25 ), ExtResource( 12 ) ],
-"loop": true,
+"loop": false,
 "name": "walk",
-"speed": 5.0
+"speed": 0.0
 } ]
