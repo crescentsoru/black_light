@@ -104,9 +104,12 @@ var skidmodifier = 1 #unused
 var walk_accel = 100
 var walk_max = 1000
 var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. 
+var dashaccel = 800
 var dashspeed = 2000
-var dashaccel = 500
+
 var dashframes = 16
+var runjumpmod = 1.0 #A modifier on your momentum when you ground jump.
+var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
 var runspeed = 2000 #unused
 var runaccel = 0 #unused
@@ -139,7 +142,7 @@ var landinglag = 4 #changed all the time in states that can land.
 
 	#State definitions
 var rootedstates = [JUMPSQUAT] #Rooted state. Ground attacks should be this.
-var slidestates = [STAND,WALK,DASH,RUN,LAND] #Usually ground movement, will slide off when not grounded.
+var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN] #Usually ground movement, will slide off when not grounded.
 var tractionstates = [STAND,LAND] #Only adds traction
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
@@ -149,11 +152,6 @@ var landingstates = [AIR] #States that will enter LAND when you land on the grou
 
 var blocking = false #Unused
 var extrablockstun = 0 #Don't use
-
-
-
-
-
 
 
 #movement engine, copypasted from Project Tension. If there's something better to use please replace this 
@@ -233,7 +231,6 @@ var analogstick = Vector2(0,0)
 var analog_deadzone = 24 #should probably be the same as analog_tilt
 var analog_tilt = 24 #how much distance you need for the game to consider something a tilt input rather than neutral
 var analog_smash = 63 #how much distance the stick has to travel to be considered an u/d/l/r/ or smash input
-
 func analogconvert(floatL,floatR,floatD,floatU):
 #Godot returns analog "strength" of actions as a float going from 0 to 1.
 #This function converts up/down/left/right inputs into a Vector2() which represents both axes as 256-bit digits.
@@ -255,7 +252,6 @@ func analogdeadzone(stick,zone): #applies a deadzone to a stick value
 		if not (stick.y <= 127-zone or stick.y >= 127+zone):
 			return Vector2(127,127)
 	return stick
-
 func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a deadzone
 		if controllable:
 			analogstick = analogconvert(Input.get_action_strength(left),Input.get_action_strength(right),Input.get_action_strength(down),Input.get_action_strength(up))
@@ -269,7 +265,6 @@ func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a
 			for x in currentreplay['analog']:
 				if x[0] == global.gametime:
 					analogstick = Vector2(x[1],x[2])
-
 func base_inputheld(inp):
 	if controllable:
 		if inp != "": #this line prevents massive lag in interpreter (and possibly exports) when a button isn't set. 
@@ -485,13 +480,13 @@ func debug():
 
 func stand_state():
 	if frame == 0: refresh_air_options()
-	if inputheld(left,2) and not inputheld(up): #might increase below to 3? idk send your feedback
+	if inputheld(left,3) and not inputheld(up): #might increase below to 3? idk send your feedback
 		state(DASH)
 		direction= -1
 	elif motionqueue[-1] in ["4","7"]: #walk left
 		state(WALK)
 		direction=- 1
-	if inputheld(right,2) and not inputheld(up):
+	if inputheld(right,3) and not inputheld(up):
 		state(DASH)
 		direction= 1
 	elif motionqueue[-1] in ["6","9"]: #walk right
@@ -526,10 +521,10 @@ func walk_state():#Test, still
 	if inputheld(down): state(STAND) #should go into crouch.
 	if inputpressed(jump): state(JUMPSQUAT)
 	if frame <= 1 and not inputheld(up): #UCF
-		if inputpressed(left):
+		if inputheld(left):
 			state(DASH)
 			direction = -1
-		if inputpressed(right):
+		if inputheld(right):
 			state(DASH)
 			direction = 1
 	#acceleration
@@ -561,13 +556,16 @@ func dash_state():
 		if inputpressed(right) and direction == -1:
 			direction = 1
 			state(TURN)
-	
-	if frame == dashframes:
-		state(STAND)
 
-
-	velocity.x = velocity_wmax(dashspeed,dashspeed,direction)
+	if frame > dashframes:
+		state(RUN)
 	
+	if inputpressed(jump):
+		
+		state(JUMPSQUAT)
+
+	velocity.x = velocity_wmax(dashaccel,dashspeed,direction)
+
 
 
 func run_state():
@@ -587,7 +585,7 @@ func turn_state():
 		apply_traction()
 	if frame == 15: #random number idc
 		state(STAND)	
-	
+
 
 
 func air_state():
@@ -602,6 +600,8 @@ func doublejump():
 
 func jumpsquat_state():
 	if frame == jumpsquat:
+		velocity.x = velocity.x * runjumpmod #modifier
+		if abs(velocity.x) > runjumpmax: velocity.x = runjumpmax * direction #maxifier
 		if inputheld(jump): #fullhop
 			velocity.y-= fullhopspeed
 			state(AIR)
@@ -627,11 +627,10 @@ func state_handler():
 	if state_check(LAND): land_state()
 
 
-#enables platform collision
-func enable_platform():
+
+func enable_platform(): #enables platform collision
 	self.set_collision_mask_bit(2,true)
-#disables platform collision
-func disable_platform():
+func disable_platform(): #disables platform collision
 	self.set_collision_mask_bit(2,false)
 
 func aerial_acceleration(drift=drift_accel,ff=true):
