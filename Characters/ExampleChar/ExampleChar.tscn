@@ -49,43 +49,44 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id=2]
 resource_name = "dash"
+length = 0.1
 loop = true
-step = 0.0344828
+step = 0.0166667
 tracks/0/type = "value"
-tracks/0/path = NodePath("Sprite:offset")
+tracks/0/path = NodePath("AnimationPlayer:playback_speed")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.133333, 0.172414, 0.310345, 0.344828, 0.517241, 0.655172, 0.689655, 0.827586, 0.862069, 1 ),
-"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
 "update": 0,
-"values": [ Vector2( 25, -10 ), Vector2( 25, -10 ), Vector2( -15, -10 ), Vector2( -15, -10 ), Vector2( 25, -10 ), Vector2( 25, -10 ), Vector2( 25, -10 ), Vector2( -15, -10 ), Vector2( -15, -10 ), Vector2( 25, -10 ), Vector2( 25, -10 ) ]
+"values": [ 0.15 ]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("AnimationPlayer:playback_speed")
+tracks/1/path = NodePath("Sprite:frame")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
-"update": 0,
-"values": [ 1.5 ]
+"times": PoolRealArray( 0, 0.0166667, 0.0333333, 0.05, 0.0666667, 0.0833333 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2, 3, 4, 5 ]
 }
 tracks/2/type = "value"
-tracks/2/path = NodePath("Sprite:frame")
+tracks/2/path = NodePath("Sprite:offset")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/imported = false
 tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.172414, 0.344828, 0.517241, 0.689655, 0.862069 ),
+"times": PoolRealArray( 0, 0.0166667, 0.0333333, 0.05, 0.0666667, 0.0833333 ),
 "transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
 "update": 1,
-"values": [ 0, 1, 2, 3, 4, 5 ]
+"values": [ Vector2( 4, -5 ), Vector2( -32, -5 ), Vector2( 12, -5 ), Vector2( 6, -5 ), Vector2( -32, -5 ), Vector2( 12, -5 ) ]
 }
 
 [sub_resource type="Animation" id=3]
@@ -426,8 +427,8 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 frames = ExtResource( 2 )
 animation = "dash"
-frame = 5
-offset = Vector2( -24, -5 )
+frame = 2
+offset = Vector2( 12, -5 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 visible = false
@@ -442,7 +443,7 @@ position = Vector2( 0, 18 )
 polygon = PoolVector2Array( 0, -135, -50, 0, 0, 182, 50, 0 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-playback_speed = 0.25
+playback_speed = 0.15
 anims/air = SubResource( 1 )
 anims/dash = SubResource( 2 )
 anims/goattack = SubResource( 3 )
