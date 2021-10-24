@@ -109,7 +109,7 @@ var action_range = 80 #analog range for maximum walk acceleration, drifting, das
 var dashaccel = 700
 var dashspeed = 1900
 var dashframes = 16
-var runjumpmod = 1.0 #A modifier on your momentum when you ground jump.
+var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
 var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
 var runspeed = 2100 
@@ -592,10 +592,10 @@ func run_state():
 
 func skid_state():
 	if frame >= 2 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
-
 	if (abs(velocity.x) < 100 and frame == 20) or frame == 30:
 			state(STAND)
-		
+
+
 
 
 

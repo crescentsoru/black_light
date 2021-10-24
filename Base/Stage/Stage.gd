@@ -30,17 +30,21 @@ onready var examplechar = $Stage/ExampleChar
 var ispause = false 
 var whopause = '' #the player who paused the game is specified here
 var pauseframe = 0 #for forwarding by 1 frame
-
+var pausehold = 0 #increments every frame forward is held, if it's 30 then go realtime as long as frame forward is held
 
 var text1 = '' #to make the debug text more bearable to edit
 var text2 = ''
 var text3 = ''
+var text4 = ''
 
 func _physics_process(delta):
+	if Input.is_action_pressed('d_forward'): pausehold+=1
+	else: pausehold = 0
 	text1= "gametime= " + str(global.gametime) + "\nvelocity= " + str(examplechar.velocity) + "\nmotionqueue= " + examplechar.motionqueue
 	text2= "\nstate= " + str(examplechar.state) + "\nframe= " + str(examplechar.frame) + "\nanalog= " + str(examplechar.analogstick)
 	text3= ''
-	$UI_persistent/gametime.text = text1 + text2 + text3
+	text4= ''
+	$UI_persistent/gametime.text = text1 + text2 + text3 + text4
 	if Input.is_action_just_pressed("p1_pause"):
 		if ispause == false:
 			ispause = true
@@ -59,5 +63,10 @@ func _physics_process(delta):
 	if ispause and global.gametime == pauseframe+1:
 		get_node("Stage").pause_mode = Node.PAUSE_MODE_STOP
 		get_tree().paused = true
+	if Input.is_action_pressed("d_forward") and ispause and pausehold >= 30:
+		pauseframe = global.gametime
+		get_node("Stage").pause_mode = Node.PAUSE_MODE_PROCESS
+		get_tree().paused = false
+
 
 
