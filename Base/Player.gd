@@ -105,10 +105,12 @@ var skidmodifier = 1 #unused
 
 var walk_accel = 80
 var walk_max = 900
-var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. 
-var dashaccel = 700
+var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running.
+
+var dashinitial = 1650 #initial burst of speed when you enter DASH. Not analog. 
+var dashaccel = 25
 var dashspeed = 1900
-var dashframes = 16
+var dashframes = 15
 var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
 var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
@@ -417,10 +419,8 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 	state_previous = state
 	state = newstate
 	frame = newframe
-	state_called.append(newstate) #wip
 	state_handler()
 
-	
 
 
 func framechange(): #increments the frames, decrements the impactstop timer and stops decrementing frame if impactstop > 0.
@@ -443,7 +443,9 @@ func persistentlogic(): #this will contain character functions that happen durin
 func state_check(statecompare):#state handler function for checking if the state is correct AND if it's been processed before.
 	if state == statecompare:
 		if not (state in state_called):
+			state_called.append(state) #wip
 			return true
+
 		else:
 			return false
 	else: return false
@@ -458,9 +460,12 @@ func refresh_air_options():
 	recoverymomentum_current = recoverymomentum_default
 	walljump_count = 0
 
+
+
 func debug():
 #function for testing, please do not use this for legit game logic
-	#replay debug
+	#replay
+
 	if Input.is_action_just_pressed("d_load"):
 		global.replaying = true
 		global.replay_loadfile()
@@ -476,6 +481,7 @@ func debug():
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
 		velocity.x = 4000
+
 
 func stand_state():
 	if frame == 0:
@@ -548,30 +554,34 @@ func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an 
 
 
 func dash_state():
-#analog dashing in Melee is complex and actually leads to issues like inconsistent 1.0 cardinal sooo I'm not gonna recreat 
-	if frame <= dashframes:
-		if inputpressed(left) and direction == 1:
-			direction = -1
-			velocity.x -= dashaccel * 1.5
-			state(TURN)
-		if inputpressed(right) and direction == -1:
-			direction = 1
-			velocity.x += dashaccel * 1.5
-			state(TURN)
+#analog dashing in Melee is complex and actually leads to issues like inconsistent 1.0 cardinal sooo I'm not gonna recreate it
+
+#analog sets a maximum for the accel, if accel isn't happening then apply_traction()
 
 	if frame > dashframes:
 		state(RUN)
-	
-	if inputpressed(jump):
-		
-		state(JUMPSQUAT)
-	
-	velocity.x = velocity_wmax(dashaccel*0.75+dashaccel*action_analogconvert()/action_range*0.25,dashspeed*0.75+dashspeed*action_analogconvert()/action_range*0.25,direction)
+	if frame <= dashframes:
+		if inputpressed(left) and direction == 1:
+			direction = -1
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), -1) #abs(velocity.x) makes sure you don't just get a free boost the other direction in STAND 
+			state(TURN)
+		if inputpressed(right) and direction == -1:
+			direction = 1
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1)
+			state(TURN)
+
+
+	if inputpressed(jump): #btw jump checks should be done as late as possible
+		state(JUMPSQUAT) #because successful input buffer checks will erase the input for further jump checks and make it unbufferable
+	if frame == 1: #yes initial dash is applied on the second frame
+		velocity.x = velocity_wmax(dashinitial,dashspeed, direction)
+	if frame >=1:
+		if inputheld(left) or inputheld(right): velocity.x = velocity_wmax(dashaccel*action_analogconvert()/action_range,dashspeed*action_analogconvert()/action_range,direction)
 
 #action_analogconvert()/action_range
 
 func run_state():
-
+	if frame == 0: print ('first of RUN!!!')
 	#momentum only applies if you're holding left/right
 	if (inputheld(left) and direction == -1) or (inputheld(right) and direction == 1):
 		if abs(velocity.x) < dashspeed: velocity.x = velocity_wmax(dashaccel,dashspeed,direction)
@@ -650,8 +660,8 @@ func state_handler():
 	if state_check(CROUCH): crouch_state()
 	if state_check(CROUCHSTART): crouchstart_state()
 	if state_check(WALK): walk_state()
-	if state_check(DASH): dash_state()
 	if state_check(RUN): run_state()
+	if state_check(DASH): dash_state()
 	if state_check(SKID): skid_state()
 	if state_check(TURN): turn_state()
 	if state_check(JUMPSQUAT): jumpsquat_state()
