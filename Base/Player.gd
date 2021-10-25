@@ -108,7 +108,8 @@ var walk_max = 900
 var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running.
 
 var dashinitial = 1650 #initial burst of speed when you enter DASH. Not analog. 
-var dashaccel = 25
+var dashaccel = 10 #completely digital, also known as Base Acceleration
+var dashaccelanalog = 15 #analog accel, also known as Additional Acceleration 
 var dashspeed = 1900
 var dashframes = 150
 var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
@@ -121,11 +122,11 @@ var runaccel = 50 #applied after dash momentum
 var drift_accel = 350
 var drift_max = 1250
 var fall_accel = 120
-var fall_max = 1800
+var fall_max = 1900
 
 var jumpsquat = 3
-var shorthopspeed = 1300
-var fullhopspeed = 3000
+var shorthopspeed = 1600
+var fullhopspeed = 2900
 var airjumpspeed = 2700 #this is velocity.y not drifting
 var airjump_max = 2 
 var airjumps = 0 
@@ -587,7 +588,7 @@ func dash_state():
 	if frame >=1:
 		if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
 			if not (motionqueue[-1] in ['5','8','2']):
-				velocity.x = velocity_wmax(dashaccel*action_analogconvert()/action_range,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+				velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			elif frame > 1: apply_traction()
 		elif frame > 1: apply_traction()
 #action_analogconvert()/action_range
