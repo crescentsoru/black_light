@@ -104,9 +104,9 @@ const JAB = 'jab'
 
 
 
-var traction = 100
+var traction = 80
 var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
-var skidmodifier = 1 #unused
+var skidmodifier = 1.0 #applies a modifier to traction during SKID/BRAKE
 
 
 var walk_accel = 80
@@ -122,14 +122,15 @@ var dashendframes = 11 #DASHEND duration
 var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
 var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
-var runspeed = 2100 
-var runaccel = 15 #applied after dash momentum 
+var runspeed = 1900 
+var runaccel = 0 #applied after dash momentum 
 
 
 var drift_accel = 350
 var drift_max = 1250
 var fall_accel = 120
 var fall_max = 1900
+var airfriction = 5 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
 
 var jumpsquat = 3
 var shorthopspeed = 1600
@@ -284,7 +285,7 @@ func base_inputheld(inp):
 	#this code will break if there is no deadzone and analog_smash is at a small or 0 value. Please don't do that you have no reason to
 #BTW, as far as I could gather, the distance you need for "smash inputs", which I tested with dashes, is kind of inconsistent in melee.
 #To dash left from STAND, you need to travel 63 analog units or more, and to dash right, you need 65 or more. Values 64 and 192 respectively.
-#Maybe a mistake was made and the "center" of the analog stick is deemed to be value 128 instead of 127? Definitely possible due to how rushed the game was. 
+#Maybe a mistake was made and the "center" of the analog stick is deemed to be value 126 instead of 127? Definitely possible due to how rushed the game was. 
 						if inp == up:
 							if analogstick.y <= 255 and analogstick.y >= 127+analog_smash:
 								return true
@@ -654,12 +655,12 @@ func run_state():
 
 func skid_state():
 	if frame >= 1 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
-	if frame >=2: apply_traction()
+	if frame >=2: apply_traction(skidmodifier)
 	if frame == 20:
 			state(STAND)
 
 func brake_state():
-	if frame >=2: apply_traction()
+	if frame >=2: apply_traction(skidmodifier)
 	if frame == 20:
 			state(STAND)
 	if inputpressed(left):
@@ -699,6 +700,19 @@ func air_state():
 	aerial_acceleration()
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
+	if motionqueue[-1] in ['5','8','2']: #if not drifting
+		if frame > 2: air_friction()
+		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
+		
+
+func air_friction():
+	if abs(velocity.x) - airfriction < 0:
+		velocity.x = 0
+	else:
+		if velocity.x > 0:
+			velocity.x-=airfriction
+		else:
+			velocity.x+=airfriction
 
 func doublejump():
 	velocity.y = -1 * airjumpspeed
@@ -759,14 +773,14 @@ func aerial_acceleration(drift=drift_accel,ff=true):
 	apply_gravity()
 
 var rooted = false #if true, then check for pECB collision 
-func apply_traction():
-	if abs(velocity.x) - traction < 0:
+func apply_traction(mod=1.0): #mod = modifier for traction.
+	if abs(velocity.x) - traction*mod < 0:
 		velocity.x = 0
 	else:
 		if velocity.x > 0:
-			velocity.x-=traction
+			velocity.x-=traction * mod
 		else:
-			velocity.x+=traction
+			velocity.x+=traction * mod 
 
 func apply_gravity(): #this is called in ground states as well to prevent bugs regarding collision not working if you don't have a
 #downward vector at all times.
