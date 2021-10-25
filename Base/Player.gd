@@ -236,15 +236,19 @@ func analogconvert(floatL,floatR,floatD,floatU):
 #This function converts up/down/left/right inputs into a Vector2() which represents both axes as 256-bit digits.
 	var analogX = 0
 	var analogY = 0
-	if floatL >= floatR: #Meant to account for the impossibly stupid situation of "what if two opposite strengths are pressed at the same time"
-		analogX = 127 - 127*floatL #Get fucked digital users 
-	if floatR > floatL:
+	if floatL > floatR:
+		analogX = 127 - 127*floatL 
+	elif floatR > floatL:
 		analogX = 127 + 128*floatR
+	else: #if digital users input both left and right, go neutral
+		analogX = 127
 	#same thing for y axis
-	if floatD >= floatU:
+	if floatD > floatU:
 		analogY = 127 - 127*floatD
-	if floatU > floatD:
+	elif floatU > floatD:
 		analogY = 127 + 128*floatU
+	else: #if digital users input both up and down, go up
+		analogY = 255
 	#return finished calculations
 	return Vector2(round(analogX),round(analogY))
 func analogdeadzone(stick,zone): #applies a deadzone to a stick value
