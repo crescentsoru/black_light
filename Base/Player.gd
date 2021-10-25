@@ -49,9 +49,11 @@ const CROUCHSTART = 'crouchstart'
 const WALK = 'walk'
 const WALKBACK = 'walkback'
 const DASH = 'dash'
+const DASHEND = 'dashend'
 const RUN = 'run'
 const TURN = 'turn'
 const SKID = 'skid'
+const BRAKE = 'brake'
 const LAND = 'land'
 const JUMPSQUAT = 'jumpsquat'
 const SHORTHOP = 'shorthop'
@@ -81,7 +83,7 @@ const UKEMIFORTH = 'ukemiforth'
 const HARDKNOCKDOWN = 'hardknockdown'
 const SPECIALFALL = 'specialfall'
 
-	#Attacks
+	#Base attacks
 const NAIR = 'nair'
 const FAIR = 'fair'
 const UAIR = 'uair'
@@ -92,6 +94,10 @@ const SEVAIR = 'sevair' #up-backward aerial
 const TRIAIR = 'triair' #down-forward aerial
 const UNOAIR = 'unoair' #down-backward aerial
 const ZAIR = 'zair'
+
+const JAB = 'jab'
+
+
 
 	#Movement vars
 
@@ -111,12 +117,13 @@ var dashinitial = 1650 #initial burst of speed when you enter DASH. Not analog.
 var dashaccel = 10 #completely digital, also known as Base Acceleration
 var dashaccelanalog = 15 #analog accel, also known as Additional Acceleration 
 var dashspeed = 1900
-var dashframes = 150
+var dashframes = 15
+var dashendframes = 11 #DASHEND duration
 var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
 var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
 var runspeed = 2100 
-var runaccel = 50 #applied after dash momentum 
+var runaccel = 15 #applied after dash momentum 
 
 
 var drift_accel = 350
@@ -144,8 +151,8 @@ var landinglag = 4 #changed all the time in states that can land.
 
 	#State definitions
 var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK] #Rooted state. Ground attacks should be this.
-var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN,SKID] #Usually ground movement, will slide off when not grounded.
-var tractionstates = [STAND,LAND] #Only adds traction
+var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE] #Usually ground movement, will slide off when not grounded.
+var tractionstates = [STAND,LAND,DASHEND] #Only adds traction
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
 
@@ -246,10 +253,8 @@ func analogconvert(floatL,floatR,floatD,floatU):
 	#same thing for y axis
 	if floatD > floatU:
 		analogY = 127 - 127*floatD
-	elif floatU > floatD:
+	elif floatU >= floatD:
 		analogY = 127 + 128*floatU
-	else: #if digital users input both up and down, go up
-		analogY = 255
 	#return finished calculations
 	return Vector2(round(analogX),round(analogY))
 func analogdeadzone(stick,zone): #applies a deadzone to a stick value
@@ -562,13 +567,11 @@ func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an 
 
 
 func dash_state():
-#analog dashing in Melee is complex and actually leads to issues like inconsistent 1.0 cardinal sooo I'm not gonna recreate it
-
-#analog sets a maximum for the accel, if accel isn't happening then apply_traction()
 
 	if frame > dashframes:
-		if not (inputheld(left) or inputheld(right)): pass
-		state(RUN)
+		if not (inputheld(left) or inputheld(right)):
+			state(DASHEND)
+		else: state(RUN)
 
 	if frame <= dashframes:
 		if inputpressed(left) and direction == 1:
@@ -591,38 +594,89 @@ func dash_state():
 				velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			elif frame > 1: apply_traction()
 		elif frame > 1: apply_traction()
-#action_analogconvert()/action_range
+
+
+func dashend_state():
+	if inputheld(left):
+		if direction == 1:
+			direction = -1
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), -1)
+			state(TURN)
+		else: state(RUN)
+	if inputheld(right):
+		if direction == -1:
+			direction = 1
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1)
+			state(TURN)
+		else: state(RUN)
+	if frame == dashendframes:
+		state(STAND)
+	if inputpressed(jump): state(JUMPSQUAT) 
+
+
 
 func run_state():
-
 	#momentum only applies if you're holding left/right
-	if (inputheld(left) and direction == -1) or (inputheld(right) and direction == 1):
-		if abs(velocity.x) < dashspeed: velocity.x = velocity_wmax(dashaccel,dashspeed,direction)
-		else: velocity.x = velocity_wmax(runaccel,runspeed,direction)
-	if inputheld(left) and direction == 1:
-		apply_traction() #for 1 frame, should make it feel a little better to use
-		flip()
-		state(SKID)
-	if inputheld(right) and direction == -1:
-		apply_traction() #for 1 frame, should make it feel a little better to use
-		flip()
-		state(SKID)
-	if not (inputheld(left) or inputheld(right)):
-		apply_traction()
-	if abs(velocity.x) < 100 and motionqueue[-1] == '5': #completely arbitrary numbers
-		state(STAND)
+	if direction == 1:
+		if inputheld(left):
+			flip()
+			state(SKID)
+		elif inputheld(right):
+			if abs(velocity.x) < dashspeed:
+				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
+					velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+			else:
+				velocity.x = velocity_wmax(runaccel,runspeed,direction) #as you can see I didn't put much effort into run specific acceleration
+		else: #if nothing held
+			state(BRAKE)
+	if direction == -1:
+		if inputheld(right):
+			flip()
+			state(SKID)
+		elif inputheld(left):
+			if abs(velocity.x) < dashspeed:
+				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
+					velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+			else:
+				velocity.x = velocity_wmax(runaccel,runspeed,direction)
+		else:
+			state(BRAKE)
+
+
+
 	if inputpressed(jump): state(JUMPSQUAT)
+
+
+
+
+
+
 
 func skid_state():
 	if frame >= 1 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
 	if frame >=2: apply_traction()
-	if (abs(velocity.x) < 100 and frame == 20) or frame == 30:
+	if frame == 20:
 			state(STAND)
 
-
-
-
-
+func brake_state():
+	if frame >=2: apply_traction()
+	if frame == 20:
+			state(STAND)
+	if inputpressed(left):
+		if direction == -1:
+			velocity.x = velocity_wmax(dashinitial,dashspeed, direction) #get a dashinitial boost when reentering RUN. Oughta be fun
+			state(RUN)
+		else:
+			direction = 1
+			state(SKID,frame) #frame thing is so that SKID endlag doesn't reset
+	if inputpressed(right):
+		if direction == 1:
+			velocity.x = velocity_wmax(dashinitial,dashspeed, direction) 
+			state(RUN)
+		else:
+			direction = -1
+			state(SKID,frame)
+	if inputpressed(jump): state(JUMPSQUAT)
 
 
 func turn_state():
@@ -676,7 +730,9 @@ func state_handler():
 	if state_check(WALK): walk_state()
 	if state_check(RUN): run_state()
 	if state_check(DASH): dash_state()
+	if state_check(DASHEND): dashend_state()
 	if state_check(SKID): skid_state()
+	if state_check(BRAKE): brake_state()
 	if state_check(TURN): turn_state()
 	if state_check(JUMPSQUAT): jumpsquat_state()
 	if state_check(AIR): air_state()
