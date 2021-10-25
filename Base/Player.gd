@@ -110,7 +110,7 @@ var action_range = 80 #analog range for maximum walk acceleration, drifting, das
 var dashinitial = 1650 #initial burst of speed when you enter DASH. Not analog. 
 var dashaccel = 25
 var dashspeed = 1900
-var dashframes = 15
+var dashframes = 150
 var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
 var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
@@ -144,7 +144,7 @@ var landinglag = 4 #changed all the time in states that can land.
 	#State definitions
 var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK] #Rooted state. Ground attacks should be this.
 var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN,SKID] #Usually ground movement, will slide off when not grounded.
-var tractionstates = [STAND,LAND,SKID] #Only adds traction
+var tractionstates = [STAND,LAND] #Only adds traction
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
 
@@ -230,14 +230,14 @@ var currentreplay = {
 var analogstick = Vector2(0,0)
 var analog_deadzone = 24 #should probably be the same as analog_tilt
 var analog_tilt = 24 #how much distance you need for the game to consider something a tilt input rather than neutral
-var analog_smash = 63 #how much distance the stick has to travel to be considered an u/d/l/r/ or smash input
+var analog_smash = 64 #how much distance the stick has to travel to be considered an u/d/l/r/ or smash input
 func analogconvert(floatL,floatR,floatD,floatU):
 #Godot returns analog "strength" of actions as a float going from 0 to 1.
 #This function converts up/down/left/right inputs into a Vector2() which represents both axes as 256-bit digits.
 	var analogX = 0
 	var analogY = 0
 	if floatL >= floatR: #Meant to account for the impossibly stupid situation of "what if two opposite strengths are pressed at the same time"
-		analogX = 127 - 127*floatL #Which I am pretty sure can't happen on this stage but w/e
+		analogX = 127 - 127*floatL #Get fucked digital users 
 	if floatR > floatL:
 		analogX = 127 + 128*floatR
 	#same thing for y axis
@@ -272,6 +272,9 @@ func base_inputheld(inp):
 				if inp in [up,down,left,right]:
 					if analogstick != Vector2(127,127):
 	#this code will break if there is no deadzone and analog_smash is at a small or 0 value. Please don't do that you have no reason to
+#BTW, as far as I could gather, the distance you need for "smash inputs", which I tested with dashes, is kind of inconsistent in melee.
+#To dash left from STAND, you need to travel 63 analog units or more, and to dash right, you need 65 or more. Values 64 and 192 respectively.
+#Maybe a mistake was made and the "center" of the analog stick is deemed to be value 128 instead of 127? Definitely possible due to how rushed the game was. 
 						if inp == up:
 							if analogstick.y <= 255 and analogstick.y >= 127+analog_smash:
 								return true
@@ -559,7 +562,9 @@ func dash_state():
 #analog sets a maximum for the accel, if accel isn't happening then apply_traction()
 
 	if frame > dashframes:
+		if not (inputheld(left) or inputheld(right)): pass
 		state(RUN)
+
 	if frame <= dashframes:
 		if inputpressed(left) and direction == 1:
 			direction = -1
@@ -576,12 +581,15 @@ func dash_state():
 	if frame == 1: #yes initial dash is applied on the second frame
 		velocity.x = velocity_wmax(dashinitial,dashspeed, direction)
 	if frame >=1:
-		if inputheld(left) or inputheld(right): velocity.x = velocity_wmax(dashaccel*action_analogconvert()/action_range,dashspeed*action_analogconvert()/action_range,direction)
-
+		if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
+			if not (motionqueue[-1] in ['5','8','2']):
+				velocity.x = velocity_wmax(dashaccel*action_analogconvert()/action_range,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+			elif frame > 1: apply_traction()
+		elif frame > 1: apply_traction()
 #action_analogconvert()/action_range
 
 func run_state():
-	if frame == 0: print ('first of RUN!!!')
+
 	#momentum only applies if you're holding left/right
 	if (inputheld(left) and direction == -1) or (inputheld(right) and direction == 1):
 		if abs(velocity.x) < dashspeed: velocity.x = velocity_wmax(dashaccel,dashspeed,direction)
@@ -601,7 +609,8 @@ func run_state():
 	if inputpressed(jump): state(JUMPSQUAT)
 
 func skid_state():
-	if frame >= 2 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
+	if frame >= 1 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
+	if frame >=2: apply_traction()
 	if (abs(velocity.x) < 100 and frame == 20) or frame == 30:
 			state(STAND)
 

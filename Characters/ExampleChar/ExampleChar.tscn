@@ -62,7 +62,7 @@ tracks/0/keys = {
 "times": PoolRealArray( 0 ),
 "transitions": PoolRealArray( 1 ),
 "update": 0,
-"values": [ 0.15 ]
+"values": [ 0.25 ]
 }
 tracks/1/type = "value"
 tracks/1/path = NodePath("Sprite:frame")
@@ -86,7 +86,7 @@ tracks/2/keys = {
 "times": PoolRealArray( 0, 0.0166667, 0.0333333, 0.05, 0.0666667, 0.0833333 ),
 "transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
 "update": 1,
-"values": [ Vector2( 4, -5 ), Vector2( -32, -5 ), Vector2( 12, -5 ), Vector2( 6, -5 ), Vector2( -32, -5 ), Vector2( 12, -5 ) ]
+"values": [ Vector2( 4, -5 ), Vector2( -32, -5 ), Vector2( 4, -5 ), Vector2( 6, -5 ), Vector2( -34, -5 ), Vector2( 10, -5 ) ]
 }
 
 [sub_resource type="Animation" id=3]
@@ -427,8 +427,8 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 frames = ExtResource( 2 )
 animation = "dash"
-frame = 2
-offset = Vector2( 12, -5 )
+frame = 4
+offset = Vector2( -34, -5 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 visible = false
@@ -443,7 +443,7 @@ position = Vector2( 0, 18 )
 polygon = PoolVector2Array( 0, -135, -50, 0, 0, 182, 50, 0 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-playback_speed = 0.15
+playback_speed = 0.25
 anims/air = SubResource( 1 )
 anims/dash = SubResource( 2 )
 anims/goattack = SubResource( 3 )
