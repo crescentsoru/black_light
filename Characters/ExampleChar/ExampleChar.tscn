@@ -590,7 +590,7 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 frames = ExtResource( 2 )
 animation = "brake"
-offset = Vector2( 4, 20 )
+offset = Vector2( 4, -5 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 visible = false
