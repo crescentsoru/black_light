@@ -131,7 +131,7 @@ var drift_accel = 350
 var drift_max = 1250
 var fall_accel = 120
 var fall_max = 1900
-var airfriction = 8 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
+var airfriction = 10 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
 
 var jumpsquat = 3
 var shorthopspeed = 1600
@@ -170,7 +170,7 @@ var landinglag = 4 #changed all the time in states that can land.
 
 	#State definitions
 var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK] #Rooted state. Ground attacks should be this.
-var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE] #Usually ground movement, will slide off when not grounded.
+var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
 var tractionstates = [STAND,LAND,DASHEND] #Only adds traction
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
@@ -533,12 +533,14 @@ func stand_state():
 		state(WALK)
 		direction= 1
 	if inputpressed(jump): state(JUMPSQUAT)
+	platform_drop()
+
 
 func crouch_state():
-	pass
+	platform_drop()
 
 func crouchstart_state():
-	pass
+	platform_drop()
 
 
 
@@ -615,7 +617,7 @@ func dash_state():
 				velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			elif frame > 1: apply_traction()
 		elif frame > 1: apply_traction()
-
+	platform_drop()
 
 func dashend_state():
 	if inputheld(left):
@@ -633,7 +635,7 @@ func dashend_state():
 	if frame == dashendframes:
 		state(STAND)
 	if inputpressed(jump): state(JUMPSQUAT) 
-
+	platform_drop()
 
 
 func run_state():
@@ -666,7 +668,7 @@ func run_state():
 
 
 	if inputpressed(jump): state(JUMPSQUAT)
-
+	platform_drop()
 
 
 
@@ -678,6 +680,7 @@ func skid_state():
 	if frame >=2: apply_traction(skidmodifier)
 	if frame == 20:
 			state(STAND)
+	platform_drop()
 
 func brake_state():
 	if frame >=2: apply_traction(skidmodifier)
@@ -698,7 +701,7 @@ func brake_state():
 			direction = 1
 			state(SKID,frame)
 	if inputpressed(jump): state(JUMPSQUAT)
-
+	platform_drop()
 
 func turn_state():
 	if frame == 1:
@@ -714,7 +717,7 @@ func turn_state():
 		apply_traction()
 	if frame == 15: #random number idc
 		state(STAND)
-
+	platform_drop()
 
 func air_state():
 	aerial_acceleration()
@@ -724,7 +727,7 @@ func air_state():
 	if motionqueue[-1] in ['5','8','2']: #if not drifting
 		if frame > 2: air_friction()
 		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
-	
+
 
 func air_friction():
 	if abs(velocity.x) - airfriction < 0:
@@ -775,8 +778,9 @@ func airdodge_state():
 
 
 func waveland_state():
-	if frame == 9:
-		pass
+	
+	if frame == 10:
+		state(STAND)
 	
 
 
@@ -815,6 +819,7 @@ func aerial_acceleration(drift=drift_accel,ff=true):
 
 	#falling
 	apply_gravity()
+	if inputheld(down): disable_platform()
 
 var rooted = false #if true, then check for pECB collision 
 func apply_traction(mod=1.0): #mod = modifier for traction.
@@ -878,6 +883,10 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 
 	collision_handler()
 
+func platform_drop(): #ran in state machine, disables platforms if 1/3 is pressed in numpad notation
+	if inputpressed(down) and (inputheld(left) or inputheld(right)):
+		disable_platform()
+	#inputheld(down) might be better?
 
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
@@ -908,8 +917,7 @@ func collision_handler(): #For platform/floor/wall collision.
 	if $pECB.get_overlapping_bodies() == []:
 		in_platform = false
 	else: in_platform = true
-	if inputheld(down):
-		disable_platform() #once state machine is back make this freefall and air only? 
+
 
 	rooted = false
 #	collisions = [] #not used rn 
