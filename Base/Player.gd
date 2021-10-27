@@ -49,9 +49,11 @@ const CROUCHSTART = 'crouchstart'
 const WALK = 'walk'
 const WALKBACK = 'walkback'
 const DASH = 'dash'
+const DASHEND = 'dashend'
 const RUN = 'run'
 const TURN = 'turn'
 const SKID = 'skid'
+const BRAKE = 'brake'
 const LAND = 'land'
 const JUMPSQUAT = 'jumpsquat'
 const SHORTHOP = 'shorthop'
@@ -59,9 +61,10 @@ const FULLHOP = 'fullhop'
 
 	#Air movement
 const AIR = 'air'
-const F_AIRDASH = 'f_airdash'
-const B_AIRDASH = 'b_airdash'
+const FAIRDASH = 'fairdash'
+const BAIRDASH = 'bairdash'
 const AIRDODGE = 'airdodge'
+const WAVELAND = 'waveland'
 const FREEFALL = 'freefall'
 const WALLJUMP_L = 'walljump_l'
 const WALLJUMP_R = 'walljump_r'
@@ -81,7 +84,7 @@ const UKEMIFORTH = 'ukemiforth'
 const HARDKNOCKDOWN = 'hardknockdown'
 const SPECIALFALL = 'specialfall'
 
-	#Attacks
+	#Base attacks
 const NAIR = 'nair'
 const FAIR = 'fair'
 const UAIR = 'uair'
@@ -93,14 +96,18 @@ const TRIAIR = 'triair' #down-forward aerial
 const UNOAIR = 'unoair' #down-backward aerial
 const ZAIR = 'zair'
 
+const JAB = 'jab'
+
+
+
 	#Movement vars
 
 
 
 
-var traction = 100
+var traction = 80
 var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
-var skidmodifier = 1 #unused
+var skidmodifier = 1.0 #applies a modifier to traction during SKID/BRAKE
 
 
 var walk_accel = 80
@@ -108,29 +115,49 @@ var walk_max = 900
 var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running.
 
 var dashinitial = 1650 #initial burst of speed when you enter DASH. Not analog. 
-var dashaccel = 25
+var dashaccel = 10 #completely digital, also known as Base Acceleration
+var dashaccelanalog = 15 #analog accel, also known as Additional Acceleration 
 var dashspeed = 1900
 var dashframes = 15
+var dashendframes = 11 #DASHEND duration
 var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
 var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
-var runspeed = 2100 
-var runaccel = 50 #applied after dash momentum 
+var runspeed = 1900 
+var runaccel = 0 #applied after dash momentum 
 
 
 var drift_accel = 350
 var drift_max = 1250
 var fall_accel = 120
-var fall_max = 1800
+var fall_max = 1900
+var airfriction = 8 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
 
 var jumpsquat = 3
-var shorthopspeed = 1300
-var fullhopspeed = 3000
+var shorthopspeed = 1600
+var fullhopspeed = 2900
 var airjumpspeed = 2700 #this is velocity.y not drifting
+
 var airjump_max = 2 
 var airjumps = 0 
-var airdash_max = 1 #unused
-var airdashes = 0 #unused
+
+var airdodgespeed = 1800
+var airdodgestartup = 3 #the frame invuln starts
+var airdodgeend = 25
+
+
+var airdash_max = 1 
+var airdashes = 0
+var mergeairoptions = false #airdashes will exhaust jumps and jumps will exhaust airdashes if True.
+var airdashstyle = "mb" #gg= airdash y momentum will not be cancelled by attacks.
+var airdashframes = 0 #variable used for gg airdashes to preserve momentum during aerial_accel. 
+var fairdash_startup = 8
+var fairdash_end = 20
+var fairdash_speed = 1500
+var bairdash_startup = 7
+var bairdash_end = 10
+var bairdash_speed = 1100
+
 var recoverymomentum_current = 500#Momentum value for moves like Mars Side B.
 var recoverymomentum_default = 500#_current returns to this value upon landing.
 var walljump_count = 0 #Consecutive walljumps lose momentum with each jump. 
@@ -143,8 +170,8 @@ var landinglag = 4 #changed all the time in states that can land.
 
 	#State definitions
 var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK] #Rooted state. Ground attacks should be this.
-var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN,SKID] #Usually ground movement, will slide off when not grounded.
-var tractionstates = [STAND,LAND,SKID] #Only adds traction
+var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE] #Usually ground movement, will slide off when not grounded.
+var tractionstates = [STAND,LAND,DASHEND] #Only adds traction
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
 
@@ -230,20 +257,22 @@ var currentreplay = {
 var analogstick = Vector2(0,0)
 var analog_deadzone = 24 #should probably be the same as analog_tilt
 var analog_tilt = 24 #how much distance you need for the game to consider something a tilt input rather than neutral
-var analog_smash = 63 #how much distance the stick has to travel to be considered an u/d/l/r/ or smash input
+var analog_smash = 64 #how much distance the stick has to travel to be considered an u/d/l/r/ or smash input
 func analogconvert(floatL,floatR,floatD,floatU):
 #Godot returns analog "strength" of actions as a float going from 0 to 1.
 #This function converts up/down/left/right inputs into a Vector2() which represents both axes as 256-bit digits.
 	var analogX = 0
 	var analogY = 0
-	if floatL >= floatR: #Meant to account for the impossibly stupid situation of "what if two opposite strengths are pressed at the same time"
-		analogX = 127 - 127*floatL #Which I am pretty sure can't happen on this stage but w/e
-	if floatR > floatL:
+	if floatL > floatR:
+		analogX = 127 - 127*floatL 
+	elif floatR > floatL:
 		analogX = 127 + 128*floatR
+	else: #if digital users input both left and right, go neutral
+		analogX = 127
 	#same thing for y axis
-	if floatD >= floatU:
+	if floatD > floatU:
 		analogY = 127 - 127*floatD
-	if floatU > floatD:
+	elif floatU >= floatD:
 		analogY = 127 + 128*floatU
 	#return finished calculations
 	return Vector2(round(analogX),round(analogY))
@@ -272,6 +301,9 @@ func base_inputheld(inp):
 				if inp in [up,down,left,right]:
 					if analogstick != Vector2(127,127):
 	#this code will break if there is no deadzone and analog_smash is at a small or 0 value. Please don't do that you have no reason to
+#BTW, as far as I could gather, the distance you need for "smash inputs", which I tested with dashes, is kind of inconsistent in melee.
+#To dash left from STAND, you need to travel 63 analog units or more, and to dash right, you need 65 or more. Values 64 and 192 respectively.
+#Maybe a mistake was made and the "center" of the analog stick is deemed to be value 126 instead of 127? Definitely possible due to how rushed the game was. 
 						if inp == up:
 							if analogstick.y <= 255 and analogstick.y >= 127+analog_smash:
 								return true
@@ -481,6 +513,8 @@ func debug():
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
 		velocity.x = 4000
+	if Input.is_action_just_pressed("d_b"):
+		pass
 
 
 func stand_state():
@@ -554,12 +588,12 @@ func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an 
 
 
 func dash_state():
-#analog dashing in Melee is complex and actually leads to issues like inconsistent 1.0 cardinal sooo I'm not gonna recreate it
-
-#analog sets a maximum for the accel, if accel isn't happening then apply_traction()
 
 	if frame > dashframes:
-		state(RUN)
+		if not (inputheld(left) or inputheld(right)):
+			state(DASHEND)
+		else: state(RUN)
+
 	if frame <= dashframes:
 		if inputpressed(left) and direction == 1:
 			direction = -1
@@ -576,39 +610,94 @@ func dash_state():
 	if frame == 1: #yes initial dash is applied on the second frame
 		velocity.x = velocity_wmax(dashinitial,dashspeed, direction)
 	if frame >=1:
-		if inputheld(left) or inputheld(right): velocity.x = velocity_wmax(dashaccel*action_analogconvert()/action_range,dashspeed*action_analogconvert()/action_range,direction)
+		if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
+			if not (motionqueue[-1] in ['5','8','2']):
+				velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+			elif frame > 1: apply_traction()
+		elif frame > 1: apply_traction()
 
-#action_analogconvert()/action_range
+
+func dashend_state():
+	if inputheld(left):
+		if direction == 1:
+			direction = -1
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), -1)
+			state(TURN)
+		else: state(RUN)
+	if inputheld(right):
+		if direction == -1:
+			direction = 1
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1)
+			state(TURN)
+		else: state(RUN)
+	if frame == dashendframes:
+		state(STAND)
+	if inputpressed(jump): state(JUMPSQUAT) 
+
+
 
 func run_state():
-	if frame == 0: print ('first of RUN!!!')
 	#momentum only applies if you're holding left/right
-	if (inputheld(left) and direction == -1) or (inputheld(right) and direction == 1):
-		if abs(velocity.x) < dashspeed: velocity.x = velocity_wmax(dashaccel,dashspeed,direction)
-		else: velocity.x = velocity_wmax(runaccel,runspeed,direction)
-	if inputheld(left) and direction == 1:
-		apply_traction() #for 1 frame, should make it feel a little better to use
-		flip()
-		state(SKID)
-	if inputheld(right) and direction == -1:
-		apply_traction() #for 1 frame, should make it feel a little better to use
-		flip()
-		state(SKID)
-	if not (inputheld(left) or inputheld(right)):
-		apply_traction()
-	if abs(velocity.x) < 100 and motionqueue[-1] == '5': #completely arbitrary numbers
-		state(STAND)
+	if direction == 1:
+		if inputheld(left):
+			flip()
+			state(SKID)
+		elif inputheld(right):
+			if abs(velocity.x) < dashspeed:
+				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
+					velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+			else:
+				velocity.x = velocity_wmax(runaccel,runspeed,direction) #as you can see I didn't put much effort into run specific acceleration
+		else: #if nothing held
+			state(BRAKE)
+	if direction == -1:
+		if inputheld(right):
+			flip()
+			state(SKID)
+		elif inputheld(left):
+			if abs(velocity.x) < dashspeed:
+				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
+					velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+			else:
+				velocity.x = velocity_wmax(runaccel,runspeed,direction)
+		else:
+			state(BRAKE)
+
+
+
 	if inputpressed(jump): state(JUMPSQUAT)
 
+
+
+
+
+
+
 func skid_state():
-	if frame >= 2 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
-	if (abs(velocity.x) < 100 and frame == 20) or frame == 30:
+	if frame >= 1 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
+	if frame >=2: apply_traction(skidmodifier)
+	if frame == 20:
 			state(STAND)
 
-
-
-
-
+func brake_state():
+	if frame >=2: apply_traction(skidmodifier)
+	if frame == 20:
+			state(STAND)
+	if inputpressed(left):
+		if direction == -1:
+			velocity.x = velocity_wmax(dashinitial,dashspeed, direction) #get a dashinitial boost when reentering RUN. Oughta be fun
+			state(RUN)
+		else:
+			direction = 1
+			state(SKID,frame) #frame thing is so that SKID endlag doesn't reset
+	if inputpressed(right):
+		if direction == 1:
+			velocity.x = velocity_wmax(dashinitial,dashspeed, direction) 
+			state(RUN)
+		else:
+			direction = -1
+			state(SKID,frame)
+	if inputpressed(jump): state(JUMPSQUAT)
 
 
 func turn_state():
@@ -631,6 +720,20 @@ func air_state():
 	aerial_acceleration()
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
+	if inputpressed(dodge): state(AIRDODGE)
+	if motionqueue[-1] in ['5','8','2']: #if not drifting
+		if frame > 2: air_friction()
+		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
+	
+
+func air_friction():
+	if abs(velocity.x) - airfriction < 0:
+		velocity.x = 0
+	else:
+		if velocity.x > 0:
+			velocity.x-=airfriction
+		else:
+			velocity.x+=airfriction
 
 func doublejump():
 	velocity.y = -1 * airjumpspeed
@@ -655,6 +758,28 @@ func land_state():
 		if inputheld(down): state(STAND) #switch to crouch
 		else: state(STAND)
 
+func fairdash_state():
+	pass
+
+func bairdash_state():
+	pass
+
+func airdodge_state():
+	if frame==2:
+		velocity = (analogstick-Vector2(127,127)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
+		velocity.x = round(velocity.x)
+		velocity.y = round(velocity.y) #because round() refuses to work properly with vector2
+	if frame == 20:
+		if is_on_floor(): state(STAND)
+		else: state(AIR)
+
+
+func waveland_state():
+	if frame == 9:
+		pass
+	
+
+
 func state_handler():
 	if state_check(STAND): stand_state()
 	if state_check(CROUCH): crouch_state()
@@ -662,13 +787,16 @@ func state_handler():
 	if state_check(WALK): walk_state()
 	if state_check(RUN): run_state()
 	if state_check(DASH): dash_state()
+	if state_check(DASHEND): dashend_state()
 	if state_check(SKID): skid_state()
+	if state_check(BRAKE): brake_state()
 	if state_check(TURN): turn_state()
 	if state_check(JUMPSQUAT): jumpsquat_state()
 	if state_check(AIR): air_state()
 	if state_check(LAND): land_state()
-
-
+	if state_check(FAIRDASH): fairdash_state()
+	if state_check(AIRDODGE): airdodge_state()
+	if state_check(WAVELAND): waveland_state()
 
 func enable_platform(): #enables platform collision
 	self.set_collision_mask_bit(2,true)
@@ -689,14 +817,14 @@ func aerial_acceleration(drift=drift_accel,ff=true):
 	apply_gravity()
 
 var rooted = false #if true, then check for pECB collision 
-func apply_traction():
-	if abs(velocity.x) - traction < 0:
+func apply_traction(mod=1.0): #mod = modifier for traction.
+	if abs(velocity.x) - traction*mod < 0:
 		velocity.x = 0
 	else:
 		if velocity.x > 0:
-			velocity.x-=traction
+			velocity.x-=traction * mod
 		else:
-			velocity.x+=traction
+			velocity.x+=traction * mod 
 
 func apply_gravity(): #this is called in ground states as well to prevent bugs regarding collision not working if you don't have a
 #downward vector at all times.

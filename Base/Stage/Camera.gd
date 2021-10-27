@@ -13,4 +13,5 @@ func _ready():
 
 
 func _process(delta):
-	position = get_parent().get_node('ExampleChar').position
+	#position = get_parent().get_node('ExampleChar').position
+	pass
