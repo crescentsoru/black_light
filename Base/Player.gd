@@ -688,14 +688,14 @@ func brake_state():
 			velocity.x = velocity_wmax(dashinitial,dashspeed, direction) #get a dashinitial boost when reentering RUN. Oughta be fun
 			state(RUN)
 		else:
-			direction = 1
+			direction = -1
 			state(SKID,frame) #frame thing is so that SKID endlag doesn't reset
 	if inputpressed(right):
 		if direction == 1:
 			velocity.x = velocity_wmax(dashinitial,dashspeed, direction) 
 			state(RUN)
 		else:
-			direction = -1
+			direction = 1
 			state(SKID,frame)
 	if inputpressed(jump): state(JUMPSQUAT)
 
