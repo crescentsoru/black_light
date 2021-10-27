@@ -868,7 +868,7 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	if state in slidestates:
 		apply_gravity()
 		if not is_on_floor():
-			velocity.x = velocity.x/3
+			velocity.x = drift_max * direction
 			state(AIR)
 	if state in landingstates:
 		check_landing()
