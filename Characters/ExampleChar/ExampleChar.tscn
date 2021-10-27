@@ -71,7 +71,7 @@ tracks/1/keys = {
 "times": PoolRealArray( 0 ),
 "transitions": PoolRealArray( 1 ),
 "update": 0,
-"values": [ Vector2( 4, -5 ) ]
+"values": [ Vector2( 4, 20 ) ]
 }
 tracks/2/type = "value"
 tracks/2/path = NodePath("AnimationPlayer:playback_speed")
@@ -589,9 +589,8 @@ script = ExtResource( 3 )
 [node name="Sprite" type="AnimatedSprite" parent="."]
 modulate = Color( 1, 1, 1, 0.854902 )
 frames = ExtResource( 2 )
-animation = "skid"
-frame = 2
-offset = Vector2( 4, 45 )
+animation = "brake"
+offset = Vector2( 4, 20 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 visible = false
@@ -606,7 +605,7 @@ position = Vector2( 0, 18 )
 polygon = PoolVector2Array( 0, -135, -50, 0, 0, 182, 50, 0 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-playback_speed = 0.75
+playback_speed = 0.25
 anims/air = SubResource( 1 )
 anims/brake = SubResource( 2 )
 anims/dash = SubResource( 3 )
