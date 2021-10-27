@@ -140,7 +140,7 @@ var airjumpspeed = 2700 #this is velocity.y not drifting
 var airjump_max = 2 
 var airjumps = 0 
 
-var airdodgespeed = 1450
+var airdodgespeed = 1800
 var airdodgestartup = 3 #the frame invuln starts
 var airdodgeend = 25
 
@@ -718,10 +718,11 @@ func air_state():
 	aerial_acceleration()
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
+	if inputpressed(dodge): state(AIRDODGE)
 	if motionqueue[-1] in ['5','8','2']: #if not drifting
 		if frame > 2: air_friction()
 		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
-
+	
 
 func air_friction():
 	if abs(velocity.x) - airfriction < 0:
@@ -761,6 +762,19 @@ func fairdash_state():
 func bairdash_state():
 	pass
 
+func airdodge_state():
+	if frame==2:
+		velocity = (analogstick-Vector2(127,127)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
+		velocity.x = round(velocity.x)
+		velocity.y = round(velocity.y) #because round() refuses to work properly with vector2
+	if frame == 20:
+		if is_on_floor(): state(STAND)
+		else: state(AIR)
+
+
+#	var centeredanalog = (analogs - Vector2(127,127)) 
+#	print (centeredanalog.normalized())
+
 func state_handler():
 	if state_check(STAND): stand_state()
 	if state_check(CROUCH): crouch_state()
@@ -776,7 +790,7 @@ func state_handler():
 	if state_check(AIR): air_state()
 	if state_check(LAND): land_state()
 	if state_check(FAIRDASH): fairdash_state()
-
+	if state_check(AIRDODGE): airdodge_state()
 
 func enable_platform(): #enables platform collision
 	self.set_collision_mask_bit(2,true)
