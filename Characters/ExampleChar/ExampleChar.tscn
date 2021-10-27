@@ -427,8 +427,8 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 frames = ExtResource( 2 )
 animation = "dash"
-frame = 2
-offset = Vector2( 12, -5 )
+frame = 3
+offset = Vector2( 6, -5 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 visible = false
