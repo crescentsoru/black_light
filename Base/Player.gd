@@ -61,8 +61,8 @@ const FULLHOP = 'fullhop'
 
 	#Air movement
 const AIR = 'air'
-const F_AIRDASH = 'f_airdash'
-const B_AIRDASH = 'b_airdash'
+const FAIRDASH = 'fairdash'
+const BAIRDASH = 'bairdash'
 const AIRDODGE = 'airdodge'
 const FREEFALL = 'freefall'
 const WALLJUMP_L = 'walljump_l'
@@ -130,16 +130,27 @@ var drift_accel = 350
 var drift_max = 1250
 var fall_accel = 120
 var fall_max = 1900
-var airfriction = 5 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
+var airfriction = 8 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
 
 var jumpsquat = 3
 var shorthopspeed = 1600
 var fullhopspeed = 2900
 var airjumpspeed = 2700 #this is velocity.y not drifting
+
 var airjump_max = 2 
 var airjumps = 0 
-var airdash_max = 1 #unused
-var airdashes = 0 #unused
+var airdash_max = 1 
+var airdashes = 0
+var mergeairoptions = false #airdashes will exhaust jumps and jumps will exhaust airdashes if True.
+var airdashstyle = "mb" #gg= airdash y momentum will not be cancelled by attacks.
+var airdashframes = 0 #variable used for gg airdashes to preserve momentum during aerial_accel. 
+var fairdashstartup = 9
+var fairdashend = 25
+var fairdashmomentum = 1500
+var bairdashstartup = 7
+var bairdashend = 20
+var bairdashmomentum = 1000
+
 var recoverymomentum_current = 500#Momentum value for moves like Mars Side B.
 var recoverymomentum_default = 500#_current returns to this value upon landing.
 var walljump_count = 0 #Consecutive walljumps lose momentum with each jump. 
@@ -703,7 +714,7 @@ func air_state():
 	if motionqueue[-1] in ['5','8','2']: #if not drifting
 		if frame > 2: air_friction()
 		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
-		
+
 
 func air_friction():
 	if abs(velocity.x) - airfriction < 0:
@@ -737,6 +748,12 @@ func land_state():
 		if inputheld(down): state(STAND) #switch to crouch
 		else: state(STAND)
 
+func fairdash_state():
+	pass
+
+func bairdash_state():
+	pass
+
 func state_handler():
 	if state_check(STAND): stand_state()
 	if state_check(CROUCH): crouch_state()
@@ -751,7 +768,7 @@ func state_handler():
 	if state_check(JUMPSQUAT): jumpsquat_state()
 	if state_check(AIR): air_state()
 	if state_check(LAND): land_state()
-
+	if state_check(FAIRDASH): fairdash_state()
 
 
 func enable_platform(): #enables platform collision
