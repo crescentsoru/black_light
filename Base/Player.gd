@@ -139,17 +139,23 @@ var airjumpspeed = 2700 #this is velocity.y not drifting
 
 var airjump_max = 2 
 var airjumps = 0 
+
+var airdodgespeed = 1450
+var airdodgestartup = 3 #the frame invuln starts
+var airdodgeend = 25
+
+
 var airdash_max = 1 
 var airdashes = 0
 var mergeairoptions = false #airdashes will exhaust jumps and jumps will exhaust airdashes if True.
 var airdashstyle = "mb" #gg= airdash y momentum will not be cancelled by attacks.
 var airdashframes = 0 #variable used for gg airdashes to preserve momentum during aerial_accel. 
-var fairdashstartup = 9
-var fairdashend = 25
-var fairdashmomentum = 1500
-var bairdashstartup = 7
-var bairdashend = 20
-var bairdashmomentum = 1000
+var fairdash_startup = 8
+var fairdash_end = 20
+var fairdash_speed = 1500
+var bairdash_startup = 7
+var bairdash_end = 10
+var bairdash_speed = 1100
 
 var recoverymomentum_current = 500#Momentum value for moves like Mars Side B.
 var recoverymomentum_default = 500#_current returns to this value upon landing.
@@ -506,7 +512,8 @@ func debug():
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
 		velocity.x = 4000
-
+	if Input.is_action_just_pressed("d_b"):
+		(analog2angle(analogstick))
 
 func stand_state():
 	if frame == 0:
@@ -805,6 +812,10 @@ func apply_gravity(): #this is called in ground states as well to prevent bugs r
 	velocity.y += fall_accel
 	if velocity.y > fall_max:
 		velocity.y = fall_max
+
+func analog2angle(analogs):
+	var centeredanalog = (analogs - Vector2(127,127)) 
+	print (centeredanalog.normalized())
 
 
 
