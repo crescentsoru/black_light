@@ -64,6 +64,7 @@ const AIR = 'air'
 const FAIRDASH = 'fairdash'
 const BAIRDASH = 'bairdash'
 const AIRDODGE = 'airdodge'
+const WAVELAND = 'waveland'
 const FREEFALL = 'freefall'
 const WALLJUMP_L = 'walljump_l'
 const WALLJUMP_R = 'walljump_r'
@@ -513,7 +514,8 @@ func debug():
 	if Input.is_action_just_pressed("d_a"):
 		velocity.x = 4000
 	if Input.is_action_just_pressed("d_b"):
-		(analog2angle(analogstick))
+		pass
+
 
 func stand_state():
 	if frame == 0:
@@ -772,8 +774,11 @@ func airdodge_state():
 		else: state(AIR)
 
 
-#	var centeredanalog = (analogs - Vector2(127,127)) 
-#	print (centeredanalog.normalized())
+func waveland_state():
+	if frame == 9:
+		pass
+	
+
 
 func state_handler():
 	if state_check(STAND): stand_state()
@@ -791,6 +796,7 @@ func state_handler():
 	if state_check(LAND): land_state()
 	if state_check(FAIRDASH): fairdash_state()
 	if state_check(AIRDODGE): airdodge_state()
+	if state_check(WAVELAND): waveland_state()
 
 func enable_platform(): #enables platform collision
 	self.set_collision_mask_bit(2,true)
@@ -826,10 +832,6 @@ func apply_gravity(): #this is called in ground states as well to prevent bugs r
 	velocity.y += fall_accel
 	if velocity.y > fall_max:
 		velocity.y = fall_max
-
-func analog2angle(analogs):
-	var centeredanalog = (analogs - Vector2(127,127)) 
-	print (centeredanalog.normalized())
 
 
 
