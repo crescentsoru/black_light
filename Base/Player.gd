@@ -141,7 +141,7 @@ var airjumpspeed = 2700 #this is velocity.y not drifting
 var airjump_max = 2 
 var airjumps = 0 
 
-var airdodgespeed = 2500 #Please do not change this unless you know what you're doing! Can be used to give characters a speedier wavedash without affecting traction
+var airdodgespeed = 2600 #Please do not change this unless you know what you're doing! Can be used to give characters a speedier wavedash without affecting traction
 var airdodgestartup = 3 #the frame invuln starts
 var airdodgeend = 25
 var airdodgelandlag = 20 #landing lag for airdodging into the ground after the initial velocity
