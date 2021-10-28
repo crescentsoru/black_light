@@ -105,7 +105,7 @@ const JAB = 'jab'
 
 
 
-var traction = 80
+var traction = 70
 var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
 var skidmodifier = 1.0 #applies a modifier to traction during SKID/BRAKE
 
@@ -127,8 +127,8 @@ var runspeed = 1900
 var runaccel = 0 #applied after dash momentum 
 
 
-var drift_accel = 350
-var drift_max = 1250
+var drift_accel = 300
+var drift_max = 1100
 var fall_accel = 120
 var fall_max = 1900
 var airfriction = 10 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
@@ -141,16 +141,20 @@ var airjumpspeed = 2700 #this is velocity.y not drifting
 var airjump_max = 2 
 var airjumps = 0 
 
-var airdodgespeed = 1800
+var airdodgespeed = 2500 #Please do not change this unless you know what you're doing! Can be used to give characters a speedier wavedash without affecting traction
 var airdodgestartup = 3 #the frame invuln starts
 var airdodgeend = 25
-
+var airdodgelandlag = 20 #landing lag for airdodging into the ground after the initial velocity
+var airdodges = 0 #incremented when you use an airdodge. One airdodge per jump arc. 
 
 var airdash_max = 1 
 var airdashes = 0
 var mergeairoptions = false #airdashes will exhaust jumps and jumps will exhaust airdashes if True.
 var airdashstyle = "mb" #gg= airdash y momentum will not be cancelled by attacks.
-var airdashframes = 0 #variable used for gg airdashes to preserve momentum during aerial_accel. 
+var movementframes = 0 #variable used for gg airdashes to preserve momentum during aerial_accel, but can be used for any other movement that is exclusive to airdash.
+var movementmomentum1 = 0 #used in airdodging for saving gravity from being divided by 1.11111, but can be used for any other exclusive movement
+var movementmomentum2 = Vector2(0,0) 
+
 var fairdash_startup = 8
 var fairdash_end = 20
 var fairdash_speed = 1500
@@ -301,9 +305,10 @@ func base_inputheld(inp):
 				if inp in [up,down,left,right]:
 					if analogstick != Vector2(127,127):
 	#this code will break if there is no deadzone and analog_smash is at a small or 0 value. Please don't do that you have no reason to
-#BTW, as far as I could gather, the distance you need for "smash inputs", which I tested with dashes, is kind of inconsistent in melee.
-#To dash left from STAND, you need to travel 63 analog units or more, and to dash right, you need 65 or more. Values 64 and 192 respectively.
-#Maybe a mistake was made and the "center" of the analog stick is deemed to be value 126 instead of 127? Definitely possible due to how rushed the game was. 
+#BTW I don't understand how but I thought the center of the analog stick was 127 in Melee as well when I was writing this code, which isn't true.
+#Its center is 128,128. This shouldn't matter(?) because both values are within the big ass 24 value deadzone but it might be good to make 128,128
+#the center here as well for consistency? 
+
 						if inp == up:
 							if analogstick.y <= 255 and analogstick.y >= 127+analog_smash:
 								return true
@@ -489,6 +494,7 @@ func refresh_air_options():
 	#and any other option it makes sense to refresh at the same time.
 	airjumps = 0
 	airdashes = 0
+	airdodges = 0
 	recoverymomentum_current = recoverymomentum_default
 	walljump_count = 0
 
@@ -721,9 +727,11 @@ func turn_state():
 
 func air_state():
 	aerial_acceleration()
+	if frame == 0:
+		landinglag = hardland #replace with soft/hard landlag system later based on fastfalls 
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
-	if inputpressed(dodge): state(AIRDODGE)
+	if inputpressed(dodge) and airdodges < 1: state(AIRDODGE)
 	if motionqueue[-1] in ['5','8','2']: #if not drifting
 		if frame > 2: air_friction()
 		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
@@ -768,20 +776,47 @@ func bairdash_state():
 	pass
 
 func airdodge_state():
-	if frame==2:
+	if frame==0:
+		velocity = Vector2(0,0) #reset velocity
 		velocity = (analogstick-Vector2(127,127)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
 		velocity.x = round(velocity.x)
 		velocity.y = round(velocity.y) #because round() refuses to work properly with vector2
-	if frame == 20:
-		if is_on_floor(): state(STAND)
-		else: state(AIR)
+		movementmomentum2 = velocity
+		movementmomentum1 = 0
+	if frame >= 30: #adds gravity after some point
+		movementmomentum1 += fall_accel
+		if movementmomentum1 > fall_max:
+			movementmomentum1 = fall_max
+	if frame > 0 and frame < 37:
+		movementmomentum2 = movementmomentum2 / 1.11111 #slows the airdodge down as it goes
+		velocity = movementmomentum2 + Vector2(0,movementmomentum1) #adds the accumulated gravity
+	
+	if frame == 37: #destroy airdodge momentum since it's basically at 0 anyways, and stop using the movementmomentum vars
+		velocity.y = movementmomentum1
+		landinglag = airdodgelandlag
+		movementmomentum1 = 0
+		movementmomentum2 = Vector2(0,0)
+	if frame > 37:
+		aerial_acceleration()
+	if is_on_floor():
+		if frame < 37:
+			state(WAVELAND)
+		else:
+			state(LAND)
+
+	if frame == airdodgestartup: pass #insert invuln here
+
+
+
+	if frame == 100: state(AIR)
 
 
 func waveland_state():
-	
+	apply_traction()
+	refresh_air_options()
 	if frame == 10:
 		state(STAND)
-	
+
 
 
 func state_handler():
@@ -819,7 +854,7 @@ func aerial_acceleration(drift=drift_accel,ff=true):
 
 	#falling
 	apply_gravity()
-	if inputheld(down): disable_platform()
+	if inputheld(down) and frame > 0: disable_platform()
 
 var rooted = false #if true, then check for pECB collision 
 func apply_traction(mod=1.0): #mod = modifier for traction.
