@@ -443,12 +443,6 @@ func flip(): #brevity's sake
 	direction = direction * -1
 
 
-#			if $Sprite.animation in animationoffsets and $Sprite.frame+1 <= len(animationoffsets[$Sprite.animation]):
-#				$Sprite.offset = Vector2(animationoffsets[$Sprite.animation][$Sprite.frame][0],animationoffsets[$Sprite.animation][$Sprite.frame][1])
-
-#func updateoffset():
-#	if animation in get_parent().animationoffsets and frame+1 <= len(get_parent().animationoffsets[animation]):
-#		offset = Vector2(get_parent().animationoffsets[animation][frame][0],get_parent().animationoffsets[animation][frame][1])
 
 
 
@@ -457,7 +451,8 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 	state = newstate
 	frame = newframe
 	state_handler()
-
+	char_state_handler()
+	get_parent().get_parent().update_debug_display()
 
 
 func framechange(): #increments the frames, decrements the impactstop timer and stops decrementing frame if impactstop > 0.
@@ -524,6 +519,7 @@ func debug():
 
 
 func stand_state():
+	platform_drop()
 	if frame == 0:
 		refresh_air_options()
 	if inputheld(left,3) and not inputheld(up): #might increase below to 3? idk send your feedback
@@ -539,7 +535,7 @@ func stand_state():
 		state(WALK)
 		direction= 1
 	if inputpressed(jump): state(JUMPSQUAT)
-	platform_drop()
+
 
 
 func crouch_state():
@@ -596,7 +592,7 @@ func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an 
 
 
 func dash_state():
-
+	platform_drop()
 	if frame > dashframes:
 		if not (inputheld(left) or inputheld(right)):
 			state(DASHEND)
@@ -623,9 +619,10 @@ func dash_state():
 				velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			elif frame > 1: apply_traction()
 		elif frame > 1: apply_traction()
-	platform_drop()
+
 
 func dashend_state():
+	platform_drop()
 	if inputheld(left):
 		if direction == 1:
 			direction = -1
@@ -641,10 +638,11 @@ func dashend_state():
 	if frame == dashendframes:
 		state(STAND)
 	if inputpressed(jump): state(JUMPSQUAT) 
-	platform_drop()
+
 
 
 func run_state():
+	platform_drop()
 	#momentum only applies if you're holding left/right
 	if direction == 1:
 		if inputheld(left):
@@ -674,7 +672,6 @@ func run_state():
 
 
 	if inputpressed(jump): state(JUMPSQUAT)
-	platform_drop()
 
 
 
@@ -682,13 +679,15 @@ func run_state():
 
 
 func skid_state():
+	platform_drop()
 	if frame >= 1 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
 	if frame >=2: apply_traction(skidmodifier)
 	if frame == 20:
 			state(STAND)
-	platform_drop()
+
 
 func brake_state():
+	platform_drop()
 	if frame >=2: apply_traction(skidmodifier)
 	if frame == 20:
 			state(STAND)
@@ -707,9 +706,10 @@ func brake_state():
 			direction = 1
 			state(SKID,frame)
 	if inputpressed(jump): state(JUMPSQUAT)
-	platform_drop()
+
 
 func turn_state():
+	platform_drop()
 	if frame == 1:
 		if inputheld(left):
 			direction = -1
@@ -723,7 +723,7 @@ func turn_state():
 		apply_traction()
 	if frame == 15: #random number idc
 		state(STAND)
-	platform_drop()
+
 
 func air_state():
 	aerial_acceleration()
@@ -836,6 +836,8 @@ func state_handler():
 	if state_check(FAIRDASH): fairdash_state()
 	if state_check(AIRDODGE): airdodge_state()
 	if state_check(WAVELAND): waveland_state()
+	get_parent().get_parent().update_debug_display()
+
 
 func enable_platform(): #enables platform collision
 	self.set_collision_mask_bit(2,true)
@@ -919,8 +921,13 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	collision_handler()
 
 func platform_drop(): #ran in state machine, disables platforms if 1/3 is pressed in numpad notation
+	#should be put at the start of any state function
 	if inputpressed(down) and (inputheld(left) or inputheld(right)):
 		disable_platform()
+		if not is_on_floor(): #If the platform disabling actually worked,
+			state(AIR)
+			
+		
 	#inputheld(down) might be better?
 
 func char_state_handler(): #Replace this in character script to have character specific states

@@ -37,14 +37,16 @@ var text2 = ''
 var text3 = ''
 var text4 = ''
 
-func _physics_process(delta):
-	if Input.is_action_pressed('d_forward'): pausehold+=1
-	else: pausehold = 0
+func update_debug_display():
 	text1= "gametime= " + str(global.gametime) + "\nvelocity= " + str(examplechar.velocity) + "\nmotionqueue= " + examplechar.motionqueue
 	text2= "\nstate= " + str(examplechar.state) + "\nframe= " + str(examplechar.frame) + "\nanalog= " + str(examplechar.analogstick)
 	text3= ''
 	text4= ''
 	$UI_persistent/gametime.text = text1 + text2 + text3 + text4
+
+func _physics_process(delta):
+	if Input.is_action_pressed('d_forward'): pausehold+=1
+	else: pausehold = 0
 	if Input.is_action_just_pressed("p1_pause"):
 		if ispause == false:
 			ispause = true
