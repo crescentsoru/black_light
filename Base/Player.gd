@@ -116,7 +116,7 @@ var action_range = 80 #analog range for maximum walk acceleration, drifting, das
 
 var dashinitial = 1650 #initial burst of speed when you enter DASH. Not analog. 
 var dashaccel = 10 #completely digital, also known as Base Acceleration
-var dashaccelanalog = 15 #analog accel, also known as Additional Acceleration 
+var dashaccel_analog = 15 #analog accel, also known as Additional Acceleration 
 var dashspeed = 1900
 var dashframes = 15
 var dashendframes = 11 #DASHEND duration
@@ -126,8 +126,8 @@ var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash
 var runspeed = 1900 
 var runaccel = 0 #applied after dash momentum 
 
-
-var drift_accel = 300
+var driftaccel = 100 #Base drift acceleration
+var driftaccel_analog = 200 #Additional drift accel
 var drift_max = 1100
 var fall_accel = 120
 var fall_max = 1900
@@ -574,21 +574,13 @@ func walk_state():#Test, still
 		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
 
 
-#find out how much analog dash influences inputs
+
 
 func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an acceleration.
 	if veldir == 1: #Meant to not override existing velocity such as from hitstun.
 		return min(veldir*maxx,velocity.x + acc)
 	if veldir == -1:
 		return max(veldir*maxx,velocity.x-acc)
-
-
-#left
-#		velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-drift_accel*action_analogconvert()/action_range))
-#	if motionqueue[-1] in ['6','9','3']: #if drifting right
-#		velocity.x = round( min(maxx,velocity.x+acc))
-
-
 
 
 func dash_state():
@@ -616,7 +608,7 @@ func dash_state():
 	if frame >=1:
 		if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
 			if not (motionqueue[-1] in ['5','8','2']):
-				velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+				velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			elif frame > 1: apply_traction()
 		elif frame > 1: apply_traction()
 
@@ -651,7 +643,7 @@ func run_state():
 		elif inputheld(right):
 			if abs(velocity.x) < dashspeed:
 				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
-					velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+					velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			else:
 				velocity.x = velocity_wmax(runaccel,runspeed,direction) #as you can see I didn't put much effort into run specific acceleration
 		else: #if nothing held
@@ -663,7 +655,7 @@ func run_state():
 		elif inputheld(left):
 			if abs(velocity.x) < dashspeed:
 				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
-					velocity.x = velocity_wmax(dashaccelanalog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+					velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			else:
 				velocity.x = velocity_wmax(runaccel,runspeed,direction)
 		else:
@@ -844,15 +836,15 @@ func enable_platform(): #enables platform collision
 func disable_platform(): #disables platform collision
 	self.set_collision_mask_bit(2,false)
 
-func aerial_acceleration(drift=drift_accel,ff=true):
+func aerial_acceleration(drift=1.0,ff=true):
 	#drift lets you set custom drift potential to use for specials.
 	#ff=false will disallow fastfalling.
 	if motionqueue[-1] in ['4','7','1']: #if drifting left
 		if velocity.x > -1*drift_max: #so that drifting wouldn't cancel out existing run momentum
-			velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-drift_accel*action_analogconvert()/action_range))
+			velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-driftaccel_analog*action_analogconvert()/action_range + driftaccel))
 	if motionqueue[-1] in ['6','9','3']: #if drifting right
 		if velocity.x < drift_max:
-			velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+drift_accel*action_analogconvert()/action_range))
+			velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+driftaccel_analog*action_analogconvert()/action_range + driftaccel))
 
 	#falling
 	apply_gravity()
