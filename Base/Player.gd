@@ -175,7 +175,7 @@ var landinglag = 4 #changed all the time in states that can land.
 
 	#State definitions
 var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK] #Rooted state. Ground attacks should be this.
-var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
+var slidestates = [STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
 var tractionstates = [STAND,LAND,DASHEND,CROUCH,CROUCHSTART,CROUCHEXIT] #Only adds traction
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
@@ -523,7 +523,7 @@ func stand_state():
 	platform_drop()
 	if frame == 0:
 		refresh_air_options()
-	if inputheld(down):
+	if motionqueue[-1] in ["1","2","3"]:
 		state(CROUCHSTART)
 	if inputheld(left,3) and not inputheld(up): #might decrease below to 2? idk send your feedback
 		state(DASH)
@@ -540,17 +540,19 @@ func stand_state():
 	if inputpressed(jump): state(JUMPSQUAT)
 
 
-
-func crouch_state(): #AKA SquatWait
-	platform_drop()
-	if not inputheld(down):
-		state(CROUCHEXIT)
-	if inputpressed(jump): state(JUMPSQUAT)
-
 func crouchstart_state(): #AKA Squat
 	platform_drop()
 	if frame == 8:
 		state(CROUCH)
+	if inputpressed(jump): state(JUMPSQUAT)
+
+func crouch_state(): #AKA SquatWait
+	platform_drop()
+	if inputheld(down):
+		disable_platform()
+		if not is_on_floor(): state(AIR)
+	if not motionqueue[-1] in ['1','2','3']: #makes sure you can hold down without also dropping from a platform
+		state(CROUCHEXIT)
 	if inputpressed(jump): state(JUMPSQUAT)
 
 func crouchexit_state(): #AKA SquatRV
@@ -572,7 +574,8 @@ func walk_state():#Test, still
 		if direction != 1: state(STAND)
 	if motionqueue[-1] in ["5","8"]:
 		state(STAND) #go to STAND if nothing is held
-	if inputheld(down): state(STAND) #should go into crouch.
+	if inputheld(down) and not (inputheld(right) or inputheld(left)):
+		state(CROUCHSTART)
 	if inputpressed(jump): state(JUMPSQUAT)
 	if frame <= 1 and not inputheld(up): #UCF
 		if inputheld(left,2):
@@ -649,6 +652,8 @@ func run_state():
 	platform_drop()
 	#momentum only applies if you're holding left/right
 	if direction == 1:
+		if inputheld(down) and not (inputheld(right) or inputheld(left)):
+			state(CROUCHSTART)
 		if inputheld(left):
 			flip()
 			state(SKID)
@@ -692,6 +697,8 @@ func skid_state():
 
 func brake_state():
 	platform_drop()
+	if inputheld(down) and not (inputheld(right) or inputheld(left)):
+		state(CROUCHSTART)
 	if frame >=2: apply_traction(skidmodifier)
 	if frame == 20:
 			state(STAND)
@@ -709,6 +716,7 @@ func brake_state():
 		else:
 			direction = 1
 			state(SKID,frame)
+	
 	if inputpressed(jump): state(JUMPSQUAT)
 
 
@@ -756,6 +764,7 @@ func doublejump():
 	#play animation
 
 func jumpsquat_state():
+
 	if frame == jumpsquat:
 		velocity.x = velocity.x * runjumpmod #modifier
 		if abs(velocity.x) > runjumpmax: velocity.x = runjumpmax * direction #maxifier
@@ -765,7 +774,8 @@ func jumpsquat_state():
 		if not inputheld(jump): #shorthop
 			velocity.y-=shorthopspeed
 			state(AIR)
-
+	#What is the traction-like opposite velocity applied during KneeBend??????!
+	apply_traction() #putting this here as a p
 func land_state():
 	if frame == 0:
 		refresh_air_options()
