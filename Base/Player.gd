@@ -44,8 +44,9 @@ var motiontimer = 8
 #These basically make the code more readable and make the process of working with state machines slightly quicker.
 	#Ground movement
 const STAND = 'stand'
-const CROUCH = 'crouch'
-const CROUCHSTART = 'crouchstart'
+const CROUCH = 'crouch' #AKA SquatWait
+const CROUCHSTART = 'crouchstart' #AKA Squat
+const CROUCHEXIT = 'crouchexit' #AKA SquatRV
 const WALK = 'walk'
 const WALKBACK = 'walkback'
 const DASH = 'dash'
@@ -175,7 +176,7 @@ var landinglag = 4 #changed all the time in states that can land.
 	#State definitions
 var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK] #Rooted state. Ground attacks should be this.
 var slidestates = [STAND,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
-var tractionstates = [STAND,LAND,DASHEND] #Only adds traction
+var tractionstates = [STAND,LAND,DASHEND,CROUCH,CROUCHSTART,CROUCHEXIT] #Only adds traction
 var landingstates = [AIR] #States that will enter LAND when you land on the ground.
 
 
@@ -522,7 +523,9 @@ func stand_state():
 	platform_drop()
 	if frame == 0:
 		refresh_air_options()
-	if inputheld(left,3) and not inputheld(up): #might increase below to 3? idk send your feedback
+	if inputheld(down):
+		state(CROUCHSTART)
+	if inputheld(left,3) and not inputheld(up): #might decrease below to 2? idk send your feedback
 		state(DASH)
 		direction= -1
 	elif motionqueue[-1] in ["4","7"]: #walk left
@@ -538,13 +541,22 @@ func stand_state():
 
 
 
-func crouch_state():
+func crouch_state(): #AKA SquatWait
 	platform_drop()
+	if not inputheld(down):
+		state(CROUCHEXIT)
+	if inputpressed(jump): state(JUMPSQUAT)
 
-func crouchstart_state():
+func crouchstart_state(): #AKA Squat
 	platform_drop()
+	if frame == 8:
+		state(CROUCH)
+	if inputpressed(jump): state(JUMPSQUAT)
 
-
+func crouchexit_state(): #AKA SquatRV
+	if frame == 10:
+		state(STAND)
+	if inputpressed(jump): state(JUMPSQUAT)
 
 func action_analogconvert(): #returns how hard you're pressing your stick.x from 0 to 80(action_range)
 	if analogstick.x <= 127:
@@ -815,6 +827,7 @@ func state_handler():
 	if state_check(STAND): stand_state()
 	if state_check(CROUCH): crouch_state()
 	if state_check(CROUCHSTART): crouchstart_state()
+	if state_check(CROUCHEXIT): crouchexit_state()
 	if state_check(WALK): walk_state()
 	if state_check(RUN): run_state()
 	if state_check(DASH): dash_state()
@@ -828,7 +841,11 @@ func state_handler():
 	if state_check(FAIRDASH): fairdash_state()
 	if state_check(AIRDODGE): airdodge_state()
 	if state_check(WAVELAND): waveland_state()
-	get_parent().get_parent().update_debug_display()
+	
+
+
+
+
 
 
 func enable_platform(): #enables platform collision
@@ -894,6 +911,7 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	$pECB.scale.x = direction
 	state_handler()
 	char_state_handler()
+	get_parent().get_parent().update_debug_display()
 	if state in rootedstates:
 		apply_gravity()
 		rooted = true
