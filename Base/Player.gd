@@ -551,6 +551,18 @@ func crouch_state(): #AKA SquatWait
 	if inputheld(down):
 		disable_platform()
 		if not is_on_floor(): state(AIR)
+	if inputpressed(left):
+		if direction == 1:
+			flip()
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), -1)
+			state(TURN)
+		else: state(DASH)
+	if inputpressed(right): #Honestly, because this input is bufferable(and SHOULD BE) I may consider nerfing dashing out of crouch
+		if direction == -1:
+			flip()
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1) #But I might be messing up the feel of the move with this line which makes it too good
+			state(TURN)
+		else: state(DASH)
 	if not motionqueue[-1] in ['1','2','3']: #makes sure you can hold down without also dropping from a platform
 		state(CROUCHEXIT)
 	if inputpressed(jump): state(JUMPSQUAT)
