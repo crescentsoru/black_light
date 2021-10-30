@@ -115,10 +115,10 @@ var walk_accel = 80
 var walk_max = 900
 var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running.
 
-var dashinitial = 1650 #initial burst of speed when you enter DASH. Not analog. 
+var dashinitial = 1750 #initial burst of speed when you enter DASH. Not analog. 
 var dashaccel = 10 #completely digital, also known as Base Acceleration
-var dashaccel_analog = 15 #analog accel, also known as Additional Acceleration 
-var dashspeed = 1900
+var dashaccel_analog = 35 #analog accel, also known as Additional Acceleration 
+var dashspeed = 2200
 var dashframes = 15
 var dashendframes = 11 #DASHEND duration
 var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
@@ -560,7 +560,7 @@ func crouch_state(): #AKA SquatWait
 	if inputpressed(right): #Honestly, because this input is bufferable(and SHOULD BE) I may consider nerfing dashing out of crouch
 		if direction == -1:
 			flip()
-			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1) #But I might be messing up the feel of the move with this line which makes it too good
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1) #But I might be making dash too good with this line
 			state(TURN)
 		else: state(DASH)
 	if not motionqueue[-1] in ['1','2','3']: #makes sure you can hold down without also dropping from a platform
@@ -670,7 +670,7 @@ func run_state():
 			flip()
 			state(SKID)
 		elif inputheld(right):
-			if abs(velocity.x) < dashspeed:
+			if abs(velocity.x) <= dashspeed:
 				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
 					velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			else:
@@ -682,7 +682,7 @@ func run_state():
 			flip()
 			state(SKID)
 		elif inputheld(left):
-			if abs(velocity.x) < dashspeed:
+			if abs(velocity.x) <= dashspeed:
 				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
 					velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			else:

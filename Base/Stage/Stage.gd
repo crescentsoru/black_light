@@ -16,7 +16,6 @@ extends Node2D
 #Note that the actual stage and characters are part of the Stage node. This script is attached to the Gaming node which is their parent.
 #This is necessary to make sure pausing isn't completely annoying to deal with.
 
-#fuck you github get my goddamn project on the internet
 #Called when the node enters the scene tree for the first time.
 func _ready():
 	pass
