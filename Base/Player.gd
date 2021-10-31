@@ -514,9 +514,9 @@ func debug():
 		global.replaying = true
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
-		velocity.x = 4000
+		velocity.x = -4000
 	if Input.is_action_just_pressed("d_b"):
-		pass
+		print ((Vector2(255,90)-Vector2(127,127)).normalized() * Vector2(1,-1))
 
 
 func stand_state():
@@ -631,13 +631,16 @@ func dash_state():
 	if inputpressed(jump): #btw jump checks should be done as late as possible
 		state(JUMPSQUAT) #because successful input buffer checks will erase the input for further jump checks and make it unbufferable
 	if frame == 1: #yes initial dash is applied on the second frame
-		velocity.x = velocity_wmax(dashinitial,dashspeed, direction)
+		if (direction==1 and velocity.x <=dashinitial): #Makes sure you can't cancel momentum by dashing in its direction
+			velocity.x = velocity_wmax(dashinitial,dashspeed, direction)
+		if direction==-1 and velocity.x >= dashinitial*-1:
+			velocity.x = velocity_wmax(dashinitial,dashspeed, direction)
 	if frame >=1:
 		if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
 			if not (motionqueue[-1] in ['5','8','2']):
 				velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			elif frame > 1: apply_traction()
-		elif frame > 1: apply_traction()
+		else: apply_traction()
 
 
 func dashend_state():
@@ -755,11 +758,17 @@ func air_state():
 		landinglag = hardland #replace with soft/hard landlag system later based on fastfalls 
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
-	if inputpressed(dodge) and airdodges < 1: state(AIRDODGE)
+	if inputpressed(dodge):
+		if (inputheld(left) or inputheld(right)):
+			pass
+		if airdashes > 0:
+			pass
+		if airdodges < 1: state(AIRDODGE)
 	if motionqueue[-1] in ['5','8','2']: #if not drifting
 		if frame > 2: air_friction()
 		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
 
+#analogstick-Vector2(127,127)).normalized() * Vector2(1,-1)
 
 func air_friction():
 	if abs(velocity.x) - airfriction < 0:
