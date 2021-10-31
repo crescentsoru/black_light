@@ -516,8 +516,11 @@ func debug():
 	if Input.is_action_just_pressed("d_a"):
 		velocity.x = -4000
 	if Input.is_action_just_pressed("d_b"):
-		print ((Vector2(255,90)-Vector2(127,127)).normalized() * Vector2(1,-1))
-
+		pass
+		print (rad2deg(atan2(((analogstick-Vector2(127,127)).normalized() ).y \
+		, ((analogstick-Vector2(127,127)).normalized()).x)))
+		#print (((Vector2(255,90)-Vector2(127,127)).normalized() * Vector2(1,-1)))
+	
 
 func stand_state():
 	platform_drop()
