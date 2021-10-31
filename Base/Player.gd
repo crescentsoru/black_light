@@ -269,22 +269,22 @@ func analogconvert(floatL,floatR,floatD,floatU):
 	var analogX = 0
 	var analogY = 0
 	if floatL > floatR:
-		analogX = 127 - 127*floatL 
+		analogX = 128 - 128*floatL 
 	elif floatR > floatL:
-		analogX = 127 + 128*floatR
+		analogX = 128 + 127*floatR
 	else: #if digital users input both left and right, go neutral
-		analogX = 127
+		analogX = 128
 	#same thing for y axis
 	if floatD > floatU:
-		analogY = 127 - 127*floatD
+		analogY = 128 - 128*floatD
 	elif floatU >= floatD:
-		analogY = 127 + 128*floatU
+		analogY = 128 + 127*floatU
 	#return finished calculations
 	return Vector2(round(analogX),round(analogY))
 func analogdeadzone(stick,zone): #applies a deadzone to a stick value
-	if not( stick.x <= 127-zone or stick.x >= 127+zone):
-		if not (stick.y <= 127-zone or stick.y >= 127+zone):
-			return Vector2(127,127)
+	if not( stick.x <= 128-zone or stick.x >= 128+zone):
+		if not (stick.y <= 128-zone or stick.y >= 128+zone):
+			return Vector2(128,128)
 	return stick
 func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a deadzone
 		if controllable:
@@ -304,23 +304,21 @@ func base_inputheld(inp):
 		if inp != "": #this line prevents massive lag in interpreter (and possibly exports) when a button isn't set. 
 			if Input.is_action_pressed(inp):
 				if inp in [up,down,left,right]:
-					if analogstick != Vector2(127,127):
+					if analogstick != Vector2(128,128):
 	#this code will break if there is no deadzone and analog_smash is at a small or 0 value. Please don't do that you have no reason to
-#BTW I don't understand how but I thought the center of the analog stick was 127 in Melee as well when I was writing this code, which isn't true.
-#Its center is 128,128. This shouldn't matter(?) because both values are within the big ass 24 value deadzone but it might be good to make 128,128
-#the center here as well for consistency? 
+#The center is 128,128 like Melee.
 
 						if inp == up:
-							if analogstick.y <= 255 and analogstick.y >= 127+analog_smash:
+							if analogstick.y <= 255 and analogstick.y >= 128+analog_smash:
 								return true
 						if inp == down:
-							if analogstick.y >= 0 and analogstick.y <= 127-analog_smash: #might take away the equals at the later check
+							if analogstick.y >= 0 and analogstick.y <= 128-analog_smash: #might take away the equals at the later check
 								return true
 						if inp == left:
-							if analogstick.x >= 0 and analogstick.x <= 127-analog_smash:
+							if analogstick.x >= 0 and analogstick.x <= 128-analog_smash:
 								return true
 						if inp == right:
-							if analogstick.x <= 255 and analogstick.x >= 127+analog_smash:
+							if analogstick.x <= 255 and analogstick.x >= 128+analog_smash:
 								return true
 				else: return true
 			else: return false
@@ -385,13 +383,13 @@ func replayprep(): #called on _ready to make your character controllable or not
 		currentreplay = global.fullreplay
 func tiltinput(inp): #returns true if you have an analog input beyond analog_tilt on the control stick, which is 24 by default.
 	if inp == up: 
-		if analogstick.y <= 255 and analogstick.y > 127+analog_tilt: return true
+		if analogstick.y <= 255 and analogstick.y > 128+analog_tilt: return true
 	if inp == down:
-		if analogstick.y >= 0 and analogstick.y < 127-analog_tilt: return true
+		if analogstick.y >= 0 and analogstick.y < 128-analog_tilt: return true
 	if inp == left:
-		if analogstick.x >= 0 and analogstick.x < 127-analog_tilt: return true
+		if analogstick.x >= 0 and analogstick.x < 128-analog_tilt: return true
 	if inp == right:
-		if analogstick.x <= 255 and analogstick.x > 127+analog_tilt: return true
+		if analogstick.x <= 255 and analogstick.x > 128+analog_tilt: return true
 func motionqueueprocess():
 	motiontimer = motiontimer - 1
 	if motiontimer == 0:
@@ -517,9 +515,9 @@ func debug():
 		velocity.x = -4000
 	if Input.is_action_just_pressed("d_b"):
 		pass
-		print (rad2deg(atan2(((analogstick-Vector2(127,127)).normalized() ).y \
-		, ((analogstick-Vector2(127,127)).normalized()).x)))
-		#print (((Vector2(255,90)-Vector2(127,127)).normalized() * Vector2(1,-1)))
+		print (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y \
+		, ((analogstick-Vector2(128,128)).normalized()).x)))
+
 	
 
 func stand_state():
@@ -576,10 +574,10 @@ func crouchexit_state(): #AKA SquatRV
 	if inputpressed(jump): state(JUMPSQUAT)
 
 func action_analogconvert(): #returns how hard you're pressing your stick.x from 0 to 80(action_range)
-	if analogstick.x <= 127:
-		return min(action_range, 127-analogstick.x)
-	if analogstick.x > 127:
-		return min(action_range,analogstick.x-127)
+	if analogstick.x <= 128:
+		return min(action_range, 128-analogstick.x)
+	if analogstick.x > 128:
+		return min(action_range,analogstick.x-128)
 
 
 func walk_state():#Test, still
@@ -771,7 +769,7 @@ func air_state():
 		if frame > 2: air_friction()
 		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
 
-#analogstick-Vector2(127,127)).normalized() * Vector2(1,-1)
+
 
 func air_friction():
 	if abs(velocity.x) - airfriction < 0:
@@ -816,7 +814,7 @@ func bairdash_state():
 func airdodge_state():
 	if frame==0:
 		velocity = Vector2(0,0) #reset velocity
-		velocity = (analogstick-Vector2(127,127)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
+		velocity = (analogstick-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
 		velocity.x = round(velocity.x)
 		velocity.y = round(velocity.y) #because round() refuses to work properly with vector2
 		movementmomentum2 = velocity
