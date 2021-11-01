@@ -148,20 +148,20 @@ var airdodgeend = 25
 var airdodgelandlag = 20 #landing lag for airdodging into the ground after the initial velocity
 var airdodges = 0 #incremented when you use an airdodge. One airdodge per jump arc. 
 
-var airdash_max = 0
+var airdash_max = 1
 var airdashes = 0
 var mergeairoptions = false #airdashes will exhaust jumps and jumps will exhaust airdashes if True.
 var airdashstyle = "mb" #gg= airdash y momentum will not be cancelled by attacks.
-var movementframes = 0 #variable used for gg airdashes to preserve momentum during aerial_accel, but can be used for any other movement that is exclusive to airdash.
+var airdashframes = 0 #variable used for gg airdashes to preserve momentum during aerial_accel, but can be used for any other movement that is exclusive to airdash.
 var movementmomentum1 = 0 #used in airdodging for saving gravity from being divided by 1.11111, but can be used for any other exclusive movement
 var movementmomentum2 = Vector2(0,0) 
 
-var fairdash_startup = 8
-var fairdash_end = 20
-var fairdash_speed = 1500
-var bairdash_startup = 7
-var bairdash_end = 15
-var bairdash_speed = 1100
+var fairdash_startup = 8 #The point at which you're able to cancel FAIRDASH with attacks. 
+var fairdash_end = 20 #when fairdash recovers
+var fairdash_speed = 2000 #the momentum 
+var bairdash_startup = 7 
+var bairdash_end = 15 #same stuff for bairdash
+var bairdash_speed = 1700
 
 var recoverymomentum_current = 500#Momentum value for moves like Mars Side B.
 var recoverymomentum_default = 500#_current returns to this value upon landing.
@@ -809,10 +809,23 @@ func land_state():
 		else: state(STAND)
 
 func fairdash_state():
+	if frame == 0:
+		airdashes+=1
+		velocity.y = 0
+		if airdashstyle == 'gg': airdashframes = fairdash_end
+		air_friction() #if you have a bunch of momentum from getting hit or w/e a tiny bit of that gets cancelled
+		if direction == 1 and velocity.x <= fairdash_speed:
+			velocity.x = velocity_wmax(fairdash_speed,fairdash_speed,1)
+		if direction == -1 and velocity.x >= fairdash_speed * -1:
+			velocity.x = velocity_wmax(fairdash_speed,fairdash_speed,-1)
 	if frame == fairdash_end:
 		state(AIR)
 
 func bairdash_state():
+	if frame == 0:
+		airdashes+=1
+		velocity.y = 0
+		if airdashstyle == 'gg': airdashframes = bairdash_end
 	if frame == bairdash_end:
 		state(AIR)
 
@@ -820,11 +833,9 @@ func airdodge_state():
 	if frame==0:
 		velocity = Vector2(0,0) #reset velocity. It seems accurate but I'm not sure?
 		var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
-		if stickangle < 16 and stickangle > -16:
+		if stickangle < 16 and stickangle > -16: #pure left/right vectors when you're within 16 angles of the x axis
 			velocity = (Vector2(255,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
-			print ("airdodged right")
 		elif stickangle < -164 or stickangle > 164:
-			print ("airdodged left")
 			velocity = (Vector2(0,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
 		else: velocity = (analogstick-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
 		velocity.x = round(velocity.x)
@@ -909,7 +920,7 @@ func aerial_acceleration(drift=1.0,ff=true):
 			velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+driftaccel_analog*action_analogconvert()/action_range + driftaccel))
 
 	#falling
-	apply_gravity()
+	if airdashframes <= 0: apply_gravity()
 	if inputheld(down) and frame > 0: disable_platform()
 
 var rooted = false #if true, then check for pECB collision 
