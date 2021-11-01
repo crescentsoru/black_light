@@ -819,7 +819,8 @@ func airdashstart(): #just a shorthand
 	velocity.x = 0 #kinda problematic but not resetting vel.x means it feels bad to use airdashes in normal movement outside of getting hit with a bunch of knockback
 	#hopefully the fact that up-b's won't be usable if you exhaust all air options even if you get hit will compensate for airdash's ability to cancel velocity
 func airoptions_exhausted(): #Will be useful later to disallow recovery moves if both airdash and double jump have been used in a given jump arc.
-#Allowing people to double jump, airdash AND up-B will trivialize recovering which will make edgeguards much more difficult or impossible 
+#Allowing people to double jump, airdash AND up-B will trivialize recovering which will make edgeguards much more difficult or impossible.
+#Using this function, you can disallow recovery moves like Up-B if both airdash and airjump have been used in the current jump arc.
 	if mergeairoptions:
 		if airjumps == airjump_max:
 			return true
@@ -837,6 +838,7 @@ func fairdash_state():
 			velocity.x = velocity_wmax(fairdash_speed,fairdash_speed,1)
 		if direction == -1 and velocity.x >= fairdash_speed * -1:
 			velocity.x = velocity_wmax(fairdash_speed,fairdash_speed,-1)
+	airdashframes-=1
 	if frame == fairdash_end:
 		state(AIR)
 
@@ -848,6 +850,7 @@ func bairdash_state():
 			velocity.x = velocity_wmax(bairdash_speed,bairdash_speed,-1)
 		if direction == -1 and velocity.x <= bairdash_speed:
 			velocity.x = velocity_wmax(bairdash_speed,bairdash_speed,1)
+	airdashframes-=1
 	if frame == bairdash_end:
 		state(AIR)
 
@@ -945,7 +948,8 @@ func aerial_acceleration(drift=1.0,ff=true):
 
 	#falling
 	if airdashframes <= 0: apply_gravity()
-	if inputheld(down) and frame > 0: disable_platform()
+	if airdashframes>0: airdashframes-=1
+	if inputheld(down) and frame > 0: disable_platform() #frame>0 makes wavedashing on platforms not annoying, you'd need to hold 5 before JUMPSQUAT otherwise
 
 var rooted = false #if true, then check for pECB collision 
 func apply_traction(mod=1.0): #mod = modifier for traction.
