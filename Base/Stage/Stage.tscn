@@ -41,19 +41,19 @@ collision_layer = 2
 collision_mask = 0
 
 [node name="PlatformL" parent="Stage" instance=ExtResource( 5 )]
-position = Vector2( 3592.93, 4608.84 )
-scale = Vector2( 2, 1 )
+position = Vector2( 3618.33, 4850.13 )
+scale = Vector2( 16, 1 )
 collision_layer = 4
 collision_mask = 0
 
 [node name="PlatformT" parent="Stage" instance=ExtResource( 5 )]
 position = Vector2( 4517.86, 4071.73 )
-scale = Vector2( 2, 1 )
+scale = Vector2( 16, 1 )
 collision_layer = 4
 collision_mask = 0
 
 [node name="PlatformR" parent="Stage" instance=ExtResource( 5 )]
 position = Vector2( 5439.04, 4615.9 )
-scale = Vector2( 2, 1 )
+scale = Vector2( 16, 1 )
 collision_layer = 4
 collision_mask = 0

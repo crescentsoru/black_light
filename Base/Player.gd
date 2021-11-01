@@ -506,8 +506,7 @@ func debug():
 		velocity.x = -4000
 	if Input.is_action_just_pressed("d_b"):
 		pass
-		print (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y \
-		, ((analogstick-Vector2(128,128)).normalized()).x)))
+
 
 
 
@@ -1022,7 +1021,7 @@ func platform_drop(): #ran in state machine, disables platforms if 1/3 is presse
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
 
-var collisions = []
+
 var in_platform = true #will trigger dfghjduhpfsdlnjk;hblhnjk;sdfgb;luhjkfsdg
 func collision_handler(): #For platform/floor/wall collision.
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
@@ -1032,19 +1031,25 @@ func collision_handler(): #For platform/floor/wall collision.
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 	velocity = move_and_slide(velocity, Vector2(0, -1))
 
-#	for i in get_slide_count(): #not used
-#		collisions.append(get_slide_collision(i)) #not used
+
 	if velocity.y < 0: disable_platform()
-	for i in $pECB.get_overlapping_bodies():
-# ^^^^ this returns the objects your projected ECB is touching. Essentially, "this will be collided with on the next frame".
-#Only returns objects that pECB touches, but ECB doesn't. Also doesn't return the ECB itself. Why? I have absolutely no clue.
-#This works out so far, but it needs to be replaced with a signal system so you could return the objects you're colliding w at any time. 
-		if in_platform == false:
-			if velocity.y >= 0:
-				enable_platform()
-	if $pECB.get_overlapping_bodies() == []:
+
+	for x in $pECB.collisions:
+		if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly
+			if (ecb_down().x-velocity.x/60 >= x.position.x and ecb_down().x-velocity.x/60 <= x.position.x + 64*x.scale.x): #Prevents colliding w platforms from the side
+				if not in_platform and velocity.y >= 0:
+					enable_platform()
+		if x.name.substr(0,5) == 'Floor':
+			disable_platform() #Colliding with the floor in any way will disable platforms. Is this even ok? Haven't found issues so far
+	if $pECB.collisions == []:
 		in_platform = false
-	else: in_platform = true
+	else:
+		in_platform = true
+
+	
+#for x in $pECB.collisions:
+#	if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly
+#		if not (ecb_down()-velocity/60 >= x.position and ecb_down()-velocity/60 <= x.position + 32*x.scale): #Prevents colliding w platforms from the side
 
 
 	rooted = false
