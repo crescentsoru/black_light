@@ -426,24 +426,14 @@ func state_exception(state_array):
 		if state == each_state:
 			return false
 	return true
-func state_includes(state_array):
-	for each_state in state_array:
-		if state == each_state:
-			return true
-	return false
 func update_animation(): #default animation handler. 
 	if $Sprite.animation != state:
 		if state_exception(animexception):
 			$Sprite.play(state)
 			$AnimationPlayer.play(state)
-
-
 	$Sprite.scale.x = direction
 func flip(): #brevity's sake
 	direction = direction * -1
-
-
-
 
 
 func state(newstate,newframe=0): #records the current state in state_previous, changes the state and sets the frame to 0.
