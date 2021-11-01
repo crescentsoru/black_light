@@ -150,7 +150,7 @@ var airdodges = 0 #incremented when you use an airdodge. One airdodge per jump a
 
 var airdash_max = 1
 var airdashes = 0
-var mergeairoptions = false #airdashes will exhaust jumps and jumps will exhaust airdashes if True.
+var mergeairoptions = false #airdashes will exhaust jumps and airdashes won't come out when your jumps are exhausted if True.
 var airdashstyle = "mb" #gg= airdash y momentum will not be cancelled by attacks.
 var airdashframes = 0 #variable used for gg airdashes to preserve momentum during aerial_accel, but can be used for any other movement that is exclusive to airdash.
 var movementmomentum1 = 0 #used in airdodging for saving gravity from being divided by 1.11111, but can be used for any other exclusive movement
@@ -347,12 +347,12 @@ func inputheld(inp,below=900000000,above=0): #button held. pretty simple
 			if x[1] > above and x[1] <= below:
 				return true
 			else: return false
-func inputpressed(inp,custombuffer=pressbuffer,prevstate=''): 
+func inputpressed(inp,custombuffer=pressbuffer,prevstate='',erase=true): 
 	for x in buffer:
 		if x[0] == inp:
 			if x[2] <= custombuffer:
 				if state_previous != prevstate:
-					x[2] = custombuffer #can't use the same input to do two different actions.
+					if erase: x[2] = custombuffer #can't use the same input to do 2 different actions. Please do not change erase if you don't know what you're doing.
 					return true 
 				else: return false
 			else: return false
@@ -755,18 +755,22 @@ func air_state():
 		landinglag = hardland #replace with soft/hard landlag system later based on fastfalls 
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
-	if inputpressed(dodge):
+	if inputpressed(dodge,pressbuffer,"",false):
 		var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
-		if stickangle < 16 and stickangle > -16: #the angle is arbitrary, roughly based on Melee's pure left/right airdodge angle zone.
-			if airdashes < airdash_max:
-				if direction == 1: state(FAIRDASH)
-				else: state(BAIRDASH)
-			elif airdodges < 1: state(AIRDODGE)
+		if analogstick == Vector2(128,128):
+			if airdodges < 1: state(AIRDODGE) #I could make 5R a shortcut for forward airdash instead. Let me know if that's something you want
+		elif stickangle < 16 and stickangle > -16: #the angle is arbitrary, roughly based on Melee's pure left/right airdodge angle zone.
+			if frame != 0: #so you don't get super low to the ground airdashes or orthogonal wavelands.
+				if airdashes < airdash_max and ((mergeairoptions and airjumps<airjump_max) or not mergeairoptions):
+						if direction == 1: state(FAIRDASH)
+						else: state(BAIRDASH)
+				elif airdodges < 1: state(AIRDODGE)
 		elif stickangle < -164 or stickangle > 164:
-			if airdashes < airdash_max:
-				if direction == -1: state(FAIRDASH)
-				else: state(BAIRDASH)
-			elif airdodges < 1: state(AIRDODGE)
+			if frame !=0:
+				if airdashes < airdash_max and ((mergeairoptions and airjumps<airjump_max) or not mergeairoptions):
+					if direction == -1: state(FAIRDASH)
+					else: state(BAIRDASH)
+				elif airdodges < 1: state(AIRDODGE)
 		elif airdodges < 1: state(AIRDODGE)
 	if motionqueue[-1] in ['5','8','2']: #if not drifting
 		if frame > 2: air_friction()
@@ -800,7 +804,7 @@ func jumpsquat_state():
 			velocity.y-=shorthopspeed
 			state(AIR)
 	#What is the traction-like opposite velocity applied during KneeBend??????!
-	apply_traction() #putting this here as a p
+	apply_traction() #putting this here as a placeholder
 func land_state():
 	if frame == 0:
 		refresh_air_options()
@@ -808,12 +812,27 @@ func land_state():
 		if inputheld(down): state(STAND) #switch to crouch
 		else: state(STAND)
 
+func airdashstart(): #just a shorthand
+	airdashes+=1
+	if mergeairoptions: airjumps+=1
+	velocity.y = 0
+	velocity.x = 0 #kinda problematic but not resetting vel.x means it feels bad to use airdashes in normal movement outside of getting hit with a bunch of knockback
+	#hopefully the fact that up-b's won't be usable if you exhaust all air options even if you get hit will compensate for airdash's ability to cancel velocity
+func airoptions_exhausted(): #Will be useful later to disallow recovery moves if both airdash and double jump have been used in a given jump arc.
+#Allowing people to double jump, airdash AND up-B will trivialize recovering which will make edgeguards much more difficult or impossible 
+	if mergeairoptions:
+		if airjumps == airjump_max:
+			return true
+		else: return false
+	else:
+		if airjumps == airjump_max and airdashes == airdash_max:
+			return true
+		else: return false
+
 func fairdash_state():
 	if frame == 0:
-		airdashes+=1
-		velocity.y = 0
-		if airdashstyle == 'gg': airdashframes = fairdash_end
-		air_friction() #if you have a bunch of momentum from getting hit or w/e a tiny bit of that gets cancelled
+		airdashstart()
+		if airdashstyle == 'gg': airdashframes = fairdash_end #UNTESTED, will test when aerial attacks become a thing
 		if direction == 1 and velocity.x <= fairdash_speed:
 			velocity.x = velocity_wmax(fairdash_speed,fairdash_speed,1)
 		if direction == -1 and velocity.x >= fairdash_speed * -1:
@@ -823,9 +842,12 @@ func fairdash_state():
 
 func bairdash_state():
 	if frame == 0:
-		airdashes+=1
-		velocity.y = 0
+		airdashstart()
 		if airdashstyle == 'gg': airdashframes = bairdash_end
+		if direction == 1 and velocity.x >= bairdash_speed*-1:
+			velocity.x = velocity_wmax(bairdash_speed,bairdash_speed,-1)
+		if direction == -1 and velocity.x <= bairdash_speed:
+			velocity.x = velocity_wmax(bairdash_speed,bairdash_speed,1)
 	if frame == bairdash_end:
 		state(AIR)
 
@@ -833,7 +855,9 @@ func airdodge_state():
 	if frame==0:
 		velocity = Vector2(0,0) #reset velocity. It seems accurate but I'm not sure?
 		var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
-		if stickangle < 16 and stickangle > -16: #pure left/right vectors when you're within 16 angles of the x axis
+		if analogstick == Vector2(128,128): #Neutral airdodge
+			velocity = Vector2(0,0)
+		elif stickangle < 16 and stickangle > -16: #pure left/right vectors when you're within 16 angles of the x axis
 			velocity = (Vector2(255,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
 		elif stickangle < -164 or stickangle > 164:
 			velocity = (Vector2(0,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
