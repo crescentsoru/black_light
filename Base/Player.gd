@@ -111,8 +111,8 @@ var postwalktraction = 0 #This might be a fucking stupid idea, but it might make
 var skidmodifier = 1.0 #applies a modifier to traction during SKID/BRAKE
 
 
-var walk_accel = 80
-var walk_max = 900
+var walk_accel = 85
+var walk_max = 1050
 var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running.
 
 var dashinitial = 1750 #initial burst of speed when you enter DASH. Not analog. 
@@ -122,7 +122,7 @@ var dashspeed = 2200
 var dashframes = 15
 var dashendframes = 11 #DASHEND duration
 var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
-var runjumpmax = 1800 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
+var runjumpmax = 1900 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
 var runspeed = 1900 
 var runaccel = 0 #applied after dash momentum 
@@ -567,7 +567,7 @@ func crouch_state(): #AKA SquatWait
 		else: state(DASH)
 	if not motionqueue[-1] in ['1','2','3']: #makes sure you can hold down without also dropping from a platform
 		state(CROUCHEXIT)
-	if inputpressed(jump): state(JUMPSQUAT)
+	if inputpressed(jump) and is_on_floor(): state(JUMPSQUAT)
 
 func crouchexit_state(): #AKA SquatRV
 	if frame == 10:
@@ -840,6 +840,7 @@ func fairdash_state():
 		if direction == -1 and velocity.x >= fairdash_speed * -1:
 			velocity.x = velocity_wmax(fairdash_speed,fairdash_speed,-1)
 	airdashframes-=1
+	disable_platform()
 	if frame == fairdash_end:
 		state(AIR)
 
@@ -852,6 +853,7 @@ func bairdash_state():
 		if direction == -1 and velocity.x <= bairdash_speed:
 			velocity.x = velocity_wmax(bairdash_speed,bairdash_speed,1)
 	airdashframes-=1
+	disable_platform()
 	if frame == bairdash_end:
 		state(AIR)
 
@@ -1021,7 +1023,9 @@ func platform_drop(): #ran in state machine, disables platforms if 1/3 is presse
 		disable_platform()
 		if not is_on_floor(): #If the platform disabling actually worked,
 			state(AIR)
-			
+	elif (inputpressed(left) or inputpressed(right)) and inputheld(down):
+		disable_platform()
+		if not is_on_floor(): state(AIR)
 		
 	#inputheld(down) might be better?
 
