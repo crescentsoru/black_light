@@ -156,12 +156,13 @@ var airdashframes = 0 #variable used for gg airdashes to preserve momentum durin
 var movementmomentum1 = 0 #used in airdodging for saving gravity from being divided by 1.11111, but can be used for any other exclusive movement
 var movementmomentum2 = Vector2(0,0) 
 
+var fairdash_speed = 2000 #the momentum
 var fairdash_startup = 8 #The point at which you're able to cancel FAIRDASH with attacks. 
 var fairdash_end = 20 #when fairdash recovers
-var fairdash_speed = 2000 #the momentum 
+var bairdash_speed = 1700
 var bairdash_startup = 7 
 var bairdash_end = 15 #same stuff for bairdash
-var bairdash_speed = 1700
+
 
 var recoverymomentum_current = 500#Momentum value for moves like Mars Side B.
 var recoverymomentum_default = 500#_current returns to this value upon landing.
@@ -809,7 +810,7 @@ func land_state():
 	if frame == 0:
 		refresh_air_options()
 	if frame == landinglag:
-		if inputheld(down): state(STAND) #switch to crouch
+		if inputheld(down): state(CROUCH) #looks better
 		else: state(STAND)
 
 func airdashstart(): #just a shorthand
@@ -1036,9 +1037,6 @@ func collision_handler(): #For platform/floor/wall collision.
 	#move_and_slide(slope_factor,Vector2(0,1),50)
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 	velocity = move_and_slide(velocity, Vector2(0, -1))
-	#var collision = move_and_collide(velocity)
-	#if collision: velocity = velocity.slide(collision.normal)
-
 
 #	for i in get_slide_count(): #not used
 #		collisions.append(get_slide_collision(i)) #not used
@@ -1056,7 +1054,7 @@ func collision_handler(): #For platform/floor/wall collision.
 
 
 	rooted = false
-#	collisions = [] #not used rn 
+
 
 func _ready():
 	replayprep()

@@ -15,9 +15,9 @@ pause_mode = 2
 
 [node name="gametime" type="RichTextLabel" parent="UI_persistent"]
 pause_mode = 2
-margin_right = 300.0
-margin_bottom = 123.0
-rect_scale = Vector2( 2, 2 )
+margin_right = 303.0
+margin_bottom = 134.0
+rect_scale = Vector2( 1.5, 1.5 )
 text = "Affordable text:
 "
 __meta__ = {

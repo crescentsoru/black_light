@@ -1,11 +1,27 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://Graphics1/test_floor.png" type="Texture" id=1]
 
 [sub_resource type="PhysicsMaterial" id=1]
 friction = 0.0
 
+[sub_resource type="SpriteFrames" id=2]
+animations = [ {
+"frames": [ ExtResource( 1 ) ],
+"loop": true,
+"name": "test",
+"speed": 5.0
+} ]
+
 [node name="Floor" type="StaticBody2D"]
 physics_material_override = SubResource( 1 )
 
+[node name="floorsprite" type="AnimatedSprite" parent="."]
+position = Vector2( 256, 32 )
+scale = Vector2( 8, 1 )
+frames = SubResource( 2 )
+animation = "test"
+
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
 position = Vector2( 0.0022583, 0.110725 )
-polygon = PoolVector2Array( 0, 0, 512, 0, 512, 96, 0, 96 )
+polygon = PoolVector2Array( 0, 0, 512, 0, 512, 64, 0, 64 )
