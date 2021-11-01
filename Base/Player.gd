@@ -148,7 +148,7 @@ var airdodgeend = 25
 var airdodgelandlag = 20 #landing lag for airdodging into the ground after the initial velocity
 var airdodges = 0 #incremented when you use an airdodge. One airdodge per jump arc. 
 
-var airdash_max = 1 
+var airdash_max = 0
 var airdashes = 0
 var mergeairoptions = false #airdashes will exhaust jumps and jumps will exhaust airdashes if True.
 var airdashstyle = "mb" #gg= airdash y momentum will not be cancelled by attacks.
@@ -160,7 +160,7 @@ var fairdash_startup = 8
 var fairdash_end = 20
 var fairdash_speed = 1500
 var bairdash_startup = 7
-var bairdash_end = 10
+var bairdash_end = 15
 var bairdash_speed = 1100
 
 var recoverymomentum_current = 500#Momentum value for moves like Mars Side B.
@@ -177,7 +177,7 @@ var landinglag = 4 #changed all the time in states that can land.
 var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK] #Rooted state. Ground attacks should be this.
 var slidestates = [STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
 var tractionstates = [STAND,LAND,DASHEND,CROUCH,CROUCHSTART,CROUCHEXIT] #Only adds traction
-var landingstates = [AIR] #States that will enter LAND when you land on the ground.
+var landingstates = [AIR,FAIRDASH,BAIRDASH] #States that will enter LAND when you land on the ground.
 
 
 
@@ -518,7 +518,7 @@ func debug():
 		print (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y \
 		, ((analogstick-Vector2(128,128)).normalized()).x)))
 
-	
+
 
 func stand_state():
 	platform_drop()
@@ -699,10 +699,6 @@ func run_state():
 	if inputpressed(jump): state(JUMPSQUAT)
 
 
-
-
-
-
 func skid_state():
 	platform_drop()
 	if frame >= 1 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
@@ -760,11 +756,18 @@ func air_state():
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
 	if inputpressed(dodge):
-		if (inputheld(left) or inputheld(right)):
-			pass
-		if airdashes > 0:
-			pass
-		if airdodges < 1: state(AIRDODGE)
+		var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
+		if stickangle < 16 and stickangle > -16: #the angle is arbitrary, roughly based on Melee's pure left/right airdodge angle zone.
+			if airdashes < airdash_max:
+				if direction == 1: state(FAIRDASH)
+				else: state(BAIRDASH)
+			elif airdodges < 1: state(AIRDODGE)
+		elif stickangle < -164 or stickangle > 164:
+			if airdashes < airdash_max:
+				if direction == -1: state(FAIRDASH)
+				else: state(BAIRDASH)
+			elif airdodges < 1: state(AIRDODGE)
+		elif airdodges < 1: state(AIRDODGE)
 	if motionqueue[-1] in ['5','8','2']: #if not drifting
 		if frame > 2: air_friction()
 		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
@@ -806,15 +809,24 @@ func land_state():
 		else: state(STAND)
 
 func fairdash_state():
-	pass
+	if frame == fairdash_end:
+		state(AIR)
 
 func bairdash_state():
-	pass
+	if frame == bairdash_end:
+		state(AIR)
 
 func airdodge_state():
 	if frame==0:
-		velocity = Vector2(0,0) #reset velocity
-		velocity = (analogstick-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
+		velocity = Vector2(0,0) #reset velocity. It seems accurate but I'm not sure?
+		var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
+		if stickangle < 16 and stickangle > -16:
+			velocity = (Vector2(255,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
+			print ("airdodged right")
+		elif stickangle < -164 or stickangle > 164:
+			print ("airdodged left")
+			velocity = (Vector2(0,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
+		else: velocity = (analogstick-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
 		velocity.x = round(velocity.x)
 		velocity.y = round(velocity.y) #because round() refuses to work properly with vector2
 		movementmomentum2 = velocity
@@ -871,6 +883,7 @@ func state_handler():
 	if state_check(AIR): air_state()
 	if state_check(LAND): land_state()
 	if state_check(FAIRDASH): fairdash_state()
+	if state_check(BAIRDASH): bairdash_state()
 	if state_check(AIRDODGE): airdodge_state()
 	if state_check(WAVELAND): waveland_state()
 	
