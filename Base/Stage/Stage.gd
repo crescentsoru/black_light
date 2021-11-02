@@ -36,6 +36,7 @@ func initialize_players():
 		p1_instance.position = global.spawn_1st + self.position
 		p1_instance.playerindex = "p1"
 		p1_instance.initialize_buttons(global.p1_data[3])
+		p1_instance.stocks = global.stockcount
 	if global.p2_data[0] != '':
 		var p2_load = load('res://Characters/' + global.p2_data[0] + "/" + global.p2_data[0] + ".tscn")
 		var p2_instance = p2_load.instance()
@@ -43,6 +44,7 @@ func initialize_players():
 		p2_instance.position = global.spawn_2nd + self.position
 		p2_instance.playerindex = "p2"
 		p2_instance.initialize_buttons(global.p2_data[3])
+		p2_instance.stocks = global.stockcount
 	if global.p3_data[0] != '':
 		var p3_load = load('res://Characters/' + global.p3_data[0] + "/" + global.p3_data[0] + ".tscn")
 		var p3_instance = p3_load.instance()
@@ -50,7 +52,7 @@ func initialize_players():
 		p3_instance.position = global.spawn_3rd + self.position
 		p3_instance.playerindex = "p3"
 		p3_instance.initialize_buttons(global.p3_data[3])
-
+		p3_instance.stocks = global.stockcount
 
 
 var ispause = false

@@ -14,10 +14,11 @@ var direction = -1 #   -1 is left; 1 is right
 var impactstop = 0 #hitstop and blockstop. Also known as hitlag. 
 var impactstop_trigger = false #necessary to allow for 1f impactstops.
 
+var stocks = 99
+var percentage = 0 #Technically it's permillage since it goes down to the decimals
 
 
 		#Gameplay
-
 
 	#Constants
 #These basically make the code more readable and make the process of working with state machines slightly quicker.
@@ -595,7 +596,7 @@ func debug():
 	if Input.is_action_just_pressed("d_a"):
 		velocity.x = -4000
 	if Input.is_action_just_pressed("d_b"):
-		pass
+		get_tree().change_scene("res://Menus/Button_remap.tscn")
 
 
 

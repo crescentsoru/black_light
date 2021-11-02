@@ -30,6 +30,7 @@ var teams = { #has player indexes here
 	'brown' : [], #or black 
 }
 var RNGseed = 'ffffffff' #haven't decided on a format
+var gameend = 99999999 #the frametime when the replay ends. 
 
 #Stage
 #This should probably be in stage but I haven't made a stage builder yet so its fine
@@ -122,6 +123,7 @@ func compilereplay(): #This is probably ran multiple times hope it doesn't shit 
 		'gameinfo' : [gamename,gameversion], #gameinfo contains info like the game name and version.
 		'matchinfo' : [stagename,gamemode,RNGseed,stockcount,thetimer,teams],
 		'p_data' : [p1_data,p2_data,p3_data], #initialization vars, inputs
+		'end' : gameend,
 		}
 
 
