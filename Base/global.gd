@@ -15,17 +15,20 @@ func _ready():
 
 	#Match initialization
 
+#Stage
 var spawn_1st = Vector2(4110,1900) #1st =/= p1. If there's 2 players and someone plugs into port 3 they should go into spawn_2nd for the sake of a neutral start.
-var spawn_2nd = Vector2(0,0)
-#might make a system that has different positions for different player counts
+var spawn_2nd = Vector2(6100,4900)#2nd =/= p2
 
-var p1_char = 'ExampleChar'
+
+#Character
+var p1_char = 'ExampleChar' #the character they picked. Loads a .tscn under that name in the folder of the same name in Characters/
+var p1_alt = 0 #the character skin
+var p1_mode = '' #for stuff like picking the first Porkyman with Porkyman Trainist or the Xeno 2 girls. Characters interact with this in character scripts in _ready
 var p1_controls = [
 	'p1_up',
 	'p1_down',
 	'p1_left',
 	'p1_right',
-	'p1_',
 	'p1_attackA',
 	'p1_attackB',
 	'p1_attackC',
@@ -43,6 +46,27 @@ var p1_controls = [
 	'p1_downtaunt',
 ]
 var p2_char = 'ExampleChar'
+var p2_controls = [
+	'p2_up',
+	'p2_down',
+	'p2_left',
+	'p2_right',
+	'p2_attackA',
+	'p2_attackB',
+	'p2_attackC',
+	'p2_attackD',
+	'p2_attackE',
+	'p2_attackF',
+	'p2_dodge',
+	'p2_grab',
+	'p2_cstickdown',
+	'p2_cstickup',
+	'p2_cstickleft',
+	'p2_cstickright',
+	'p2_uptaunt',
+	'p2_sidetaunt',
+	'p2_downtaunt',
+]
 var p3_char = '' #if empty, don't have a player in that port
 var p4_char = ''
 var p5_char = ''

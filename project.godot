@@ -49,16 +49,39 @@ p1_right={
 , Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":0,"axis":0,"axis_value":1.0,"script":null)
  ]
 }
-p1_attack={
+p1_attackA={
 "deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":65,"unicode":0,"echo":false,"script":null)
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":0,"button_index":1,"pressure":0.0,"pressed":false,"script":null)
  ]
 }
-p1_special={
+p1_attackB={
 "deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":83,"unicode":0,"echo":false,"script":null)
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":0,"button_index":2,"pressure":0.0,"pressed":false,"script":null)
+ ]
+}
+p1_attackC={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":86,"unicode":0,"echo":false,"script":null)
+ ]
+}
+p1_attackD={
+"deadzone": 0.5,
+"events": [  ]
+}
+p1_attackE={
+"deadzone": 0.5,
+"events": [  ]
+}
+p1_attackF={
+"deadzone": 0.5,
+"events": [  ]
+}
+p1_dodge={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":70,"unicode":0,"echo":false,"script":null)
+, Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":0,"button_index":4,"pressure":0.0,"pressed":false,"script":null)
  ]
 }
 p1_jump={
@@ -68,22 +91,23 @@ p1_jump={
 , Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":32,"unicode":0,"echo":false,"script":null)
  ]
 }
-p1_ex={
-"deadzone": 0.5,
-"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":86,"unicode":0,"echo":false,"script":null)
- ]
-}
-p1_dodge={
-"deadzone": 0.5,
-"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":70,"unicode":0,"echo":false,"script":null)
-, Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":0,"button_index":4,"pressure":0.0,"pressed":false,"script":null)
- ]
-}
 p1_grab={
 "deadzone": 0.5,
 "events": [  ]
 }
 p1_cstickup={
+"deadzone": 0.5,
+"events": [  ]
+}
+p1_cstickdown={
+"deadzone": 0.5,
+"events": [  ]
+}
+p1_cstickleft={
+"deadzone": 0.5,
+"events": [  ]
+}
+p1_cstickright={
 "deadzone": 0.5,
 "events": [  ]
 }
@@ -96,6 +120,17 @@ p1_pause={
 d_a={
 "deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":49,"unicode":0,"echo":false,"script":null)
+ ]
+}
+d_b={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":50,"unicode":0,"echo":false,"script":null)
+ ]
+}
+d_forward={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":53,"unicode":0,"echo":false,"script":null)
+, Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":0,"button_index":6,"pressure":0.0,"pressed":false,"script":null)
  ]
 }
 d_load={
@@ -118,16 +153,77 @@ d_play={
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":57,"unicode":0,"echo":false,"script":null)
  ]
 }
-d_forward={
+p2_up={
 "deadzone": 0.5,
-"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":53,"unicode":0,"echo":false,"script":null)
-, Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":0,"button_index":6,"pressure":0.0,"pressed":false,"script":null)
- ]
+"events": [  ]
 }
-d_b={
+p2_down={
 "deadzone": 0.5,
-"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":50,"unicode":0,"echo":false,"script":null)
- ]
+"events": [  ]
+}
+p2_left={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_right={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_attackA={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_attackB={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_attackC={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_attackD={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_E={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_attackF={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_dodge={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_jump={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_grab={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_cstickup={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_cstickdown={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_cstickleft={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_cstickright={
+"deadzone": 0.5,
+"events": [  ]
+}
+p2_pause={
+"deadzone": 0.5,
+"events": [  ]
 }
 
 [physics]
