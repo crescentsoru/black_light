@@ -36,6 +36,19 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="p3_debug" type="RichTextLabel" parent="UI_persistent"]
+pause_mode = 2
+margin_left = 1024.0
+margin_top = 1.0
+margin_right = 1192.0
+margin_bottom = 214.0
+rect_scale = Vector2( 1.5, 1.5 )
+text = "Affordable text:
+"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="Stage" type="Node2D" parent="."]
 pause_mode = 2
 position = Vector2( 5000, 5000 )

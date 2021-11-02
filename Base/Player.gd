@@ -175,18 +175,18 @@ var slope_slide_threshold = 0
 #Buttons
 #All the default values here should be overwritten by initialization
 var up = ''
-var down = ''
+var down = 'p1_down' 
 var left = ''
 var right = ''
 var jump = ''
-var attackA = 'p1_attackA' #
-var attackB = 'p1_attackB' #AKA special
-var attackC = 'p1_attackC'
-var attackD = 'p1_attackD' #extra attacks will be useful if the engine gets repurposed for 2D fighters
-var attackE = 'p1_attackE'
-var attackF = 'p1_attackF'
-var dodge = 'p1_dodge'
-var grab = 'p1_grab'
+var attackA = '' #the A button
+var attackB = '' #AKA special
+var attackC = '' 
+var attackD = '' #extra attacks will be useful if the engine gets repurposed for 2D fighters
+var attackE = ''
+var attackF = ''
+var dodge = ''
+var grab = ''
 var cstickup = ''
 var cstickdown = ''
 var cstickleft = ''
@@ -265,27 +265,7 @@ func initialize_buttons(buttonset):
 [buttonset[19],0,9000,9000],
 ]
 
-var p1_controls = [
-	'p1_up',
-	'p1_down',
-	'p1_left',
-	'p1_right',
-	'p1_jump',
-	'p1_attackA',
-	'p1_attackB',
-	'p1_attackC',
-	'p1_attackD',
-	'p1_attackE',
-	'p1_attackF',
-	'p1_dodge',
-	'p1_grab',
-	'p1_cstickdown',
-	'p1_cstickup',
-	'p1_cstickleft',
-	'p1_cstickright',
-	'p1_uptaunt',
-	'p1_sidetaunt',
-	'p1_downtaunt',]
+
 
 #x[0] = input name
 #x[1] = frames the input has been held

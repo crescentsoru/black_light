@@ -25,21 +25,31 @@ func _process(delta):
 
 
 func initialize_players():
-	if global.p1_char != '':
-		var p1_load = load('res://Characters/' + global.p1_char + "/" + global.p1_char + ".tscn")
+	var playercount = []
+	for x in [global.p1_data,global.p2_data]:
+		if x[0] != '':
+			playercount.append(x) #not useful rn, len(playercount) will be useful when deciding start positions with different amount of players
+	if global.p1_data[0] != '':
+		var p1_load = load('res://Characters/' + global.p1_data[0] + "/" + global.p1_data[0] + ".tscn")
 		var p1_instance = p1_load.instance()
 		get_node("Stage").call_deferred('add_child',p1_instance) #I forgot why call_deferred was good I'm just copying stuff
 		p1_instance.position = global.spawn_1st + self.position
 		p1_instance.playerindex = "p1"
-		p1_instance.initialize_buttons(global.p1_controls)
-	if global.p2_char != '':
-		var p2_load = load('res://Characters/' + global.p2_char + "/" + global.p2_char + ".tscn")
+		p1_instance.initialize_buttons(global.p1_data[3])
+	if global.p2_data[0] != '':
+		var p2_load = load('res://Characters/' + global.p2_data[0] + "/" + global.p2_data[0] + ".tscn")
 		var p2_instance = p2_load.instance()
 		get_node("Stage").call_deferred('add_child',p2_instance)
 		p2_instance.position = global.spawn_2nd + self.position
 		p2_instance.playerindex = "p2"
-		p2_instance.initialize_buttons(global.p2_controls)
-
+		p2_instance.initialize_buttons(global.p2_data[3])
+	if global.p3_data[0] != '':
+		var p3_load = load('res://Characters/' + global.p3_data[0] + "/" + global.p3_data[0] + ".tscn")
+		var p3_instance = p3_load.instance()
+		get_node("Stage").call_deferred('add_child',p3_instance)
+		p3_instance.position = global.spawn_3rd + self.position
+		p3_instance.playerindex = "p3"
+		p3_instance.initialize_buttons(global.p3_data[3])
 
 
 
