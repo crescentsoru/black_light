@@ -3,7 +3,7 @@ extends Node
 	#Video game specific
 
 var gamename = 'Blacklight pre-release'
-var gameversion = 'no'
+var gameversion = 'alphav0.2'
 
 
 
@@ -14,6 +14,22 @@ func _ready():
 
 
 	#Match initialization
+#Match info
+var stagename = 'thebattlefield'
+var gamemode = 'versus'
+var stockcount = 4
+var thetimer = 28800 #in frames. 28800= 8 min.
+var teams = { #has player indexes here
+	'red' : [],
+	'blue' : [],
+	'green' : [],
+	'yellow' : [],
+	'purple' : [],
+	'cyan' : [], 
+	'white' : [],
+	'brown' : [], #or black 
+}
+var RNGseed = 'ffffffff' #haven't decided on a format
 
 #Stage
 #This should probably be in stage but I haven't made a stage builder yet so its fine
@@ -49,6 +65,15 @@ var p3_data = [
 	'',
 	['p3_up','p3_down','p3_left','p3_right','p3_jump','p3_attackA','p3_attackB','p3_attackC','p3_attackD','p3_attackE','p3_attackF', #these dont exist yet pls dont
 	'p3_dodge','p3_grab','p3_cstickdown','p3_cstickup','p3_cstickleft','p3_cstickright','p3_uptaunt','p3_sidetaunt','p3_downtaunt',
+	],
+	{}, 
+	]
+var p4_data = [
+	'',
+	0, 
+	'',
+	['p4_up','p4_down','p4_left','p4_right','p4_jump','p4_attackA','p4_attackB','p4_attackC','p4_attackD','p4_attackE','p4_attackF', #these dont exist yet pls dont
+	'p4_dodge','p4_grab','p4_cstickdown','p4_cstickup','p4_cstickleft','p4_cstickright','p4_uptaunt','p4_sidetaunt','p4_downtaunt',
 	],
 	{}, 
 	]
@@ -91,6 +116,14 @@ func replay_loadfile():
 	var file2list = loadfile.get_as_text()
 	fullreplay = parse_json(file2list)
 	loadfile.close()
+
+func compilereplay(): #This is probably ran multiple times hope it doesn't shit the fucking bed later when replays get longer
+	fullreplay = {
+		'gameinfo' : [gamename,gameversion], #gameinfo contains info like the game name and version.
+		'matchinfo' : [stagename,gamemode,RNGseed,stockcount,thetimer,teams],
+		'p_data' : [p1_data,p2_data,p3_data], #initialization vars, inputs
+		}
+
 
 func resetgame():
 	get_tree().change_scene("res://Base/Stage/Stage.tscn")

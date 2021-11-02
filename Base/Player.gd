@@ -460,9 +460,9 @@ func inputjustreleased(inp): #button released this frame, no buffer
 func replayprep(): #called on _ready to make your character controllable or not
 	if global.replaying == true:
 		controllable = false
-		if playerindex == "p1": currentreplay = global.p1_data[4]
-		if playerindex == "p2": currentreplay = global.p2_data[4]
-		if playerindex == "p3": currentreplay = global.p3_data[4]		
+		if playerindex == "p1": currentreplay = global.fullreplay['p_data'][0][4]
+		if playerindex == "p2": currentreplay = global.fullreplay['p_data'][1][4]
+		if playerindex == "p3": currentreplay = global.fullreplay['p_data'][2][4]
 
 
 
@@ -590,6 +590,7 @@ func debug():
 		if playerindex == "p3": global.p3_data[4] = currentreplay
 
 		global.replaying = true
+		global.compilereplay()
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
 		velocity.x = -4000
