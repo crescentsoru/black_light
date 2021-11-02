@@ -460,7 +460,10 @@ func inputjustreleased(inp): #button released this frame, no buffer
 func replayprep(): #called on _ready to make your character controllable or not
 	if global.replaying == true:
 		controllable = false
-		currentreplay = global.fullreplay
+		if playerindex == "p1": currentreplay = global.p1_data[4]
+		if playerindex == "p2": currentreplay = global.p2_data[4]
+		if playerindex == "p3": currentreplay = global.p3_data[4]		
+
 
 
 var motionqueue = "5"
@@ -582,7 +585,10 @@ func debug():
 		global.replaying = false
 		global.resetgame() #wipes the replay file
 	if Input.is_action_just_pressed("d_play"):
-		global.fullreplay = currentreplay
+		if playerindex == "p1": global.p1_data[4] = currentreplay
+		if playerindex == "p2": global.p2_data[4] = currentreplay
+		if playerindex == "p3": global.p3_data[4] = currentreplay
+
 		global.replaying = true
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):

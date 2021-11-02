@@ -38,6 +38,7 @@ __meta__ = {
 
 [node name="p3_debug" type="RichTextLabel" parent="UI_persistent"]
 pause_mode = 2
+visible = false
 margin_left = 1024.0
 margin_top = 1.0
 margin_right = 1192.0
