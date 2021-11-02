@@ -8,9 +8,6 @@ extends Node2D
 #A stage builder would be created in this same game.
 #I can handle either one, as I've already made a level builder/loader for Project Tension, though a grid-based one.
 #The bigger challenge there would actually be creating good UI/UX for the stage builder, but, the effort would be absolutely worth it.
-
-
-
 #which one is better for project architecture?I don't fucking know, which is why you shouldn't take this file seriously yet
 
 #Note that the actual stage and characters are part of the Stage node. This script is attached to the Gaming node which is their parent.

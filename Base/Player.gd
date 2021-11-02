@@ -2,6 +2,7 @@ extends KinematicBody2D
 #https://www.youtube.com/watch?v=KikLLLeyVOk
 var charactername = 'pass'
 var characterdescription = 'my jambo jet flies cheerfully'
+var playerindex = 'p1'
 
 var state = 'stand'
 var state_previous = '' #for logic like "cant buffer this during x state"
@@ -12,30 +13,7 @@ var direction = -1 #   -1 is left; 1 is right
 var impactstop = 0 #hitstop and blockstop. Also known as hitlag. 
 var impactstop_trigger = false #necessary to allow for 1f impactstops.
 
-				#Inputs
-#Buttons
-#All the values here should be erased by initialization anyways once that's implemented
-var up = 'p1_up'
-var down = 'p1_down'
-var left = 'p1_left'
-var right = 'p1_right'
-var jump = 'p1_jump'
-var attack = 'p1_attack'
-var special = 'p1_special'
-var ex = 'p1_ex'
-var dodge = 'p1_dodge'
-var grab = 'p1_grab'
-var cstickup = ''
-var cstickdown = ''
-var cstickleft = ''
-var cstickright = ''
-var uptaunt = ''
-var sidetaunt = ''
-var downtaunt = ''
 
-var controllable = true #false when replay
-var motionqueue = "5"
-var motiontimer = 8
 
 		#Gameplay
 
@@ -102,8 +80,6 @@ const JAB = 'jab'
 
 
 	#Movement vars
-
-
 
 
 var traction = 70
@@ -195,6 +171,30 @@ var slope_slide_threshold = 0
 		##INPUTS##
 	##################
 
+#Buttons
+#All the values here should be erased by initialization anyways once that's implemented
+var up = 'p1_up'
+var down = 'p1_down'
+var left = 'p1_left'
+var right = 'p1_right'
+var jump = 'p1_jump'
+var attackA = 'p1_attackA' #
+var attackB = 'p1_attackB' #AKA special
+var attackC = 'p1_attackC'
+var attackD = 'p1_attackD' #extra attacks will be useful if the engine gets repurposed for 2D fighters
+var attackE = 'p1_attackE'
+var attackF = 'p1_attackF'
+var dodge = 'p1_dodge'
+var grab = 'p1_grab'
+var cstickup = ''
+var cstickdown = ''
+var cstickleft = ''
+var cstickright = ''
+var uptaunt = ''
+var sidetaunt = ''
+var downtaunt = ''
+
+
 
 #x[0] = input name
 #x[1] = frames the input has been held
@@ -206,9 +206,12 @@ var buffer = [
 [left,0,9000,9000],
 [right,0,9000,9000],
 [jump,0,9000,9000],
-[attack,0,9000,9000],
-[special,0,9000,9000],
-[ex,0,9000,9000],
+[attackA,0,9000,9000],
+[attackB,0,9000,9000],
+[attackC,0,9000,9000],
+[attackD,0,9000,9000],
+[attackE,0,9000,9000],
+[attackF,0,9000,9000],
 [dodge,0,9000,9000],
 [grab,0,9000,9000],
 [cstickup,0,9000,9000],
@@ -243,9 +246,12 @@ var currentreplay = {
 	left : [], 
 	right : [],
 	jump : [],
-	attack : [],
-	special : [],
-	ex : [],
+	attackA : [],
+	attackB : [],
+	attackC : [],
+	attackD : [],
+	attackE : [],
+	attackF : [],
 	dodge : [],
 	grab : [],
 	cstickup : [],
@@ -257,7 +263,8 @@ var currentreplay = {
 	downtaunt : [],
 	
 }
-#[up,down,left,right,jump,attack,special,ex,dodge,grab,cstickup,cstickdown,cstickleft,cstickright,uptaunt,sidetaunt,downtaunt]
+
+var controllable = true #false when replay
 
 
 var analogstick = Vector2(0,0)
@@ -308,7 +315,6 @@ func base_inputheld(inp):
 					if analogstick != Vector2(128,128):
 	#this code will break if there is no deadzone and analog_smash is at a small or 0 value. Please don't do that you have no reason to
 #The center is 128,128 like Melee.
-
 						if inp == up:
 							if analogstick.y <= 255 and analogstick.y >= 128+analog_smash:
 								return true
@@ -382,6 +388,10 @@ func replayprep(): #called on _ready to make your character controllable or not
 	if global.replaying == true:
 		controllable = false
 		currentreplay = global.fullreplay
+
+
+var motionqueue = "5"
+var motiontimer = 8
 func tiltinput(inp): #returns true if you have an analog input beyond analog_tilt on the control stick, which is 24 by default.
 	if inp == up: 
 		if analogstick.y <= 255 and analogstick.y > 128+analog_tilt: return true

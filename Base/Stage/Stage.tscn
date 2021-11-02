@@ -28,32 +28,32 @@ __meta__ = {
 pause_mode = 2
 
 [node name="Camera" parent="Stage" instance=ExtResource( 2 )]
-position = Vector2( 4940.9, 4552.21 )
+position = Vector2( 4993.76, 4601.29 )
 zoom = Vector2( 4, 4 )
 
 [node name="ExampleChar" parent="Stage" instance=ExtResource( 1 )]
-position = Vector2( 5432.17, 4620.17 )
+position = Vector2( 4110, 4900 )
 
 [node name="Floor" parent="Stage" instance=ExtResource( 3 )]
-position = Vector2( 3476.99, 5098.96 )
+position = Vector2( 3475, 5100 )
 scale = Vector2( 6, 1 )
 collision_layer = 2
 collision_mask = 0
 
 [node name="PlatformL" parent="Stage" instance=ExtResource( 5 )]
-position = Vector2( 3618.33, 4850.13 )
+position = Vector2( 3635, 4629 )
 scale = Vector2( 16, 1 )
 collision_layer = 4
 collision_mask = 0
 
 [node name="PlatformT" parent="Stage" instance=ExtResource( 5 )]
-position = Vector2( 4517.86, 4071.73 )
+position = Vector2( 4510, 4100 )
 scale = Vector2( 16, 1 )
 collision_layer = 4
 collision_mask = 0
 
 [node name="PlatformR" parent="Stage" instance=ExtResource( 5 )]
-position = Vector2( 5439.04, 4615.9 )
+position = Vector2( 5440, 4630 )
 scale = Vector2( 16, 1 )
 collision_layer = 4
 collision_mask = 0
