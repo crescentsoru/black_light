@@ -595,7 +595,7 @@ func debug():
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
 		velocity.x = -4000
-	if Input.is_action_just_pressed("d_b"):
+	if Input.is_action_just_released("d_b"):
 		get_tree().change_scene("res://Menus/Button_remap.tscn")
 
 
