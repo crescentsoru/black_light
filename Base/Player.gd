@@ -2,7 +2,8 @@ extends KinematicBody2D
 #https://www.youtube.com/watch?v=KikLLLeyVOk
 var charactername = 'pass'
 var characterdescription = 'my jambo jet flies cheerfully'
-var playerindex = 'p1'
+var playerindex = ''
+var maincharacter = true #if false, then it's probably a Nana thing
 
 var state = 'stand'
 var state_previous = '' #for logic like "cant buffer this during x state"
@@ -172,12 +173,12 @@ var slope_slide_threshold = 0
 	##################
 
 #Buttons
-#All the values here should be erased by initialization anyways once that's implemented
-var up = 'p1_up'
-var down = 'p1_down'
-var left = 'p1_left'
-var right = 'p1_right'
-var jump = 'p1_jump'
+#All the default values here should be overwritten by initialization
+var up = ''
+var down = ''
+var left = ''
+var right = ''
+var jump = ''
 var attackA = 'p1_attackA' #
 var attackB = 'p1_attackB' #AKA special
 var attackC = 'p1_attackC'
@@ -195,6 +196,96 @@ var sidetaunt = ''
 var downtaunt = ''
 
 
+
+func initialize_buttons(buttonset):
+	up = buttonset[0]
+	down = buttonset[1]
+	left = buttonset[2]
+	right = buttonset[3]
+	jump = buttonset[4]
+	attackA = buttonset[5]
+	attackB = buttonset[6]
+	attackC = buttonset[7]
+	attackD = buttonset[8]
+	attackE = buttonset[9]
+	attackF = buttonset[10]
+	dodge = buttonset[11]
+	grab = buttonset[12]
+	cstickup = buttonset[13]
+	cstickdown = buttonset[14]
+	cstickleft = buttonset[15]
+	cstickright = buttonset[16]
+	uptaunt = buttonset[17]
+	sidetaunt = buttonset[18]
+	downtaunt = buttonset[19]
+	currentreplay = {
+	'analog' : [],
+	up : [] ,
+	down : [],
+	left : [], 
+	right : [],
+	jump : [],
+	attackA : [],
+	attackB : [],
+	attackC : [],
+	attackD : [],
+	attackE : [],
+	attackF : [],
+	dodge : [],
+	grab : [],
+	cstickup : [],
+	cstickdown : [],
+	cstickleft : [],
+	cstickright : [],
+	uptaunt : [],
+	sidetaunt : [],
+	downtaunt : [],
+	
+}
+	buffer = [
+[buttonset[0],0,9000,9000],
+[buttonset[1],0,9000,9000],
+[buttonset[2],0,9000,9000],
+[buttonset[3],0,9000,9000],
+[buttonset[4],0,9000,9000],
+[buttonset[5],0,9000,9000],
+[buttonset[6],0,9000,9000],
+[buttonset[7],0,9000,9000],
+[buttonset[8],0,9000,9000],
+[buttonset[9],0,9000,9000],
+[buttonset[10],0,9000,9000],
+[buttonset[11],0,9000,9000],
+[buttonset[12],0,9000,9000],
+[buttonset[13],0,9000,9000],
+[buttonset[14],0,9000,9000],
+[buttonset[15],0,9000,9000],
+[buttonset[16],0,9000,9000],
+[buttonset[17],0,9000,9000],
+[buttonset[18],0,9000,9000],
+[buttonset[19],0,9000,9000],
+]
+
+var p1_controls = [
+	'p1_up',
+	'p1_down',
+	'p1_left',
+	'p1_right',
+	'p1_jump',
+	'p1_attackA',
+	'p1_attackB',
+	'p1_attackC',
+	'p1_attackD',
+	'p1_attackE',
+	'p1_attackF',
+	'p1_dodge',
+	'p1_grab',
+	'p1_cstickdown',
+	'p1_cstickup',
+	'p1_cstickleft',
+	'p1_cstickright',
+	'p1_uptaunt',
+	'p1_sidetaunt',
+	'p1_downtaunt',]
 
 #x[0] = input name
 #x[1] = frames the input has been held
@@ -267,7 +358,7 @@ var currentreplay = {
 var controllable = true #false when replay
 
 
-var analogstick = Vector2(0,0)
+var analogstick = Vector2(128,128)
 var analog_deadzone = 24 #should probably be the same as analog_tilt
 var analog_tilt = 24 #how much distance you need for the game to consider something a tilt input rather than neutral
 var analog_smash = 64 #how much distance the stick has to travel to be considered an u/d/l/r/ or smash input
@@ -296,7 +387,9 @@ func analogdeadzone(stick,zone): #applies a deadzone to a stick value
 	return stick
 func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a deadzone
 		if controllable:
-			analogstick = analogconvert(Input.get_action_strength(left),Input.get_action_strength(right),Input.get_action_strength(down),Input.get_action_strength(up))
+			if left != "": #prevents error spam if a character doesn't have control stick inputs. 
+				analogstick = analogconvert(Input.get_action_strength(left),Input.get_action_strength(right),Input.get_action_strength(down),Input.get_action_strength(up))
+			
 			analogstick = analogdeadzone(analogstick,analog_deadzone)
 			if currentreplay['analog'] == []:
 				currentreplay['analog'].append([global.gametime, analogstick.x, analogstick.y])
@@ -452,7 +545,7 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 	frame = newframe
 	state_handler()
 	char_state_handler()
-	get_parent().get_parent().update_debug_display()
+	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 
 
 func framechange(): #increments the frames, decrements the impactstop timer and stops decrementing frame if impactstop > 0.
@@ -997,7 +1090,7 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	$pECB.scale.x = direction
 	state_handler()
 	char_state_handler()
-	get_parent().get_parent().update_debug_display()
+	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 	if state in rootedstates:
 		apply_gravity()
 		rooted = true
