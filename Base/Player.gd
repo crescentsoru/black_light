@@ -110,6 +110,7 @@ var driftaccel_analog = 200 #Additional drift accel
 var drift_max = 1100
 var fall_accel = 120
 var fall_max = 1900
+var fastfall_speed = 2375
 var airfriction = 10 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
 
 var jumpsquat = 3
@@ -370,8 +371,8 @@ func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a
 		if controllable:
 			if left != "": #prevents error spam if a character doesn't have control stick inputs. 
 				analogstick = analogconvert(Input.get_action_strength(left),Input.get_action_strength(right),Input.get_action_strength(down),Input.get_action_strength(up))
-			
-			analogstick = analogdeadzone(analogstick,analog_deadzone)
+
+			#analogstick = analogdeadzone(analogstick,analog_deadzone) #Did this for testing. Apparently doesn't break the game cause tilts are in the deadzone anyways
 			if currentreplay['analog'] == []:
 				currentreplay['analog'].append([global.gametime, analogstick.x, analogstick.y])
 			else:
@@ -401,7 +402,9 @@ func base_inputheld(inp):
 						if inp == right:
 							if analogstick.x <= 255 and analogstick.x >= 128+analog_smash:
 								return true
-				else: return true
+				elif Input.get_action_strength(inp) >= 0.5: #If you use an analog stick for a button input,
+					return true # you need to press it at least halfway like the u/d/l/r inputs above
+				else: return false
 			else: return false
 	else:
 		for x in currentreplay:
@@ -567,6 +570,7 @@ func refresh_air_options():
 	airjumps = 0
 	airdashes = 0
 	airdodges = 0
+	fastfall = false
 	recoverymomentum_current = recoverymomentum_default
 	walljump_count = 0
 
@@ -832,8 +836,8 @@ func turn_state():
 
 func air_state():
 	aerial_acceleration()
-	if frame == 0:
-		landinglag = hardland #replace with soft/hard landlag system later based on fastfalls 
+
+
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
 	if inputpressed(dodge,pressbuffer,"",false):
@@ -854,8 +858,14 @@ func air_state():
 				elif airdodges < 1: state(AIRDODGE)
 		elif airdodges < 1: state(AIRDODGE)
 	if motionqueue[-1] in ['5','8','2']: #if not drifting
-		if frame > 2: air_friction()
+		if frame > 1: air_friction()
 		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
+	if inputpressed(down) and !fastfall and velocity.y >= 0:
+		fastfall = true
+		velocity.y = fastfall_speed
+	if not is_on_floor():
+		if velocity.y < fall_max: landinglag = softland #AKA NIL
+		else: landinglag = hardland
 
 
 
@@ -871,6 +881,7 @@ func air_friction():
 func doublejump():
 	velocity.y = -1 * airjumpspeed
 	airjumps+=1
+	fastfall = false
 	#play animation
 
 func jumpsquat_state():
@@ -895,6 +906,7 @@ func land_state():
 
 func airdashstart(): #just a shorthand
 	airdashes+=1
+	fastfall = false
 	if mergeairoptions: airjumps+=1
 	velocity.y = 0
 	velocity.x = 0 #kinda problematic but not resetting vel.x means it feels bad to use airdashes in normal movement outside of getting hit with a bunch of knockback
@@ -1048,9 +1060,10 @@ func apply_gravity(): #this is called in ground states as well to prevent bugs r
 #downward vector at all times.
 #I'll go with that solution for floor collision for now, but I'm sure as hell open to other collision systems 
 	velocity.y += fall_accel
-	if velocity.y > fall_max:
+	if velocity.y > fall_max and not fastfall:
 		velocity.y = fall_max
-
+	if velocity.y > fastfall_speed and fastfall:
+		velocity.y = fastfall_speed
 
 
 
