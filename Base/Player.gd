@@ -147,7 +147,8 @@ var recoverymomentum_current = 500#Momentum value for moves like Mars Side B.
 var recoverymomentum_default = 500#_current returns to this value upon landing.
 var walljump_count = 0 #Consecutive walljumps lose momentum with each jump. 
 
-var fastfall = false #true if you're fastfalling 
+var fastfall = false #true if you're fastfalling
+var fastfall_instant = false #wacky movement option
 var hardland = 4
 var softland = 2 #probably will remain unused for a while. Landing lag for when you're landing normally without fastfalling. 
 var landinglag = 4 #changed all the time in states that can land. 
@@ -881,7 +882,6 @@ func air_friction():
 func doublejump():
 	velocity.y = -1 * airjumpspeed
 	airjumps+=1
-	fastfall = false
 	#play animation
 
 func jumpsquat_state():
@@ -906,7 +906,6 @@ func land_state():
 
 func airdashstart(): #just a shorthand
 	airdashes+=1
-	fastfall = false
 	if mergeairoptions: airjumps+=1
 	velocity.y = 0
 	velocity.x = 0 #kinda problematic but not resetting vel.x means it feels bad to use airdashes in normal movement outside of getting hit with a bunch of knockback
@@ -1041,10 +1040,18 @@ func aerial_acceleration(drift=1.0,ff=true):
 		if velocity.x < drift_max:
 			velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+driftaccel_analog*action_analogconvert()/action_range + driftaccel))
 
+	#fastfall
+	if inputpressed(down) and !fastfall and ff:
+		if fastfall_instant or velocity.y >= 0:
+			fastfall = true
+			velocity.y = fastfall_speed
+	if velocity.y < fastfall_speed: fastfall = false
 	#falling
 	if airdashframes <= 0: apply_gravity()
 	if airdashframes>0: airdashframes-=1
 	if inputheld(down) and frame > 0: disable_platform() #frame>0 makes wavedashing on platforms not annoying, you'd need to hold 5 before JUMPSQUAT otherwise
+
+
 
 var rooted = false #if true, then check for pECB collision 
 func apply_traction(mod=1.0): #mod = modifier for traction.
