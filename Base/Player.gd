@@ -970,7 +970,6 @@ func airdodge_state():
 	if frame > 0 and frame < 37:
 		movementmomentum2 = movementmomentum2 / 1.11111 #slows the airdodge down as it goes
 		velocity = movementmomentum2 + Vector2(0,movementmomentum1) #adds the accumulated gravity
-	
 	if frame == 37: #destroy airdodge momentum since it's basically at 0 anyways, and stop using the movementmomentum vars
 		velocity.y = movementmomentum1
 		landinglag = airdodgelandlag
@@ -1127,7 +1126,7 @@ func platform_drop(): #ran in state machine, disables platforms if 1/3 is presse
 		disable_platform()
 		if not is_on_floor(): state(AIR)
 		
-	#inputheld(down) might be better?
+
 
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
