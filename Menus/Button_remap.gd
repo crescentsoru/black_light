@@ -1,5 +1,29 @@
 extends Node2D
 
+#var inputs = [
+#	['p1_up', []],
+#	['p1_down',[]],
+#	['p1_left',[]],
+#	['p1_right',[]],
+#	['p1_jump',[]],
+#	['p1_attackA',[]],
+#	['p1_attackB',[]],
+#	['p1_attackC',[]],
+#	['p1_attackD',[]],
+#	['p1_attackE',[]],
+#	['p1_attackF',[]], 
+#	['p1_dodge',[]],
+#	['p1_grab',[]],
+#	['p1_cstickdown',[]],
+#	['p1_cstickup',[]],
+#	['p1_cstickleft',[]],
+#	['p1_cstickright',[]],
+#	['p1_uptaunt',[]],
+#	['p1_sidetaunt',[]],
+#	['p1_downtaunt',[]],
+#	['end',[]]
+#]
+
 var inputs = [
 	['p1_up', []],
 	['p1_down',[]],
@@ -8,19 +32,7 @@ var inputs = [
 	['p1_jump',[]],
 	['p1_attackA',[]],
 	['p1_attackB',[]],
-	['p1_attackC',[]],
-	['p1_attackD',[]],
-	['p1_attackE',[]],
-	['p1_attackF',[]], 
 	['p1_dodge',[]],
-	['p1_grab',[]],
-	['p1_cstickdown',[]],
-	['p1_cstickup',[]],
-	['p1_cstickleft',[]],
-	['p1_cstickright',[]],
-	['p1_uptaunt',[]],
-	['p1_sidetaunt',[]],
-	['p1_downtaunt',[]],
 	['end',[]]
 ]
 var currentinput = 0
@@ -34,7 +46,7 @@ var configname = 'gamer'
 func _ready():
 	set_process_unhandled_key_input(false) #what does this do? 
 	global.gametime = 0
-	$guide.text = "No joystick inputs please! That device's joysticks will be banned."
+	$guide.text = "No joystick inputs at this moment please!"
 
 
 func add_apeshit(devicenum): #Check if a joystick is going apeshit. If enough inputs from a device happen, that joystick will be ignored. Happens w my Switch Pro. 
@@ -109,7 +121,7 @@ func inputs2maps(): #writes the inputs into input maps
 func saveinputstofile(): #does exactly what it says on the tin
 	var inputconfig = File.new()
 	inputconfig.open('res://Configs/'+configname+'.cfg', File.WRITE)
-	inputconfig.store_line(to_json(inputs))
+	inputconfig.store_var(inputs)
 	inputconfig.close()
 
 func loadconfig():
@@ -120,8 +132,8 @@ func loadconfig():
 	if not loadconfig.file_exists('res://Configs/' + configname + '.cfg'): #if no file then break
 		return
 	loadconfig.open('res://Configs/' + configname + '.cfg', File.READ)
-	var file2list = loadconfig
-	inputs = parse_json(file2list)
+	var file2list = loadconfig.get_var()
+	inputs = file2list
 	loadconfig.close()
 	$guide.text = 'Loaded config file ' + configname
 	print (inputs)
