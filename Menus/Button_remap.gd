@@ -34,7 +34,7 @@ var configname = 'gamer'
 func _ready():
 	set_process_unhandled_key_input(false) #what does this do? 
 	global.gametime = 0
-	$guide.text = "No joystick inputs please!"
+	$guide.text = "No joystick inputs please! That device's joysticks will be banned."
 
 
 func add_apeshit(devicenum): #Check if a joystick is going apeshit. If enough inputs from a device happen, that joystick will be ignored. Happens w my Switch Pro. 
@@ -105,8 +105,30 @@ func inputs2maps(): #writes the inputs into input maps
 			InputMap.action_add_event(x[0],x[1])
 		else:
 			return
-func _process(delta):
+			
+func saveinputstofile(): #does exactly what it says on the tin
+	var inputconfig = File.new()
+	inputconfig.open('res://Configs/'+configname+'.cfg', File.WRITE)
+	inputconfig.store_line(to_json(inputs))
+	inputconfig.close()
 
+func loadconfig():
+	inputstage = 2
+	currentinput = len(inputs) - 1
+	global.gametime = 99999
+	var loadconfig = File.new()
+	if not loadconfig.file_exists('res://Configs/' + configname + '.cfg'): #if no file then break
+		return
+	loadconfig.open('res://Configs/' + configname + '.cfg', File.READ)
+	var file2list = loadconfig
+	inputs = parse_json(file2list)
+	loadconfig.close()
+	$guide.text = 'Loaded config file ' + configname
+	print (inputs)
+
+func _process(delta):
+	if Input.is_action_just_pressed("d_load"):
+		loadconfig()
 	if global.gametime == 120:
 		inputstage = 1
 		ban_apeshit()
@@ -115,11 +137,17 @@ func _process(delta):
 		$guide.text = 'Input ' +  str(inputs[currentinput][0])
 		if inputs[currentinput][0] == 'end':
 			inputstage = 2
+			$guide.text = 'Button mapping finished'
 			print (inputs)
 	if inputstage == 2:
-		$guide.text = 'Button mapping finished'
+
 		if Input.is_action_just_pressed("d_forward"):
 			inputs2maps()
+			$guide.text = 'Applied config to inputmap'
+		
+		if Input.is_action_just_pressed("d_save"):
+			saveinputstofile()
+			$guide.text = 'Saved to file ' + configname
 	if Input.is_action_just_pressed("d_a"):
 		global.gametime = 0
 		get_tree().change_scene("res://Base/Stage/Stage.tscn")
