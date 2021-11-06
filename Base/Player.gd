@@ -155,9 +155,9 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK] #Rooted state. Ground attacks should be this.
+var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK,JAB] #Rooted state. Ground attacks should be this.
 var slidestates = [STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
-var tractionstates = [STAND,LAND,DASHEND,CROUCH,CROUCHSTART,CROUCHEXIT] #Only adds traction
+var tractionstates = [STAND,LAND,DASHEND,CROUCH,CROUCHSTART,CROUCHEXIT,JAB] #Only adds traction
 var landingstates = [AIR,FAIRDASH,BAIRDASH] #States that will enter LAND when you land on the ground.
 
 
@@ -626,7 +626,6 @@ func stand_state():
 		direction= 1
 	if inputpressed(jump): state(JUMPSQUAT)
 
-
 func crouchstart_state(): #AKA Squat
 	platform_drop()
 	if frame == 8:
@@ -665,7 +664,6 @@ func action_analogconvert(): #returns how hard you're pressing your stick.x from
 	if analogstick.x > 128:
 		return min(action_range,analogstick.x-128)
 
-
 func walk_state():#Test, still
 	if motionqueue[-1] in ["4","7"]:
 		if direction != -1: state(STAND)
@@ -687,15 +685,11 @@ func walk_state():#Test, still
 	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
 		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
 
-
-
-
 func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an acceleration.
 	if veldir == 1: #Meant to not override existing velocity such as from hitstun.
 		return min(veldir*maxx,velocity.x + acc)
 	if veldir == -1:
 		return max(veldir*maxx,velocity.x-acc)
-
 
 func dash_state():
 	platform_drop()
@@ -713,8 +707,6 @@ func dash_state():
 			direction = 1
 			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1)
 			state(TURN)
-
-
 	if inputpressed(jump): #btw jump checks should be done as late as possible
 		state(JUMPSQUAT) #because successful input buffer checks will erase the input for further jump checks and make it unbufferable
 	if frame == 1: #yes initial dash is applied on the second frame
@@ -728,7 +720,6 @@ func dash_state():
 				velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			elif frame > 1: apply_traction()
 		else: apply_traction()
-
 
 func dashend_state():
 	platform_drop()
@@ -779,9 +770,6 @@ func run_state():
 				velocity.x = velocity_wmax(runaccel,runspeed,direction)
 		else:
 			state(BRAKE)
-
-
-
 	if inputpressed(jump): state(JUMPSQUAT)
 
 
@@ -791,8 +779,6 @@ func skid_state():
 	if frame >=2: apply_traction(skidmodifier)
 	if frame == 20:
 			state(STAND)
-
-
 func brake_state():
 	platform_drop()
 	if inputheld(down) and not (inputheld(right) or inputheld(left)):
@@ -814,9 +800,7 @@ func brake_state():
 		else:
 			direction = 1
 			state(SKID,frame)
-	
 	if inputpressed(jump): state(JUMPSQUAT)
-
 
 func turn_state():
 	platform_drop()
@@ -834,11 +818,8 @@ func turn_state():
 	if frame == 15: #random number idc
 		state(STAND)
 
-
 func air_state():
 	aerial_acceleration()
-
-
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
 	if inputpressed(dodge,pressbuffer,"",false):
@@ -868,8 +849,6 @@ func air_state():
 		if velocity.y < fall_max: landinglag = softland #AKA NIL
 		else: landinglag = hardland
 
-
-
 func air_friction():
 	if abs(velocity.x) - airfriction < 0:
 		velocity.x = 0
@@ -878,14 +857,12 @@ func air_friction():
 			velocity.x-=airfriction
 		else:
 			velocity.x+=airfriction
-
 func doublejump():
 	velocity.y = -1 * airjumpspeed
 	airjumps+=1
 	#play animation
 
 func jumpsquat_state():
-
 	if frame == jumpsquat:
 		velocity.x = velocity.x * runjumpmod #modifier
 		if abs(velocity.x) > runjumpmax: velocity.x = runjumpmax * direction #maxifier
@@ -982,19 +959,63 @@ func airdodge_state():
 			state(WAVELAND)
 		else:
 			state(LAND)
-
 	if frame == airdodgestartup: pass #insert invuln here
-
-
-
 	if frame == 100: state(AIR)
-
 
 func waveland_state():
 	apply_traction()
 	refresh_air_options()
 	if frame == 10:
 		state(STAND)
+
+
+	##################
+	##HITBOXES##
+	##################
+
+func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,id,hitboxdict):
+	var hitbox_load = load('res://Base/Hitbox.tscn')
+	var hitbox_inst = hitbox_load.instance()
+	get_parent().add_child(hitbox_inst)
+	hitbox_inst.position = self.position
+	hitbox_inst.creator = self
+	hitbox_inst.get_node('polygon').set_polygon(polygon) 
+	hitbox_inst.damage = damage
+	hitbox_inst.kb_base = kb_base
+	hitbox_inst.kb_growth = kb_growth
+	hitbox_inst.angle = angle
+	hitbox_inst.duration = duration
+	hitbox_inst.frame = duration
+	hitbox_inst.id = id
+
+	if hitboxdict.has('path'): 
+		pass
+	else: pass  #else statements specify a default value if that parameter wasn't specified
+	if hitboxdict.has('decline_dmg'): #per frame 
+		pass
+	else: pass
+	if hitboxdict.has('decline_scale'):
+		pass
+	else: pass
+	if hitboxdict.has('group'):
+		pass
+	else: pass
+	if hitboxdict.has('priority'): #Transcendent priority. 0= regular, 1= transcendent.
+		pass
+	else: pass
+	if hitboxdict.has('meteorcancel'): #-1= unconditionally uncancellable, 0= melee behavior, 1= unconditionally cancellable 
+		pass
+	else: pass
+	if hitboxdict.has('rage_grow'): #lol
+		pass
+	else: pass
+
+	#shorthands for polygon creation
+func rectangle(wid,hei):
+	return [Vector2(-1*wid,hei),Vector2(wid,hei),Vector2(wid,-1*hei),Vector2(-1*wid,-1*hei)]
+func square(wid):
+	return [Vector2(-1*wid,wid),Vector2(wid,wid),Vector2(wid,-1*wid),Vector2(-1*wid,-1*wid)]
+
 
 
 
@@ -1017,12 +1038,8 @@ func state_handler():
 	if state_check(BAIRDASH): bairdash_state()
 	if state_check(AIRDODGE): airdodge_state()
 	if state_check(WAVELAND): waveland_state()
-	
-
-
-
-
-
+func char_state_handler(): #Replace this in character script to have character specific states
+	pass 
 
 func enable_platform(): #enables platform collision
 	self.set_collision_mask_bit(2,true)
@@ -1038,7 +1055,6 @@ func aerial_acceleration(drift=1.0,ff=true):
 	if motionqueue[-1] in ['6','9','3']: #if drifting right
 		if velocity.x < drift_max:
 			velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+driftaccel_analog*action_analogconvert()/action_range + driftaccel))
-
 	#fastfall
 	if inputpressed(down) and !fastfall and ff:
 		if fastfall_instant or velocity.y >= 0:
@@ -1051,7 +1067,6 @@ func aerial_acceleration(drift=1.0,ff=true):
 	if inputheld(down) and frame > 0: disable_platform() #frame>0 makes wavedashing on platforms not annoying, you'd need to hold 5 before JUMPSQUAT otherwise
 
 
-
 var rooted = false #if true, then check for pECB collision 
 func apply_traction(mod=1.0): #mod = modifier for traction.
 	if abs(velocity.x) - traction*mod < 0:
@@ -1060,7 +1075,7 @@ func apply_traction(mod=1.0): #mod = modifier for traction.
 		if velocity.x > 0:
 			velocity.x-=traction * mod
 		else:
-			velocity.x+=traction * mod 
+			velocity.x+=traction * mod
 
 func apply_gravity(): #this is called in ground states as well to prevent bugs regarding collision not working if you don't have a
 #downward vector at all times.
@@ -1079,8 +1094,6 @@ func check_landing():
 		state(LAND)
 		refresh_air_options()
 
-
-#Unused funcs have fun with these
 func ecb_up(): #returns the scene position of the top point of your pECB.
 	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[0]
 func ecb_down(): #returns the scene position of the lower point of your pECB. 
@@ -1113,7 +1126,6 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 			state(AIR)
 	if state in landingstates:
 		check_landing()
-
 	collision_handler()
 
 func platform_drop(): #ran in state machine, disables platforms if 1/3 is pressed in numpad notation
@@ -1125,11 +1137,7 @@ func platform_drop(): #ran in state machine, disables platforms if 1/3 is presse
 	elif (inputpressed(left) or inputpressed(right)) and inputheld(down):
 		disable_platform()
 		if not is_on_floor(): state(AIR)
-		
 
-
-func char_state_handler(): #Replace this in character script to have character specific states
-	pass 
 
 
 var in_platform = true #will trigger dfghjduhpfsdlnjk;hblhnjk;sdfgb;luhjkfsdg
@@ -1157,10 +1165,6 @@ func collision_handler(): #For platform/floor/wall collision.
 		in_platform = true
 
 	
-#for x in $pECB.collisions:
-#	if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly
-#		if not (ecb_down()-velocity/60 >= x.position and ecb_down()-velocity/60 <= x.position + 32*x.scale): #Prevents colliding w platforms from the side
-
 
 	rooted = false
 
