@@ -21,7 +21,3 @@ func _physics_process(delta):
 	if frame > 0: frame-=1
 	if frame <= 0: queue_free()
 	
-	
-	if creator.state == "jumpsquat":
-		print (str(creator) + "   dmg= " + str(damage) + " kb_base= " + str(kb_base) + " kb_growth= " + str(kb_growth) + " angle= " + \
-		str(angle) + " duration= " + str(duration) + " id= " + str(id))

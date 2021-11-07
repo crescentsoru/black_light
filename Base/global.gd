@@ -118,6 +118,10 @@ func replay_loadfile():
 	fullreplay = parse_json(file2list)
 	loadfile.close()
 
+func replay_loadfile_d():
+	replay_loadfile()
+	resetgame()
+
 func compilereplay(): #This is probably ran multiple times hope it doesn't shit the fucking bed later when replays get longer
 	fullreplay = {
 		'gameinfo' : [gamename,gameversion], #gameinfo contains info like the game name and version.

@@ -463,7 +463,7 @@ func inputjustreleased(inp): #button released this frame, no buffer
 				return true
 			else: return false
 func replayprep(): #called on _ready to make your character controllable or not
-	if global.replaying == true:
+	if global.replaying == true and global.fullreplay.has('p_data'): #Will still crash if it has garbage data, but why would it? 
 		controllable = false
 		if playerindex == "p1": currentreplay = global.fullreplay['p_data'][0][4]
 		if playerindex == "p2": currentreplay = global.fullreplay['p_data'][1][4]
@@ -583,8 +583,7 @@ func debug():
 
 	if Input.is_action_just_pressed("d_load"):
 		global.replaying = true
-		global.replay_loadfile()
-		global.resetgame()
+		global.replay_loadfile_d()
 	if Input.is_action_just_pressed("d_save"):
 		global.replay_savefile() #will reload then save fullreplay to a JSON file
 	if Input.is_action_just_pressed("d_record"):
@@ -973,7 +972,7 @@ func waveland_state():
 	##HITBOXES##
 	##################
 
-func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,id,hitboxdict):
+func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	var hitbox_load = load('res://Base/Hitbox.tscn')
 	var hitbox_inst = hitbox_load.instance()
 	get_parent().add_child(hitbox_inst)
@@ -986,11 +985,18 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,id,hitboxdict
 	hitbox_inst.angle = angle
 	hitbox_inst.duration = duration
 	hitbox_inst.frame = duration
-	hitbox_inst.id = id
-
+	if hitboxdict.has('id'):
+		hitbox_inst.id = hitboxdict['id']
+	else: hitbox_inst.id = 0 #else statements specify a default value if that parameter wasn't specified
+	if hitboxdict.has('type'):
+		pass
+	else: pass
+	if hitboxdict.has('type_interaction'):
+		pass
+	else: pass
 	if hitboxdict.has('path'): 
 		pass
-	else: pass  #else statements specify a default value if that parameter wasn't specified
+	else: pass
 	if hitboxdict.has('decline_dmg'): #per frame 
 		pass
 	else: pass
