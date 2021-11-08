@@ -44,8 +44,13 @@ func attack(character): #called when you want to attack a character
 		character.hitstunknockdown = knockdowntype
 
 		character.state('hitstun') #this should be last otherwise there will be no hitstun on the first hit
-		character.velocity.x = cos(deg2rad(angle))*character.hitstunknockback
-		character.velocity.y = sin(deg2rad(-angle))*character.hitstunknockback
+		if creator.position.x < character.position.x or (creator.position.x == character.position.x and creator.direction==1):
+			character.velocity.x = cos(deg2rad(angle))*character.hitstunknockback*20 #the 20 is arbitrary
+			character.velocity.y = sin(deg2rad(-angle))*character.hitstunknockback*20
+		if creator.position.x > character.position.x or (creator.position.x == character.position.x and creator.direction==-1):
+			character.velocity.x = cos(deg2rad(-1*(angle+90) -90))*character.hitstunknockback*20
+			character.velocity.y = sin(deg2rad(-1*(-angle+90) -90))*character.hitstunknockback*20
+
 #(kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 
 
