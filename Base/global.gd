@@ -19,6 +19,7 @@ var stagename = 'thebattlefield'
 var gamemode = 'versus'
 var stockcount = 4
 var thetimer = 28800 #in frames. 28800= 8 min.
+var friendlyfire = true #if true, teammates can hit one another
 var teams = { #has player indexes here
 	'red' : [],
 	'blue' : [],
@@ -125,7 +126,7 @@ func replay_loadfile_d():
 func compilereplay(): #This is probably ran multiple times hope it doesn't shit the fucking bed later when replays get longer
 	fullreplay = {
 		'gameinfo' : [gamename,gameversion], #gameinfo contains info like the game name and version.
-		'matchinfo' : [stagename,gamemode,RNGseed,stockcount,thetimer,teams],
+		'matchinfo' : [stagename,gamemode,RNGseed,stockcount,thetimer,friendlyfire,teams],
 		'p_data' : [p1_data,p2_data,p3_data], #initialization vars, inputs
 		'end' : gameend,
 		}

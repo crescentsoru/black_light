@@ -978,16 +978,17 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	get_parent().add_child(hitbox_inst)
 	hitbox_inst.position = self.position
 	hitbox_inst.creator = self
-	hitbox_inst.get_node('polygon').set_polygon(polygon) 
+	hitbox_inst.get_node('polygon').set_polygon(polygon) #Revolver Ocelot
 	hitbox_inst.damage = damage
 	hitbox_inst.kb_base = kb_base
 	hitbox_inst.kb_growth = kb_growth
 	hitbox_inst.angle = angle
 	hitbox_inst.duration = duration
 	hitbox_inst.frame = duration
+	print ("create hitbox= " + str(global.gametime))
 	if hitboxdict.has('id'):
 		hitbox_inst.id = hitboxdict['id']
-	else: hitbox_inst.id = 0 #else statements specify a default value if that parameter wasn't specified
+	else: hitbox_inst.id = damage #else statements specify a default value if that parameter wasn't specified
 	if hitboxdict.has('type'):
 		pass
 	else: pass
