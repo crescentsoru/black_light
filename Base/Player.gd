@@ -54,7 +54,6 @@ const SHIELD = 'shield'
 const SHIELDRELEASE = 'shieldrelease'
 const SHIELDBREAK = 'shieldbreak'
 const BLOCKSTUN = 'blockstun'
-
 const HITSTUN = 'hitstun'
 const TUMBLE = 'tumble'
 const LANDSTUN = 'landstun' #this is the 4f air-to-ground transition that ASDI down makes use of, which I made into a separate state.
@@ -82,10 +81,7 @@ const JAB = 'jab'
 
 
 	#Movement vars
-
-
 var traction = 70
-var postwalktraction = 0 #This might be a fucking stupid idea, but it might make walking more snappy. Unusued
 var skidmodifier = 1.0 #applies a modifier to traction during SKID/BRAKE
 
 
@@ -155,17 +151,21 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var rootedstates = [JUMPSQUAT,SHIELD,SHIELDBREAK,JAB] #Rooted state. Ground attacks should be this.
-var slidestates = [STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
+var rootedstates = [SHIELD,SHIELDBREAK,JAB] #Rooted state. Ground attacks should be this.
+var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
 var tractionstates = [STAND,LAND,DASHEND,CROUCH,CROUCHSTART,CROUCHEXIT,JAB] #Only adds traction
 var landingstates = [AIR,FAIRDASH,BAIRDASH] #States that will enter LAND when you land on the ground.
 
 
 
 	#Pressure vars
+var weight = 90
+
 var blocking = false #Unused
 var extrablockstun = 0 #Don't use
-
+var hitstunknockback = 0 #used on startup in hitstun to save the end frame of hitstun
+var hitstunmod = 0.4 #do not
+var hitstunknockdown = 'normal' #normal= techroll after tumble, 'okizeme'= enter standup state
 
 #movement engine, copypasted from Project Tension. If there's something better to use please replace this 
 var slope_slide_threshold = 0
@@ -967,7 +967,13 @@ func waveland_state():
 	if frame == 10:
 		state(STAND)
 
-
+func hitstun_state():
+	if frame == 0:
+		pass
+	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
+		print (hitstunknockback)
+		state(AIR)
+	
 	##################
 	##HITBOXES##
 	##################
@@ -984,24 +990,27 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	hitbox_inst.kb_growth = kb_growth
 	hitbox_inst.angle = angle
 	hitbox_inst.duration = duration
-	hitbox_inst.frame = duration
 	if hitboxdict.has('id'):
 		hitbox_inst.id = hitboxdict['id']
-	else: hitbox_inst.id = damage #else statements specify a default value if that parameter wasn't specified
+	else: hitbox_inst.id = damage #The hitbox w higher damage will have higher id by default. 
 	if hitboxdict.has('type'):
-		pass
-	else: pass
-	if hitboxdict.has('type_interaction'):
-		pass
-	else: pass
-	if hitboxdict.has('path'): 
+		if hitboxdict.has('type_interaction'):
+			hitbox_inst.hitboxtype = hitboxdict['type']
+			hitbox_inst.hitboxtype_interaction = hitboxdict['type_interaction']
+		else:
+			hitbox_inst.hitboxtype = hitboxdict['type']
+			hitbox_inst.hitboxtype_interaction = hitboxdict['type']
+	else:
+		hitbox_inst.hitboxtype = 'normal'
+		hitbox_inst.hitboxtype_interaction = 'normal'
+	if hitboxdict.has('path'):
 		if direction == 1:
 			for point in hitboxdict['path']:
 				hitbox_inst.path.add_point(point)
 		else: #Flip the path when you look left
 			for point in hitboxdict['path']:
 				hitbox_inst.path.add_point(Vector2(-point.x,point.y))
-	else: hitbox_inst.path.add_point(Vector2(0,0))
+	else: hitbox_inst.path.add_point(Vector2(0,0)) #else statements after .has() specify a default value if that parameter wasn't specified
 	hitbox_inst.update_path()#set the path for the first frame
 	if hitboxdict.has('decline_dmg'): #per frame 
 		pass
@@ -1018,7 +1027,7 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	if hitboxdict.has('meteorcancel'): #-1= unconditionally uncancellable, 0= melee behavior, 1= unconditionally cancellable 
 		pass
 	else: pass
-	if hitboxdict.has('rage_grow'): #lol
+	if hitboxdict.has('rage_growth'): #lol
 		pass
 	else: pass
 
@@ -1051,6 +1060,7 @@ func state_handler():
 	if state_check(BAIRDASH): bairdash_state()
 	if state_check(AIRDODGE): airdodge_state()
 	if state_check(WAVELAND): waveland_state()
+	if state_check(HITSTUN): hitstun_state()
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
 

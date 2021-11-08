@@ -9,10 +9,10 @@ func _ready():
 
 func jab_state():
 	if frame == 2: #frame 3 jab
-		create_hitbox(rectangle(64,128),60,40,70,15,3, \
+		create_hitbox(rectangle(64,64),60,40,70,15,9, \
 		{'id': 1,
 		'track':'normal',
-		'path':[Vector2(100,0)],})
+		'path':[Vector2(128,-64),Vector2(256,-64),Vector2(1000,0)],})
 
 	if frame == 16:
 		state(STAND)
