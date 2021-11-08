@@ -2,6 +2,7 @@ extends Area2D
 
 
 var creator = [] #The owner of the hitbox
+var createdstate = 'jab'
 var collisions = []
 var frame = 0
 var fuckshit = 0
@@ -13,8 +14,10 @@ var angle = 30
 var duration = 10
 var id = 0
 onready var path = Path2D.new().get_curve()
-var hitboxtype = 'normal'
-var hitboxtype_interaction = 'normal'
+var hitboxtype = 'melee' #follows the character
+var hitboxtype_interaction = 'melee' #hitstop, deletion when creator state ends
+var group = ''
+
 
 var knockdowntype = 'normal' #allows for different behavior when a character hits the ground.
 var hitstunmod = 0.4 #don't change this unless you know wtf you're doing. Nintendo sure didn't 
@@ -44,6 +47,7 @@ func attack(character): #called when you want to attack a character
 		character.hitstunknockdown = knockdowntype
 
 		character.state('hitstun') #this should be last otherwise there will be no hitstun on the first hit
+		
 		if creator.position.x < character.position.x or (creator.position.x == character.position.x and creator.direction==1):
 			character.velocity.x = cos(deg2rad(angle))*character.hitstunknockback*20 #the 20 is arbitrary
 			character.velocity.y = sin(deg2rad(-angle))*character.hitstunknockback*20
@@ -71,11 +75,15 @@ func hitbox_collide():
 		if x.name == 'Hurtbox' and x.get_parent() != creator:
 			if not (x.get_parent() in handled_characters): attack(x.get_parent())
 	
+	
 	handled_characters = []
 
 
 func _physics_process(delta):
-	update_path()
+	if hitboxtype == 'melee':
+		update_path()
+		if createdstate != creator.state:
+			queue_free()
 	hitbox_collide()
 	collisions = []
 	frame+=1

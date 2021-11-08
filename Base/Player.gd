@@ -984,12 +984,14 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	get_parent().add_child(hitbox_inst)
 	hitbox_inst.position = self.position
 	hitbox_inst.creator = self
+	hitbox_inst.createdstate = state
 	hitbox_inst.get_node('polygon').set_polygon(polygon) #Revolver Ocelot
 	hitbox_inst.damage = damage
 	hitbox_inst.kb_base = kb_base
 	hitbox_inst.kb_growth = kb_growth
 	hitbox_inst.angle = angle
 	hitbox_inst.duration = duration
+
 	if hitboxdict.has('id'):
 		hitbox_inst.id = hitboxdict['id']
 	else: hitbox_inst.id = damage #The hitbox w higher damage will have higher id by default. 
@@ -1001,8 +1003,8 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 			hitbox_inst.hitboxtype = hitboxdict['type']
 			hitbox_inst.hitboxtype_interaction = hitboxdict['type']
 	else:
-		hitbox_inst.hitboxtype = 'normal'
-		hitbox_inst.hitboxtype_interaction = 'normal'
+		hitbox_inst.hitboxtype = 'melee'
+		hitbox_inst.hitboxtype_interaction = 'melee'
 	if hitboxdict.has('path'):
 		if direction == 1:
 			for point in hitboxdict['path']:
@@ -1063,6 +1065,14 @@ func state_handler():
 	if state_check(HITSTUN): hitstun_state()
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
+func attackcode():
+#This is replaced in character script and contains state+input checks for attacks.
+#The reason checks for attacks are outside of state_handler() is for the sake of modular design-
+#it's much harder to create custom attack behavior if there's a bunch of default attack behavior baked into the default movement states in Player.gd,
+#and you have to replace the entire state function to overwrite it.
+#Simply putting these checks in the character script's _process functions adds a frame of lag to any action within it, so attackcode() was put in actionablelogic().
+	pass
+
 
 func enable_platform(): #enables platform collision
 	self.set_collision_mask_bit(2,true)
@@ -1126,6 +1136,7 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 	$pECB.scale.x = direction
 	state_handler()
 	char_state_handler()
+	attackcode()
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 	if state in rootedstates:
 		apply_gravity()
