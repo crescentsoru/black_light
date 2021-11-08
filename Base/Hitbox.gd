@@ -2,7 +2,8 @@ extends Area2D
 
 
 var creator = [] #The owner of the hitbox
-var collisions = []
+
+var frame = 99
 
 var damage = 3
 var kb_base = 10
@@ -10,34 +11,29 @@ var kb_growth = 100
 var angle = 30
 var duration = 10
 var id = 0
+onready var path = Path2D.new().get_curve()
 
-var frame = 99
 
 
 func _ready(): #happens BEFORE initialization in Player.gd apparently
 	connect( "area_entered", self, "on_area_enter")
-#	connect( "area_exited", self, "on_area_exit")
-	print ("_ready= " + str(global.gametime) + "      " + str(self.get_overlapping_areas()))
 
+func update_path():
+	if path.get_point_count() > 0:
+		var length_percentage = path.get_baked_length()*(float(frame)/duration)
+		position = creator.position + (path.interpolate_baked(length_percentage))
 
+var collisions = []
 func on_area_enter(area):
-
 	collisions.append(area)
-	print ('area enter= ' + str(global.gametime) + area.name + "      " + str(self.get_overlapping_areas()))
 
 func hitbox_collide():
-	pass
-	
 	for x in collisions:
-		if x.name == 'Hitbox' and x.creator != creator:
-			print ("HITBOX COLLISION!! with ")
+		if x.name == 'Hitbox' and x.creator != creator: 
+			print ("HITBOX COLLISION!! with " + x.name)
 		if x.name == 'Hurtbox' and x.get_parent() != creator:
 			print ("COLLIDED with " + x.get_parent().name)
-	
-	
-	
-
-
+			x.get_parent().state('jumpsquat') #test state change
 
 func _physics_process(delta):
 	hitbox_collide()

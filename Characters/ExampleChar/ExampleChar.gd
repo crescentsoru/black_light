@@ -11,7 +11,8 @@ func jab_state():
 	if frame == 2: #frame 3 jab
 		create_hitbox(rectangle(64,128),60,40,70,15,3, \
 		{'id': 1,
-		'track':'normal' })
+		'track':'normal',
+		'path':[Vector2(100,0)],})
 
 	if frame == 16:
 		state(STAND)

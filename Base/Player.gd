@@ -985,7 +985,6 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	hitbox_inst.angle = angle
 	hitbox_inst.duration = duration
 	hitbox_inst.frame = duration
-	print ("create hitbox= " + str(global.gametime))
 	if hitboxdict.has('id'):
 		hitbox_inst.id = hitboxdict['id']
 	else: hitbox_inst.id = damage #else statements specify a default value if that parameter wasn't specified
@@ -996,8 +995,14 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		pass
 	else: pass
 	if hitboxdict.has('path'): 
-		pass
-	else: pass
+		if direction == 1:
+			for point in hitboxdict['path']:
+				hitbox_inst.path.add_point(point)
+		else: #Flip the path when you look left
+			for point in hitboxdict['path']:
+				hitbox_inst.path.add_point(Vector2(-point.x,point.y))
+	else: hitbox_inst.path.add_point(Vector2(0,0))
+	hitbox_inst.update_path()#set the path for the first frame
 	if hitboxdict.has('decline_dmg'): #per frame 
 		pass
 	else: pass
@@ -1016,6 +1021,7 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	if hitboxdict.has('rage_grow'): #lol
 		pass
 	else: pass
+
 
 	#shorthands for polygon creation
 func rectangle(wid,hei):
