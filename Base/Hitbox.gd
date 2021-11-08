@@ -16,6 +16,7 @@ onready var path = Path2D.new().get_curve()
 
 
 func _ready(): #happens BEFORE initialization in Player.gd apparently
+	process_priority = 5 #Don't change this. Makes hitbox physics_process code be processed earlier than character code, eliminating a frame of lag. 
 	connect( "area_entered", self, "on_area_enter")
 
 func update_path():
@@ -38,5 +39,5 @@ func hitbox_collide():
 func _physics_process(delta):
 	hitbox_collide()
 	collisions = []
-	if frame > 0: frame-=1
+	if frame > 0: frame-=1 #If you were to move the above code below the frame counter, 0f hitboxes would never register a hit. But why would you want a 0f hitbox? 
 	if frame <= 0: queue_free()

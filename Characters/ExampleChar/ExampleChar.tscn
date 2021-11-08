@@ -954,11 +954,9 @@ offset = Vector2( 25, -10 )
 position = Vector2( 0, 18 )
 
 [node name="pECB" parent="." instance=ExtResource( 4 )]
-visible = false
 modulate = Color( 1, 1, 1, 0.807843 )
 
 [node name="ECB" type="CollisionPolygon2D" parent="."]
-visible = false
 self_modulate = Color( 1, 0.843137, 0.686275, 1 )
 position = Vector2( 0, 18 )
 polygon = PoolVector2Array( 0, -135, -50, 0, 0, 182, 50, 0 )

@@ -1107,14 +1107,7 @@ func check_landing():
 		state(LAND)
 		refresh_air_options()
 
-func ecb_up(): #returns the scene position of the top point of your pECB.
-	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[0]
-func ecb_down(): #returns the scene position of the lower point of your pECB. 
-	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[2]
-func ecb_left(): #left point. Note that this is right-facing, so the left point will become the rightmost point when direction == -1
-	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[1]
-func ecb_right(): #right point. same directional concern as ecb_left()
-	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[3]
+
 
 func actionablelogic(): #a function I made to make ordering stuff that doesn't happen during impactstop easier
 	#direction updates. Sprite happens at the end
@@ -1141,6 +1134,16 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 		check_landing()
 	collision_handler()
 
+
+func ecb_up(): #returns the scene position of the top point of your pECB.
+	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[0]
+func ecb_down(): #returns the scene position of the lower point of your pECB. 
+	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[2]
+func ecb_left(): #left point. Note that this is right-facing, so the left point will become the rightmost point when direction == -1
+	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[1]
+func ecb_right(): #right point. same directional concern as ecb_left()
+	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[3]
+
 func platform_drop(): #ran in state machine, disables platforms if 1/3 is pressed in numpad notation
 	#should be put at the start of any state function
 	if inputpressed(down) and (inputheld(left) or inputheld(right)):
@@ -1151,20 +1154,23 @@ func platform_drop(): #ran in state machine, disables platforms if 1/3 is presse
 		disable_platform()
 		if not is_on_floor(): state(AIR)
 
-
-
+var collisions = []
 var in_platform = true #will trigger dfghjduhpfsdlnjk;hblhnjk;sdfgb;luhjkfsdg
 func collision_handler(): #For platform/floor/wall collision.
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
 	#var angle = 0 #I don't know what this does 
 	#var slope_factor = Vector2(cos(deg2rad(angle))*velocity.x - sin(deg2rad(angle))*velocity.y, sin(deg2rad(angle))*velocity.x + cos(deg2rad(angle))*velocity.y ) 
 	#move_and_slide(slope_factor,Vector2(0,1),50)
+	for x in get_slide_count(): #necessary for rooted states
+		if not (get_slide_collision(x).collider in collisions):
+			collisions.append(get_slide_collision(x).collider)
+	
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
-	velocity = move_and_slide(velocity, Vector2(0, -1))
-
-
+	if not (prune_disabledplats($pECB.collisions) != self.collisions and rooted):
+		velocity = move_and_slide(velocity, Vector2(0, -1))
+#		print ("not same!! " + str(global.gametime) + str(collisions) + "  ||||||||  " + str($pECB.collisions))
+	
 	if velocity.y < 0: disable_platform()
-
 	for x in $pECB.collisions:
 		if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly
 			if (ecb_down().x-velocity.x/60 >= x.position.x and ecb_down().x-velocity.x/60 <= x.position.x + 64*x.scale.x): #Prevents colliding w platforms from the side
@@ -1176,13 +1182,21 @@ func collision_handler(): #For platform/floor/wall collision.
 		in_platform = false
 	else:
 		in_platform = true
-
-	
-
 	rooted = false
+	collisions = []
+
+func prune_disabledplats(collisionlist): #removes platforms from a collision list if they're disabled
+	var newlist = []
+	for x in collisionlist:
+		if x.name.substr(0,4) != 'Plat':
+			newlist.append(x)
+		else:
+			if get_collision_mask_bit(2): newlist.append(x)
+	return newlist
 
 
 func _ready():
+	process_priority = 99 #Hopefully makes character code be executed later than hitbox code 
 	replayprep()
 	$pECB.position = $ECB.position
 	$pECB.scale = $ECB.scale
