@@ -1,6 +1,9 @@
-[gd_scene format=2]
+[gd_scene load_steps=2 format=2]
 
-[node name="BlastzoneNormal" type="Area2D"]
+[ext_resource path="res://Base/Blastzone.gd" type="Script" id=1]
+
+[node name="Blastzone" type="Area2D"]
+script = ExtResource( 1 )
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
 position = Vector2( 32, -64 )

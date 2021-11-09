@@ -1041,7 +1041,19 @@ func rectangle(wid,hei):
 func square(wid):
 	return [Vector2(-1*wid,wid),Vector2(wid,wid),Vector2(wid,-1*wid),Vector2(-1*wid,-1*wid)]
 
+func fuckingdie(): #highly placeholder
+	position = spawnpoint
+	if maincharacter: stocks-=1
+	else: queue_free()
+	percentage = 0
+	state(AIR)
+	velocity = Vector2(0,0)
 
+
+
+	##################
+	##HANDLERS##
+	##################
 
 
 func state_handler():
@@ -1186,7 +1198,7 @@ func collision_handler(): #For platform/floor/wall collision.
 	for x in get_slide_count(): #necessary for rooted states
 		if not (get_slide_collision(x).collider in collisions):
 			collisions.append(get_slide_collision(x).collider)
-	
+	$pECB.check_blastzone() #lets you die, done before pECB update so it's essentially the same as checking current frame collision 
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 	if not (prune_disabledplats($pECB.collisions) != self.collisions and rooted):
 		velocity = move_and_slide(velocity, Vector2(0, -1))

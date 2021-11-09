@@ -3,7 +3,7 @@ extends Area2D
 
 
 var collisions = []
-
+var areacollisions = []
 
 func _ready():
 	connect( "body_entered", self, "on_body_enter")
@@ -21,12 +21,31 @@ func on_body_exit(body):
 		if x == body:
 			collisions.erase(x)
 
+func check_blastzone():
 
-func on_area_enter(area): #what do I even use this for 
-	pass #maybe ledge collision
+#Blastzone collision checks happen in collision_handler, *before* pECB is updated. This is because kinematicbody2d doesn't really have a check for areas
+	for x in areacollisions:
+		if x.name.substr(0,9) == 'Blastzone':
+			if x.blastzonetype == 'kill':
+				self.get_parent().fuckingdie()
+				return
+				
+			elif x.blastzonetype == 'top':
+				if get_parent().state in ['hitstun','tumble']:
+					self.get_parent().fuckingdie()
+					return
 
+
+
+
+
+func on_area_enter(area):  
+#maybe can also use this for ledge collision
+	areacollisions.append(area)
 func on_area_exit(area):
-	pass
+	for x in areacollisions:
+		if x == area:
+			areacollisions.erase(x)
 
 func _process(delta):
 	pass
