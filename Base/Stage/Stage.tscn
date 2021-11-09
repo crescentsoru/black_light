@@ -92,7 +92,7 @@ position = Vector2( 874.975, 7328.46 )
 scale = Vector2( 1, 128 )
 
 [node name="BlastzoneTop" parent="Stage" instance=ExtResource( 1 )]
-position = Vector2( 920.281, -766.204 )
+position = Vector2( 859.591, 1600.74 )
 scale = Vector2( 128, 1 )
 blastzonetype = "top"
 

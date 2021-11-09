@@ -1164,6 +1164,7 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 					velocity.x = drift_max
 				else: velocity.x = drift_max * -1
 			state(AIR)
+			disable_platform() 
 	if state in landingstates:
 		check_landing()
 	collision_handler()
@@ -1207,7 +1208,7 @@ func collision_handler(): #For platform/floor/wall collision.
 	if velocity.y < 0: disable_platform()
 	for x in $pECB.collisions:
 		if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly
-			if (ecb_down().x-velocity.x/60 >= x.position.x and ecb_down().x-velocity.x/60 <= x.position.x + 64*x.scale.x): #Prevents colliding w platforms from the side
+			if (self.position.x >= x.position.x and self.position.x <= x.position.x + 64*x.scale.x): #Prevents colliding w platforms from the side
 				if not in_platform and velocity.y >= 0:
 					enable_platform()
 		if x.name.substr(0,5) == 'Floor':
