@@ -36,7 +36,7 @@ func groundedattack_ok():
 		return false
 
 func attackcode():
-	if state == STAND:
+	if groundedattack_ok():
 		if motionqueue[-1] == "5" and inputpressed(attackA):
 			state(JAB)
 		if motionqueue[-1] == "5" and inputpressed(attackB):

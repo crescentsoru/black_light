@@ -1,0 +1,7 @@
+[gd_scene format=2]
+
+[node name="BlastzoneNormal" type="Area2D"]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+position = Vector2( 32, -64 )
+polygon = PoolVector2Array( 32, 64, 32, 0, -32, 0, -32, 64 )

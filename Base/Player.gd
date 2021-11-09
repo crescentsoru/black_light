@@ -4,6 +4,7 @@ var charactername = 'pass'
 var characterdescription = 'my jambo jet flies cheerfully'
 var playerindex = ''
 var maincharacter = true #if false, then it's probably a Nana thing
+var spawnpoint = Vector2(0,0)
 
 var state = 'stand'
 var state_previous = '' #for logic like "cant buffer this during x state"
@@ -971,7 +972,7 @@ func hitstun_state():
 	if frame == 0:
 		pass
 	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
-		print (hitstunknockback)
+		print (str(hitstunknockback) + " knockback units")
 		state(AIR)
 	
 	##################
