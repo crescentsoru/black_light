@@ -41,7 +41,7 @@ func attack(character): #called when you want to attack a character
 	if character.blocking:
 		pass
 	else: #attacking
-		character.hitstunknockback = kb_growth/100 * (((14*(character.percentage/10+damage/10) * (damage/10 + 2))  / (character.weight+100)) + 18   )  + kb_base
+		character.hitstunknockback = (kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 		character.percentage+=damage
 		character.hitstunmod = hitstunmod
 		character.hitstunknockdown = knockdowntype
@@ -56,7 +56,7 @@ func attack(character): #called when you want to attack a character
 			character.velocity.y = sin(deg2rad(-1*(-angle+90) -90))*character.hitstunknockback*20
 
 #(kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
-
+#kb_growth/100 * (((14*(character.percentage/10+damage/10) * (damage/10 + 2))  / (character.weight+100)) + 18   )  + kb_base
 
 func clash(hitbox2): #called when you clash with a hitbox without colliding with their creator
 	pass #fail checks like clash state only for self.creator on projectiles or transcendental priority will be handled here 

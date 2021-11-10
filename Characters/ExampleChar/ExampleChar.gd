@@ -20,7 +20,7 @@ func jab_state():
 
 func memehitbox_state():
 	if frame == 2:
-		create_hitbox(rectangle(256,256),10,40,80,80,9999, {})
+		create_hitbox(rectangle(256,256),30,10,40,80,9999, {})
 	
 	if frame == 16:
 		state(STAND)

@@ -168,8 +168,9 @@ var hitstunknockback = 0 #used on startup in hitstun to save the end frame of hi
 var hitstunmod = 0.4 #do not
 var hitstunknockdown = 'normal' #normal= techroll after tumble, 'okizeme'= enter standup state
 
-#movement engine, copypasted from Project Tension. If there's something better to use please replace this 
-var slope_slide_threshold = 0
+	#etc
+var characterscale = 1
+
 
 
 	##################
@@ -198,8 +199,6 @@ var cstickright = ''
 var uptaunt = ''
 var sidetaunt = ''
 var downtaunt = ''
-
-
 
 func initialize_buttons(buttonset):
 	up = buttonset[0]
@@ -610,18 +609,18 @@ func stand_state():
 	platform_drop()
 	if frame == 0:
 		refresh_air_options()
-	if motionqueue[-1] in ["1","2","3"]:
+	if tiltinput(down):
 		state(CROUCHSTART)
 	if inputheld(left,3) and not inputheld(up): #might decrease below to 2? idk send your feedback
 		state(DASH)
 		direction= -1
-	elif motionqueue[-1] in ["4","7"]: #walk left
+	elif tiltinput(left) and not tiltinput(down): #walk left
 		state(WALK)
 		direction=- 1
 	if inputheld(right,3) and not inputheld(up):
 		state(DASH)
 		direction= 1
-	elif motionqueue[-1] in ["6","9"]: #walk right
+	elif tiltinput(right) and not tiltinput(down): #walk right
 		state(WALK)
 		direction= 1
 	if inputpressed(jump): state(JUMPSQUAT)
@@ -664,10 +663,10 @@ func action_analogconvert(): #returns how hard you're pressing your stick.x from
 	if analogstick.x > 128:
 		return min(action_range,analogstick.x-128)
 
-func walk_state():#Test, still
-	if motionqueue[-1] in ["4","7"]:
-		if direction != -1: state(STAND)
-	if motionqueue[-1] in ["6","9"]:
+func walk_state():
+	if tiltinput(left):
+		if direction != -1:state(STAND)
+	if tiltinput(right):
 		if direction != 1: state(STAND)
 	if motionqueue[-1] in ["5","8"]:
 		state(STAND) #go to STAND if nothing is held
@@ -1095,10 +1094,10 @@ func disable_platform(): #disables platform collision
 func aerial_acceleration(drift=1.0,ff=true):
 	#drift lets you set custom drift potential to use for specials.
 	#ff=false will disallow fastfalling.
-	if motionqueue[-1] in ['4','7','1']: #if drifting left
+	if tiltinput(left): #if drifting left
 		if velocity.x > -1*drift_max: #so that drifting wouldn't cancel out existing run momentum
 			velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-driftaccel_analog*action_analogconvert()/action_range + driftaccel))
-	if motionqueue[-1] in ['6','9','3']: #if drifting right
+	if tiltinput(right): #if drifting right
 		if velocity.x < drift_max:
 			velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+driftaccel_analog*action_analogconvert()/action_range + driftaccel))
 	#fastfall
