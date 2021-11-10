@@ -1022,13 +1022,33 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	else: pass
 	if hitboxdict.has('group'):
 		pass
-	else: pass
+	else:
+		if hitbox_inst.hitboxtype == 'melee': hitbox_inst.group = self.name + self.state + str(frame)
+		else:
+			hitbox_inst.group = hitbox_inst.name #if the above code was used for projectiles then you wouldn't be able to hit two projectiles from the same move on one player. name is always unique 
 	if hitboxdict.has('priority'): #Transcendent priority. 0= regular, 1= transcendent.
 		pass
 	else: pass
 	if hitboxdict.has('meteorcancel'): #-1= unconditionally uncancellable, 0= melee behavior, 1= unconditionally cancellable 
 		pass
 	else: pass
+	if hitboxdict.has('element'):
+		hitbox_inst.element = hitboxdict['element']
+	else: hitbox_inst.element = 'normal'
+	if hitboxdict.has('hitstopmod'):
+		if hitboxdict.has('hitstopmod_self'):
+			hitbox_inst.hitstopmod = hitboxdict['hitstopmod']
+			hitbox_inst.hitstopmod_self = hitboxdict['hitstopmod_self']
+		else:
+			hitbox_inst.hitstopmod = hitboxdict['hitstopmod']
+			hitbox_inst.hitstopmod = hitboxdict['hitstopmod']
+	else:
+		if hitbox_inst.element == 'electric': #untested
+			hitbox_inst.hitstopmod = 1.5
+			hitbox_inst.hitstopmod_self = 1.0
+		else:
+			hitbox_inst.hitstopmod = 1.0
+			hitbox_inst.hitstopmod_self = 1.0
 	if hitboxdict.has('rage_growth'): #lol
 		pass
 	else: pass

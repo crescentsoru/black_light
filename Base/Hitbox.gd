@@ -8,6 +8,7 @@ var frame = 0
 var fuckshit = 0
 
 var damage = 3
+var damage_base = 3 #the value you use if you don't want staling to mess with things
 var kb_base = 20
 var kb_growth = 100
 var angle = 30
@@ -16,7 +17,11 @@ var id = 0
 onready var path = Path2D.new().get_curve()
 var hitboxtype = 'melee' #follows the character
 var hitboxtype_interaction = 'melee' #hitstop, deletion when creator state ends
+var hitstopmod = 1.0
+var hitstopmod_self = 1.0
+var element = 'normal'
 var group = ''
+
 
 
 var knockdowntype = 'normal' #allows for different behavior when a character hits the ground.
@@ -36,11 +41,18 @@ func update_path():
 func on_area_enter(area):
 	collisions.append(area)
 
-func attack(character): #called when you want to attack a character
-	print ("attacked  " + str(character))
+func impact(character): #called when you want to attack a character
 	if character.blocking:
-		pass
-	else: #attacking
+		hitblock(character)
+	else: hit(character)
+
+func hitshield(character):
+	pass
+
+func hitblock(character):
+	pass
+
+func hit(character):
 		character.hitstunknockback = (kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 		character.percentage+=damage
 		character.hitstunmod = hitstunmod
@@ -54,6 +66,11 @@ func attack(character): #called when you want to attack a character
 		if creator.position.x > character.position.x or (creator.position.x == character.position.x and creator.direction==-1):
 			character.velocity.x = cos(deg2rad(-1*(angle+90) -90))*character.hitstunknockback*20
 			character.velocity.y = sin(deg2rad(-1*(-angle+90) -90))*character.hitstunknockback*20
+		#hitstop
+		character.update_animation() #otherwise their first hitstop frame will be the state they were in before hitstun
+		character.impactstop = int((damage/30 + 3)*hitstopmod) 
+		if hitboxtype_interaction == 'melee':
+			creator.impactstop += int((damage/30 +3)*hitstopmod_self)
 
 #(kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 #kb_growth/100 * (((14*(character.percentage/10+damage/10) * (damage/10 + 2))  / (character.weight+100)) + 18   )  + kb_base
@@ -69,11 +86,11 @@ func hitbox_collide():
 		if x.name == 'Hitbox' and x.creator != creator: 
 			for y in collisions:
 				if y.name == 'Hurtbox' and y.get_parent() == x.creator: #should also check for projectile sdjlhn;ngkhjfgAAH AHJDFg look I'll do the specific clash stuff after I'm done doing basic hitstun
-					attack(y.get_parent())
+					impact(y.get_parent())
 					handled_characters.append(y.get_parent())
 			if not (x.creator in handled_characters) :clash(x)
 		if x.name == 'Hurtbox' and x.get_parent() != creator:
-			if not (x.get_parent() in handled_characters): attack(x.get_parent())
+			if not (x.get_parent() in handled_characters):impact(x.get_parent())
 	
 	
 	handled_characters = []
@@ -84,7 +101,9 @@ func _physics_process(delta):
 		update_path()
 		if createdstate != creator.state:
 			queue_free()
+		
 	hitbox_collide()
 	collisions = []
-	frame+=1
+	if hitboxtype_interaction != 'melee' or (hitboxtype_interaction == 'melee' and creator.impactstop == 0):
+		frame+=1
 	if frame == duration: queue_free()
