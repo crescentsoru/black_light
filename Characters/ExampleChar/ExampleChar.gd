@@ -11,10 +11,13 @@ func _ready():
 func jab_state():
 	if frame == 2: #frame 3 jab
 		create_hitbox(rectangle(64,64),45,15,100,50,9, \
-		{'id': 1,
+		{'id': 99,
 		'type':'melee', 'hitstopmod':1.0,'hitstopmod_self':1.0,
 		'path':[Vector2(128,-64)],})
-
+		create_hitbox(rectangle(64,64),100,15,100,50,9, \
+		{'id': 5,
+		'type':'melee', 'hitstopmod':1.0,'hitstopmod_self':1.0,
+		'path':[Vector2(96,-64)],})
 	if frame == 16:
 		state(STAND)
 

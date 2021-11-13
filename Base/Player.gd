@@ -547,14 +547,36 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 			impactstop_trigger = true
 
 
-var currenthits = [] #idfk what im doing
 
+func get_hit(hitbox):
+	hitstunknockback = (hitbox.kb_growth*0.01) * ((14*(percentage/10+hitbox.damage/10)*(hitbox.damage/10+2))/(weight + 100)+18) + hitbox.kb_base
+	percentage+=hitbox.damage
+	hitstunmod = hitbox.hitstunmod
+	hitstunknockdown = hitbox.knockdowntype
+	state('hitstun') #this should be last otherwise there will be no hitstun on the first hit
+	if hitbox.creator.position.x < position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==1):
+		velocity.x = cos(deg2rad(hitbox.angle))*hitstunknockback*20 #the 20 is arbitrary
+		velocity.y = sin(deg2rad(hitbox.angle*-1))*hitstunknockback*20
+	if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
+		velocity.x = cos(deg2rad(-1*(hitbox.angle+90) -90))*hitstunknockback*20
+		velocity.y = sin(deg2rad(-1*(hitbox.angle*-1+90) -90))*hitstunknockback*20
+	#hitstop
+	update_animation() #otherwise their first hitstop frame will be the state they were in before hitstun
+	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod) 
+	if hitbox.hitboxtype_interaction == 'melee':
+		hitbox.creator.impactstop += int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
+
+var currenthits = [] 
 func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
- 
+	if currenthits != []:
+		for x in currenthits:
+			get_hit(x)
+
+
 	#Might as well put this here, don't see a reason not to atm
 	state_called = []
-
+	currenthits = []
 
 
 func state_check(statecompare):#state handler function for checking if the state is correct AND if it's been processed before.
@@ -932,7 +954,6 @@ func bairdash_state():
 
 func send_airdodge(): #shorthand for the airdodge state so I can repeat the same code for the first frame
 	var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
-	print (stickangle)
 	if analogstick == Vector2(128,128): #Neutral airdodge. The one place in the game, probably, where the deadzone code I made actually matters
 		velocity = Vector2(0,0)
 	elif stickangle < 28 and stickangle > -16: #pure left/right vectors when you're within 16 angles of the x axis, plus upwards prune
@@ -1040,12 +1061,10 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	if hitboxdict.has('group'):
 		pass
 	else:
-		if hitbox_inst.hitboxtype == 'melee': hitbox_inst.group = self.name + self.state + str(frame)
-		else:
-			hitbox_inst.group = hitbox_inst.name #if the above code was used for projectiles then you wouldn't be able to hit two projectiles from the same move on one player. name is always unique 
-	if hitboxdict.has('priority'): #Transcendent priority. 0= regular, 1= transcendent.
-		pass
-	else: pass
+		hitbox_inst.group = self.name + self.state + str(global.gametime)
+
+	if hitboxdict.has('hitboxpriority'): #Transcendent priority. 0= regular, 1= transcendent.
+		hitbox_inst.hitboxpriority = hitboxdict['hitboxpriority']
 	if hitboxdict.has('meteorcancel'): #-1= unconditionally uncancellable, 0= melee behavior, 1= unconditionally cancellable 
 		pass
 	else: pass

@@ -21,8 +21,7 @@ var hitstopmod = 1.0
 var hitstopmod_self = 1.0
 var element = 'normal'
 var group = ''
-
-
+var hitboxpriority = 0
 
 var knockdowntype = 'normal' #allows for different behavior when a character hits the ground.
 var hitstunmod = 0.4 #don't change this unless you know wtf you're doing. Nintendo sure didn't 
@@ -44,7 +43,9 @@ func on_area_enter(area):
 func impact(character): #called when you want to attack a character
 	if character.blocking:
 		hitblock(character)
-	else: hit(character)
+	else:
+		character.currenthits.append(self)
+	#	hit(character)
 
 func hitshield(character):
 	pass
@@ -57,9 +58,7 @@ func hit(character):
 		character.percentage+=damage
 		character.hitstunmod = hitstunmod
 		character.hitstunknockdown = knockdowntype
-
 		character.state('hitstun') #this should be last otherwise there will be no hitstun on the first hit
-		
 		if creator.position.x < character.position.x or (creator.position.x == character.position.x and creator.direction==1):
 			character.velocity.x = cos(deg2rad(angle))*character.hitstunknockback*20 #the 20 is arbitrary
 			character.velocity.y = sin(deg2rad(-angle))*character.hitstunknockback*20
