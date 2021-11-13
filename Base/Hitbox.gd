@@ -44,8 +44,8 @@ func impact(character): #called when you want to attack a character
 	if character.blocking:
 		hitblock(character)
 	else:
-		character.currenthits.append(self)
-	#	hit(character)
+	#	character.currenthits.append(self)
+		hit(character)
 
 func hitshield(character):
 	pass
@@ -54,6 +54,7 @@ func hitblock(character):
 	pass
 
 func hit(character):
+		print ('A hit!' )
 		character.hitstunknockback = (kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 		character.percentage+=damage
 		character.hitstunmod = hitstunmod
@@ -67,20 +68,23 @@ func hit(character):
 			character.velocity.y = sin(deg2rad(-1*(-angle+90) -90))*character.hitstunknockback*20
 		#hitstop
 		character.update_animation() #otherwise their first hitstop frame will be the state they were in before hitstun
+
 		character.impactstop = int((damage/30 + 3)*hitstopmod) 
 		if hitboxtype_interaction == 'melee':
 			creator.impactstop += int((damage/30 +3)*hitstopmod_self)
-
+	
+#if character.maincharacter: character.get_parent().get_parent().update_debug_display(character,character.playerindex+'_debug')
 #(kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 #kb_growth/100 * (((14*(character.percentage/10+damage/10) * (damage/10 + 2))  / (character.weight+100)) + 18   )  + kb_base
 
 func clash(hitbox2): #called when you clash with a hitbox without colliding with their creator
-	pass #fail checks like clash state only for self.creator on projectiles or transcendental priority will be handled here 
+	#fail checks like clash state only for self.creator on projectiles or transcendental priority will be handled here 
 	print ("clashed    " + str(hitbox2))
 
 
 var handled_characters = [] #ignores characters which already have been clashed with or attacked
 func hitbox_collide():
+	
 	for x in collisions:
 		if x.name == 'Hitbox' and x.creator != creator: 
 			for y in collisions:
@@ -89,9 +93,10 @@ func hitbox_collide():
 					handled_characters.append(y.get_parent())
 			if not (x.creator in handled_characters) :clash(x)
 		if x.name == 'Hurtbox' and x.get_parent() != creator:
-			if not (x.get_parent() in handled_characters):impact(x.get_parent())
-	
-	
+			if not (x.get_parent() in handled_characters):
+				print ('hitbox_collide() ')
+				impact(x.get_parent())
+
 	handled_characters = []
 
 
@@ -100,7 +105,6 @@ func _physics_process(delta):
 		update_path()
 		if createdstate != creator.state:
 			queue_free()
-		
 	hitbox_collide()
 	collisions = []
 	if hitboxtype_interaction != 'melee' or (hitboxtype_interaction == 'melee' and creator.impactstop == 0):
