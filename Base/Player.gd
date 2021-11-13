@@ -939,8 +939,12 @@ func airdodge_state():
 			velocity = Vector2(0,0)
 		elif stickangle < 28 and stickangle > -16: #pure left/right vectors when you're within 16 angles of the x axis, plus upwards prune
 			velocity = (Vector2(255,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
-		elif stickangle < -164 or stickangle > 152:
+		elif stickangle < -164 or stickangle > 152: #right airdodge
 			velocity = (Vector2(0,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
+		elif stickangle < 106 and stickangle > 74: #upwards airdodge
+			velocity = (Vector2(128,255)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
+		elif stickangle > -106 and stickangle < -74:
+			velocity = (Vector2(128,0)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
 		else: velocity = (analogstick-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
 		velocity.x = round(velocity.x)
 		velocity.y = round(velocity.y) #because round() refuses to work properly with vector2
