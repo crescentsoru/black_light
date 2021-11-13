@@ -929,27 +929,33 @@ func bairdash_state():
 	if frame == bairdash_end:
 		state(AIR)
 
+
+func send_airdodge(): #shorthand for the airdodge state so I can repeat the same code for the first frame
+	var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
+	print (stickangle)
+	if analogstick == Vector2(128,128): #Neutral airdodge. The one place in the game, probably, where the deadzone code I made actually matters
+		velocity = Vector2(0,0)
+	elif stickangle < 28 and stickangle > -16: #pure left/right vectors when you're within 16 angles of the x axis, plus upwards prune
+		velocity = (Vector2(255,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
+	elif stickangle < -164 or stickangle > 152: #right airdodge
+		velocity = (Vector2(0,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
+	elif stickangle < 106 and stickangle > 74: #upwards airdodge
+		velocity = (Vector2(128,255)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
+	elif stickangle > -106 and stickangle < -74:
+		velocity = (Vector2(128,0)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
+	else: velocity = (analogstick-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
+	velocity.x = round(velocity.x)
+	velocity.y = round(velocity.y) #because round() refuses to work properly with vector2
+	movementmomentum2 = velocity
+	movementmomentum1 = 0
+
 func airdodge_state():
 	if frame==0:
-
 		velocity = Vector2(0,0) #reset velocity before applying airdodge 
-		var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
-		print (stickangle)
-		if analogstick == Vector2(128,128): #Neutral airdodge. The one place in the game, probably, where the deadzone code I made actually matters
-			velocity = Vector2(0,0)
-		elif stickangle < 28 and stickangle > -16: #pure left/right vectors when you're within 16 angles of the x axis, plus upwards prune
-			velocity = (Vector2(255,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
-		elif stickangle < -164 or stickangle > 152: #right airdodge
-			velocity = (Vector2(0,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
-		elif stickangle < 106 and stickangle > 74: #upwards airdodge
-			velocity = (Vector2(128,255)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
-		elif stickangle > -106 and stickangle < -74:
-			velocity = (Vector2(128,0)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
-		else: velocity = (analogstick-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
-		velocity.x = round(velocity.x)
-		velocity.y = round(velocity.y) #because round() refuses to work properly with vector2
-		movementmomentum2 = velocity
-		movementmomentum1 = 0
+		send_airdodge()
+	if frame==1:
+		if velocity == Vector2(0,0): #if the first frame was a neutral airdodge,
+			send_airdodge() #then the player is allowed to correct it if it was a mistake and input a different angle
 	if frame >= 30: #adds gravity after some point
 		movementmomentum1 += fall_accel
 		if movementmomentum1 > fall_max:
