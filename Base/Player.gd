@@ -88,7 +88,8 @@ var skidmodifier = 1.0 #applies a modifier to traction during SKID/BRAKE
 
 var walk_accel = 85
 var walk_max = 1050
-var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running.
+var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. Don't change this
+var walk_tractionless = false #if true, won't add traction when your speed exceeds the max walk speed, like when you land from runjumps.
 
 var dashinitial = 1750 #initial burst of speed when you enter DASH. Not analog. 
 var dashaccel = 10 #completely digital, also known as Base Acceleration
@@ -686,9 +687,8 @@ func walk_state():
 	#acceleration
 	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
 		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
-	else:
-		if abs(velocity.x) > walk_max:
-			apply_traction()
+	elif abs(velocity.x) > walk_max and not walk_tractionless:
+			apply_traction() #RIP 
 func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an acceleration.
 	if veldir == 1: #Meant to not override existing velocity such as from hitstun.
 		return min(veldir*maxx,velocity.x + acc)
