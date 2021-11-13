@@ -830,13 +830,13 @@ func air_state():
 		var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
 		if analogstick == Vector2(128,128):
 			if airdodges < 1: state(AIRDODGE) #I could make 5R a shortcut for forward airdash instead. Let me know if that's something you want
-		elif stickangle < 16 and stickangle > -16: #the angle is arbitrary, roughly based on Melee's pure left/right airdodge angle zone.
+		elif stickangle < 28 and stickangle > -16: #the angle is arbitrary, roughly based on Melee's pure left/right airdodge angle zone.
 			if frame != 0: #so you don't get super low to the ground airdashes or orthogonal wavelands.
 				if airdashes < airdash_max and ((mergeairoptions and airjumps<airjump_max) or not mergeairoptions):
 						if direction == 1: state(FAIRDASH)
 						else: state(BAIRDASH)
 				elif airdodges < 1: state(AIRDODGE)
-		elif stickangle < -164 or stickangle > 164:
+		elif stickangle < -164 or stickangle > 152:
 			if frame !=0:
 				if airdashes < airdash_max and ((mergeairoptions and airjumps<airjump_max) or not mergeairoptions):
 					if direction == -1: state(FAIRDASH)
@@ -931,13 +931,15 @@ func bairdash_state():
 
 func airdodge_state():
 	if frame==0:
-		velocity = Vector2(0,0) #reset velocity. It seems accurate but I'm not sure?
+
+		velocity = Vector2(0,0) #reset velocity before applying airdodge 
 		var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
-		if analogstick == Vector2(128,128): #Neutral airdodge
+		print (stickangle)
+		if analogstick == Vector2(128,128): #Neutral airdodge. The one place in the game, probably, where the deadzone code I made actually matters
 			velocity = Vector2(0,0)
-		elif stickangle < 16 and stickangle > -16: #pure left/right vectors when you're within 16 angles of the x axis
+		elif stickangle < 28 and stickangle > -16: #pure left/right vectors when you're within 16 angles of the x axis, plus upwards prune
 			velocity = (Vector2(255,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
-		elif stickangle < -164 or stickangle > 164:
+		elif stickangle < -164 or stickangle > 152:
 			velocity = (Vector2(0,128)-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed
 		else: velocity = (analogstick-Vector2(128,128)).normalized() * Vector2(1,-1) * airdodgespeed #the Vector2(1,-1) is there because otherwise the y axis is flipped
 		velocity.x = round(velocity.x)
