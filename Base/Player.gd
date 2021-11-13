@@ -545,8 +545,11 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 		if impactstop == 0 and not impactstop_trigger:
 			impactstop_trigger = true
 
-func persistentlogic(): #this will contain character functions that happen during impactstop.
-#This includes tech buffering/lockout and SDI.
+
+var currenthits = [] #idfk what im doing
+
+func persistentlogic(): #contains code that is ran during impactstop.
+#This includes tech buffering/lockout, SDI and getting hit. 
  
 	#Might as well put this here, don't see a reason not to atm
 	state_called = []
@@ -683,7 +686,9 @@ func walk_state():
 	#acceleration
 	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
 		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
-
+	else:
+		if abs(velocity.x) > walk_max:
+			apply_traction()
 func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an acceleration.
 	if veldir == 1: #Meant to not override existing velocity such as from hitstun.
 		return min(veldir*maxx,velocity.x + acc)
@@ -973,7 +978,7 @@ func hitstun_state():
 	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
 		print (str(hitstunknockback) + " knockback units")
 		state(AIR)
-	
+
 	##################
 	##HITBOXES##
 	##################
@@ -1067,6 +1072,9 @@ func fuckingdie(): #highly placeholder
 	percentage = 0
 	state(AIR)
 	velocity = Vector2(0,0)
+
+
+
 
 
 
@@ -1212,18 +1220,15 @@ var collisions = []
 var in_platform = true #will trigger dfghjduhpfsdlnjk;hblhnjk;sdfgb;luhjkfsdg
 func collision_handler(): #For platform/floor/wall collision.
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
-	#var angle = 0 #I don't know what this does 
-	#var slope_factor = Vector2(cos(deg2rad(angle))*velocity.x - sin(deg2rad(angle))*velocity.y, sin(deg2rad(angle))*velocity.x + cos(deg2rad(angle))*velocity.y ) 
-	#move_and_slide(slope_factor,Vector2(0,1),50)
+
 	for x in get_slide_count(): #necessary for rooted states
 		if not (get_slide_collision(x).collider in collisions):
 			collisions.append(get_slide_collision(x).collider)
-	$pECB.check_blastzone() #lets you die, done before pECB update so it's essentially the same as checking current frame collision 
+	$pECB.current_ecbcheck() #lets you die, done before pECB update so it's essentially the same as checking current frame collision 
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 	if not (prune_disabledplats($pECB.collisions) != self.collisions and rooted):
 		velocity = move_and_slide(velocity, Vector2(0, -1))
-#		print ("not same!! " + str(global.gametime) + str(collisions) + "  ||||||||  " + str($pECB.collisions))
-	
+
 	if velocity.y < 0: disable_platform()
 	for x in $pECB.collisions:
 		if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly

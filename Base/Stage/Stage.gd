@@ -56,7 +56,8 @@ func initialize_players():
 		p3_instance.playerindex = "p3"
 		p3_instance.initialize_buttons(global.p3_data[3])
 		p3_instance.stocks = global.stockcount
-
+	if global.p4_data[0] != '':
+		pass
 
 var ispause = false
 var whopause = '' #the player who paused the game is specified here

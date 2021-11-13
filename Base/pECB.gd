@@ -21,9 +21,12 @@ func on_body_exit(body):
 		if x == body:
 			collisions.erase(x)
 
-func check_blastzone():
+func current_ecbcheck():
 
-#Blastzone collision checks happen in collision_handler, *before* pECB is updated. This is because kinematicbody2d doesn't really have a check for areas
+#Blastzone collision checks happen in collision_handler, *before* pECB is updated.
+#This is because kinematicbody2d doesn't really have a check for areas. Technically, I could simply add another area,
+#Which would track the kinematicbody2d's collision box every frame, but, pECB does that already, so I saw no reason to add another Area2d.
+#I guess this technically makes projected ECB a current ECB as well, before it updates?
 	for x in areacollisions:
 		if x.name.substr(0,9) == 'Blastzone':
 			if x.blastzonetype == 'kill':
@@ -34,7 +37,9 @@ func check_blastzone():
 				if get_parent().state in ['hitstun','tumble']:
 					self.get_parent().fuckingdie()
 					return
-
+		if x.name.substr(0,6) == 'Hitbox':
+			pass
+	
 
 
 
