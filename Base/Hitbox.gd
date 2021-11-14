@@ -39,6 +39,10 @@ func update_path():
 
 func on_area_enter(area):
 	collisions.append(area)
+	if area.name.substr(0,7) == 'Hurtbox':
+		if area.get_parent() != creator:
+			print ('area enter' + area.get_parent().name)
+	
 
 func impact(character): #called when you want to attack a character
 	if character.blocking:
@@ -54,7 +58,7 @@ func hitblock(character):
 	pass
 
 func hit(character):
-		print ('A hit!' )
+		print ('A hit!')
 		character.hitstunknockback = (kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 		character.percentage+=damage
 		character.hitstunmod = hitstunmod

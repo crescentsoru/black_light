@@ -662,7 +662,7 @@ func crouch_state(): #AKA SquatWait
 	platform_drop()
 	if inputheld(down):
 		disable_platform()
-		if not is_on_floor(): state(AIR)
+		if not grounded: state(AIR)
 	if inputpressed(left):
 		if direction == 1:
 			flip()
@@ -872,7 +872,7 @@ func air_state():
 	if inputpressed(down) and !fastfall and velocity.y >= 0:
 		fastfall = true
 		velocity.y = fastfall_speed
-	if not is_on_floor():
+	if not grounded:
 		if velocity.y < fall_max: landinglag = softland #AKA NIL
 		else: landinglag = hardland
 
@@ -992,7 +992,7 @@ func airdodge_state():
 		movementmomentum2 = Vector2(0,0)
 	if frame > 37:
 		aerial_acceleration()
-	if is_on_floor():
+	if grounded:
 		if frame < 37:
 			state(WAVELAND)
 		else:
@@ -1195,13 +1195,13 @@ func apply_gravity(): #this is called in ground states as well to prevent bugs r
 
 func check_landing():
 #Character scripts could either overwrite landingstates on _ready with every default state and their own or just .append() to it.
-	if is_on_floor() and frame > 0:
+	if grounded and frame > 0:
 		state(LAND)
 		refresh_air_options()
 
 
 
-func actionablelogic(): #a function I made to make ordering stuff that doesn't happen during impactstop easier
+func actionablelogic(delta): #a function I made to make ordering stuff that doesn't happen during impactstop easier
 	#direction updates. Sprite happens at the end
 
 	$ECB.scale.x = direction
@@ -1218,7 +1218,7 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 		apply_traction()
 	if state in slidestates:
 		apply_gravity()
-		if not is_on_floor():
+		if not grounded:
 			if abs(velocity.x) > drift_max:
 				if velocity.x > 0:
 					velocity.x = drift_max
@@ -1227,7 +1227,7 @@ func actionablelogic(): #a function I made to make ordering stuff that doesn't h
 			disable_platform() 
 	if state in landingstates:
 		check_landing()
-	collision_handler()
+	collision_handler(delta)
 
 
 func ecb_up(): #returns the scene position of the top point of your pECB.
@@ -1243,39 +1243,54 @@ func platform_drop(): #ran in state machine, disables platforms if 1/3 is presse
 	#should be put at the start of any state function
 	if inputpressed(down) and (inputheld(left) or inputheld(right)):
 		disable_platform()
-		if not is_on_floor(): #If the platform disabling actually worked,
+		if not grounded: #If the platform disabling actually worked,
 			state(AIR)
 	elif (inputpressed(left) or inputpressed(right)) and inputheld(down):
 		disable_platform()
-		if not is_on_floor(): state(AIR)
+		if not grounded: state(AIR)
 
 var collisions = []
 var in_platform = true #will trigger dfghjduhpfsdlnjk;hblhnjk;sdfgb;luhjkfsdg
-func collision_handler(): #For platform/floor/wall collision.
+
+var grounded = false
+var pecbgrounded = false
+func collision_handler(delta): #For platform/floor/wall collision.
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
 
+
+	
 	for x in get_slide_count(): #necessary for rooted states
 		if not (get_slide_collision(x).collider in collisions):
 			collisions.append(get_slide_collision(x).collider)
+	if inputheld(up): print (collisions)
 	$pECB.current_ecbcheck() #lets you die, done before pECB update so it's essentially the same as checking current frame collision 
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 	if not (prune_disabledplats($pECB.collisions) != self.collisions and rooted):
 		velocity = move_and_slide(velocity, Vector2(0, -1))
-
+		#var collision = move_and_collide(velocity/60)
+		
 	if velocity.y < 0: disable_platform()
-	for x in $pECB.collisions:
+	for x in $pECB.collisions: #post velocity move check for pECB
 		if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly
 			if (self.position.x >= x.position.x and self.position.x <= x.position.x + 64*x.scale.x): #Prevents colliding w platforms from the side
 				if not in_platform and velocity.y >= 0:
+					pecbgrounded = true
 					enable_platform()
+
 		if x.name.substr(0,5) == 'Floor':
+			pecbgrounded = true
 			disable_platform() #Colliding with the floor in any way will disable platforms. Is this even ok? Haven't found issues so far
 	if $pECB.collisions == []:
+		pecbgrounded = false
 		in_platform = false
 	else:
 		in_platform = true
 	rooted = false
 	collisions = []
+	if is_on_floor() or false:
+		grounded = true
+	else: grounded = false
+
 
 func prune_disabledplats(collisionlist): #removes platforms from a collision list if they're disabled
 	var newlist = []
@@ -1309,7 +1324,7 @@ func _physics_process(delta):
 	persistentlogic()
 
 	if impactstop == 0 and not impactstop_trigger:
-		actionablelogic()
+		actionablelogic(delta)
 		update_animation()
 
 

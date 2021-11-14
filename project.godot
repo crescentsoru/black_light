@@ -257,8 +257,6 @@ p2_downtaunt={
 [physics]
 
 common/enable_pause_aware_picking=true
-2d/physics_engine="GodotPhysics"
-3d/physics_engine="GodotPhysics"
 
 [rendering]
 
