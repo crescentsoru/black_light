@@ -27,6 +27,7 @@ func current_ecbcheck():
 #This is because kinematicbody2d doesn't really have a check for areas. Technically, I could simply add another area,
 #Which would track the kinematicbody2d's collision box every frame, but, pECB does that already, so I saw no reason to add another Area2d.
 #I guess this technically makes projected ECB a current ECB as well, before it updates?
+#update- no fuck no
 	for x in areacollisions:
 		if x.name.substr(0,9) == 'Blastzone':
 			if x.blastzonetype == 'kill':

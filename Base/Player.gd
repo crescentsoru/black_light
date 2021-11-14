@@ -636,8 +636,6 @@ func stand_state():
 	platform_drop()
 	if frame == 0:
 		refresh_air_options()
-	if tiltinput(down):
-		state(CROUCHSTART)
 	if inputheld(left,3) and not inputheld(up): #might decrease below to 2? idk send your feedback
 		state(DASH)
 		direction= -1
@@ -650,6 +648,8 @@ func stand_state():
 	elif tiltinput(right) and not tiltinput(down): #walk right
 		state(WALK)
 		direction= 1
+	if tiltinput(down):
+		state(CROUCHSTART)
 	if inputpressed(jump): state(JUMPSQUAT)
 
 func crouchstart_state(): #AKA Squat
@@ -677,7 +677,7 @@ func crouch_state(): #AKA SquatWait
 		else: state(DASH)
 	if not motionqueue[-1] in ['1','2','3']: #makes sure you can hold down without also dropping from a platform
 		state(CROUCHEXIT)
-	if inputpressed(jump) and is_on_floor(): state(JUMPSQUAT)
+	if inputpressed(jump) and grounded: state(JUMPSQUAT)
 
 func crouchexit_state(): #AKA SquatRV
 	if frame == 10:
@@ -890,7 +890,9 @@ func doublejump():
 	#play animation
 
 func jumpsquat_state():
+	
 	if frame == jumpsquat:
+		velocity.y = 0 #needs to be done under the new move_and_collide system
 		velocity.x = velocity.x * runjumpmod #modifier
 		if abs(velocity.x) > runjumpmax: velocity.x = runjumpmax * direction #maxifier
 		if inputheld(jump): #fullhop
@@ -1212,12 +1214,12 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 	attackcode()
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 	if state in rootedstates:
-		apply_gravity()
-		rooted = true
+		velocity.y = fall_accel #makes it so that you don't fall with full fall speed when you slide off after a rooted state.  
+		rooted = true #^^^Not doing this at all will fuck the collision needed to make rooted states work in the first place.
 	if state in tractionstates:
 		apply_traction()
 	if state in slidestates:
-		apply_gravity()
+		apply_gravity() #this is still necessary so that rooted states on f0 don't halt velocity
 		if not grounded:
 			if abs(velocity.x) > drift_max:
 				if velocity.x > 0:
@@ -1251,14 +1253,12 @@ func platform_drop(): #ran in state machine, disables platforms if 1/3 is presse
 
 var collisions = []
 var in_platform = true #will trigger dfghjduhpfsdlnjk;hblhnjk;sdfgb;luhjkfsdg
-
 var grounded = false
 var pecbgrounded = false
 func collision_handler(delta): #For platform/floor/wall collision.
 	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
 
 
-	
 	for x in get_slide_count(): #necessary for rooted states
 		if not (get_slide_collision(x).collider in collisions):
 			collisions.append(get_slide_collision(x).collider)
@@ -1268,7 +1268,9 @@ func collision_handler(delta): #For platform/floor/wall collision.
 	if not (prune_disabledplats($pECB.collisions) != self.collisions and rooted):
 		velocity = move_and_slide(velocity, Vector2(0, -1))
 		#var collision = move_and_collide(velocity/60)
-		
+		#if collision:    #Remnants of me trying to switch to move_and_collide. It kinda sorta works but there's no reason to use it atm
+		#	if collision.collider.name.substr(0,5) == 'Floor' or collision.collider.name.substr(0,4) == 'Plat':
+		#		collision = move_and_collide(collision.remainder.slide(collision.normal))
 	if velocity.y < 0: disable_platform()
 	for x in $pECB.collisions: #post velocity move check for pECB
 		if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly
@@ -1287,8 +1289,8 @@ func collision_handler(delta): #For platform/floor/wall collision.
 		in_platform = true
 	rooted = false
 	collisions = []
-	if is_on_floor() or false:
-		grounded = true
+	if is_on_floor() or false: #remnants of me trying to make move_and_collide work. It still works *sort of* but I realized it's not necessary
+		grounded = true #use grounded anyways please it's shorter than is_on_floor()
 	else: grounded = false
 
 

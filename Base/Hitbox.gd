@@ -75,7 +75,7 @@ func hit(character):
 
 		character.impactstop = int((damage/30 + 3)*hitstopmod) 
 		if hitboxtype_interaction == 'melee':
-			creator.impactstop += int((damage/30 +3)*hitstopmod_self)
+			creator.impactstop = int((damage/30 +3)*hitstopmod_self)
 	
 #if character.maincharacter: character.get_parent().get_parent().update_debug_display(character,character.playerindex+'_debug')
 #(kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
