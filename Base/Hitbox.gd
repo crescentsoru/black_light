@@ -8,7 +8,7 @@ var collisions = []
 var frame = 0
 var fuckshit = 0
 var direction = 1
-var velocity = Vector2(0,0)
+
 
 var damage = 3
 var damage_base = 3 #the value you use if you don't want staling to mess with things
@@ -31,7 +31,7 @@ var hitstunmod = 0.4 #don't change this unless you know wtf you're doing. Ninten
 #projectile specific
 var hitsleft = 1
 var speed = 100
-var animationname = '' #also passed down to hit gfx and disappear gfx
+
 
 
 
@@ -111,7 +111,7 @@ func _physics_process(delta):
 		if createdstate != creator.state:
 			queue_free()
 	if hitboxtype == 'projectile':
-		position.x += speed * direction
+		position.x += speed/60 * direction
 		if hitsleft <= 0:
 			queue_free()
 	hitbox_collide()

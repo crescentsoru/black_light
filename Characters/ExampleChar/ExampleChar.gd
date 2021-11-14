@@ -22,7 +22,9 @@ func memehitbox_state():
 		create_hitbox(rectangle(256,128),80,15,100,90,9000, \
 		{'id':50,
 		'type':'projectile', 'hitstopmod':1.0,'hitstopmod_self':1.0,
-		'path':[Vector2(96,0)],})
+		'path':[Vector2(96,0)],
+		'speed':1750, 
+		})
 
 
 	if frame == 16:

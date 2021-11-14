@@ -15,8 +15,8 @@ pause_mode = 2
 
 [node name="p1_debug" type="RichTextLabel" parent="UI_persistent"]
 pause_mode = 2
-margin_right = 303.0
-margin_bottom = 134.0
+margin_right = 283.0
+margin_bottom = 207.0
 rect_scale = Vector2( 1.5, 1.5 )
 text = "Affordable text:
 "

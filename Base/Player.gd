@@ -1054,7 +1054,7 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		pass
 	else: pass
 	if hitboxdict.has('group'):
-		pass
+		hitbox_inst.group = hitboxdict['group'] #you better know what you're doing. It's best to involve gametime in the definition 
 	else:
 		hitbox_inst.group = self.name + self.state + str(global.gametime)
 	if hitboxdict.has('hitboxpriority'): #Transcendent priority. 0= regular, 1= transcendent.
@@ -1079,9 +1079,20 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		else:
 			hitbox_inst.hitstopmod = 1.0
 			hitbox_inst.hitstopmod_self = 1.0
+	#Projectile
+	if hitboxdict.has('hitsleft'):
+		hitbox_inst.hitsleft = hitboxdict['hitsleft']
+	if hitboxdict.has('speed'):
+		hitbox_inst.speed = hitboxdict['speed']
+	if hitboxdict.has('hitboxanimation'): #technically can be used for anything but projectiles are making the most out of this
+		hitbox_inst.get_node('hitboxsprite').animation = hitboxdict['hitboxanimation']
+	else:#this probably results in interpreter lag memes but only for 1 frame hopefully
+		hitbox_inst.get_node('hitboxsprite').animation = self.state #there is probably a better way to handle this
 	if hitboxdict.has('rage_growth'): #lol
 		pass
 	else: pass
+
+
 
 	#shorthands for polygon creation
 func rectangle(wid,hei):
