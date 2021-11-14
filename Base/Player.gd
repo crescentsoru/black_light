@@ -620,6 +620,7 @@ func sorthitbox_byparam(param):
 			if param == 'id' and y.id > x.id:
 				lasthitbox.erase(x)
 				return
+	print (lasthitbox[0].group)
 	nochange = true
 
 
@@ -1108,6 +1109,8 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 				hitbox_inst.path.add_point(Vector2(-point.x,point.y))
 	else: hitbox_inst.path.add_point(Vector2(0,0)) #else statements after .has() specify a default value if that parameter wasn't specified
 	hitbox_inst.update_path()#set the path for the first frame
+	if hitboxdict.has('priority'):
+		hitbox_inst.priority = hitboxdict['priority']
 	if hitboxdict.has('decline_dmg'): #per frame 
 		pass
 	else: pass
