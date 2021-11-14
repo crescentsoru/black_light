@@ -39,17 +39,14 @@ func update_path():
 
 func on_area_enter(area):
 	collisions.append(area)
-	if area.name.substr(0,7) == 'Hurtbox':
-		if area.get_parent() != creator:
-			print ('area enter' + area.get_parent().name)
 	
 
 func impact(character): #called when you want to attack a character
 	if character.blocking:
 		hitblock(character)
 	else:
-	#	character.currenthits.append(self)
-		hit(character)
+		character.currenthits.append(self)
+	#	hit(character)
 
 func hitshield(character):
 	pass
@@ -58,7 +55,6 @@ func hitblock(character):
 	pass
 
 func hit(character):
-		print ('A hit!')
 		character.hitstunknockback = (kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 		character.percentage+=damage
 		character.hitstunmod = hitstunmod
@@ -72,7 +68,6 @@ func hit(character):
 			character.velocity.y = sin(deg2rad(-1*(-angle+90) -90))*character.hitstunknockback*20
 		#hitstop
 		character.update_animation() #otherwise their first hitstop frame will be the state they were in before hitstun
-
 		character.impactstop = int((damage/30 + 3)*hitstopmod) 
 		if hitboxtype_interaction == 'melee':
 			creator.impactstop = int((damage/30 +3)*hitstopmod_self)
@@ -88,7 +83,6 @@ func clash(hitbox2): #called when you clash with a hitbox without colliding with
 
 var handled_characters = [] #ignores characters which already have been clashed with or attacked
 func hitbox_collide():
-	
 	for x in collisions:
 		if x.name == 'Hitbox' and x.creator != creator: 
 			for y in collisions:
@@ -98,9 +92,7 @@ func hitbox_collide():
 			if not (x.creator in handled_characters) :clash(x)
 		if x.name == 'Hurtbox' and x.get_parent() != creator:
 			if not (x.get_parent() in handled_characters):
-				print ('hitbox_collide() ')
 				impact(x.get_parent())
-
 	handled_characters = []
 
 

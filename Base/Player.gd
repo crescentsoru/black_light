@@ -549,7 +549,7 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 
 
 func get_hit(hitbox):
-	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
+	hitqueue_plus(hitbox.group)
 	hitstunknockback = (hitbox.kb_growth*0.01) * ((14*(percentage/10+hitbox.damage/10)*(hitbox.damage/10+2))/(weight + 100)+18) + hitbox.kb_base
 	percentage+=hitbox.damage
 	hitstunmod = hitbox.hitstunmod
@@ -567,18 +567,48 @@ func get_hit(hitbox):
 	if hitbox.hitboxtype_interaction == 'melee':
 		hitbox.creator.impactstop += int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
 
-var currenthits = [] 
+var currenthits = []
+var hitqueue = []
+var nochange = false #used to break the while loop
 func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
 	if currenthits != []:
+		nochange = false
+		while nochange == false:
+			prune_ids()
+
 		for x in currenthits:
-			get_hit(x)
-
-
+			if not (x.group in hitqueue): get_hit(x)
 	#Might as well put this here, don't see a reason not to atm
 	state_called = []
 	currenthits = []
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
+
+func prune_ids(): #should move this to ###hitboxes###
+	var initialhits = currenthits
+	for x in currenthits:
+		for y in currenthits:
+			if y.creator == x.creator and y.group == x.group and not (x == y):
+				if y.id > x.id:
+					currenthits.erase(x)
+					return
+				if x.id > y.id:
+					currenthits.erase(y)
+					return
+				if x.id == y.id: #this shouldn't happen
+
+					currenthits.erase(y) #whichever was created later will be erased
+					return
+	nochange = true
+
+func hitqueue_plus(hit): #disallows hit groups that you've already been hit with. 12 entries. 
+#Can happen if you slide into someone with a move with multiple hitboxes and different ids, the id code cannot prevent that. 
+	if len(hitqueue) < 12:
+		hitqueue.push_back(hit)
+	else:
+		hitqueue.pop_front()
+		hitqueue.push_back(hit)
+
 
 func state_check(statecompare):#state handler function for checking if the state is correct AND if it's been processed before.
 	if state == statecompare:
@@ -1262,7 +1292,7 @@ func collision_handler(delta): #For platform/floor/wall collision.
 	for x in get_slide_count(): #necessary for rooted states
 		if not (get_slide_collision(x).collider in collisions):
 			collisions.append(get_slide_collision(x).collider)
-	if inputheld(up): print (collisions)
+
 	$pECB.current_ecbcheck() #lets you die, done before pECB update so it's essentially the same as checking current frame collision 
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 	if not (prune_disabledplats($pECB.collisions) != self.collisions and rooted):
@@ -1357,4 +1387,4 @@ func _physics_process(delta):
 
 #2. SDI is easily implementable only for defenders.
 #Put the defender into hitstun first, add impactstop based on damage values.
-#Add ability to SDI if state == HITSTUN in persistent_logic().
+#Add ability to SDI if state == HITSTUN in persistentlogic().
