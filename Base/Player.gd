@@ -169,6 +169,7 @@ var extrablockstun = 0 #Don't use
 var hitstunknockback = 0 #used on startup in hitstun to save the end frame of hitstun
 var hitstunmod = 0.4 #do not
 var hitstunknockdown = 'normal' #normal= techroll after tumble, 'okizeme'= enter standup state
+var hitstunangle = 0
 
 	#etc
 var characterscale = 1
@@ -555,11 +556,14 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
 	hit_processing()
-	#Might as well put this here, don't see a reason not to atm
+
+		
+	
 	state_called = []
 	currenthits = []
 	lasthitbox = []
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
+
 
 
 
@@ -996,10 +1000,11 @@ func waveland_state():
 		state(STAND)
 
 func hitstun_state():
-	if frame == 0:
-		pass
+	if frame == 1:
+		velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
+		velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
 	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
-		print (str(hitstunknockback) + " knockback units")
+		print (str(hitstunknockback) + " knockback units  " + str(hitstunangle) + " degrees")
 		state(AIR)
 
 	##################
@@ -1084,8 +1089,8 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		hitbox_inst.hitsleft = hitboxdict['hitsleft']
 	if hitboxdict.has('speed'):
 		hitbox_inst.speed = hitboxdict['speed']
-	if hitboxdict.has('hitboxanimation'): #technically can be used for anything but projectiles are making the most out of this
-		hitbox_inst.get_node('hitboxsprite').animation = hitboxdict['hitboxanimation']
+	if hitboxdict.has('sprite'): #technically can be used for anything but projectiles are making the most out of this
+		hitbox_inst.get_node('hitboxsprite').animation = hitboxdict['sprite']
 	else:#this probably results in interpreter lag memes but only for 1 frame hopefully
 		hitbox_inst.get_node('hitboxsprite').animation = self.state #there is probably a better way to handle this
 	if hitboxdict.has('rage_growth'): #lol
@@ -1133,7 +1138,10 @@ func hit_processing():
 		for x in currenthits: #hits everything except the last hitbox
 			if not (x.group in hitqueue) and x != lasthitbox[0]:get_hit(x)
 		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0]) #hits w the last (or only) hitbox
-
+	
+	if impactstop == 1 and state == HITSTUN: #second last hitstop frame
+		print ('changed angle')
+		hitstunangle = 90
 
 func prune_ids(): #should move this to ###hitboxes###
 	var initialhits = currenthits
@@ -1186,13 +1194,11 @@ func get_hit(hitbox):
 	percentage+=hitbox.damage
 	hitstunmod = hitbox.hitstunmod
 	hitstunknockdown = hitbox.knockdowntype
-	state('hitstun')
 	if hitbox.creator.position.x < position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==1):
-		velocity.x = cos(deg2rad(hitbox.angle))*hitstunknockback*20 #the 20 is arbitrary
-		velocity.y = sin(deg2rad(hitbox.angle*-1))*hitstunknockback*20
+		hitstunangle = hitbox.angle
 	if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
-		velocity.x = cos(deg2rad(-1*(hitbox.angle+90) -90))*hitstunknockback*20
-		velocity.y = sin(deg2rad(-1*(hitbox.angle*-1+90) -90))*hitstunknockback*20
+		hitstunangle = 90 + -1*(hitbox.angle-90)
+	state('hitstun')
 	#hitstop
 	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
 	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod) 

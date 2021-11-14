@@ -23,7 +23,7 @@ func memehitbox_state():
 		{'id':50,
 		'type':'projectile', 'hitstopmod':1.0,'hitstopmod_self':1.0,
 		'path':[Vector2(96,0)],
-		'speed':1750, 
+		'speed':1750, 'sprite':'red',
 		})
 
 
