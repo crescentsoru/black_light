@@ -2,10 +2,13 @@ extends Area2D
 
 
 var creator = [] #The owner of the hitbox
+var creatorobject = []
 var createdstate = 'jab'
 var collisions = []
 var frame = 0
 var fuckshit = 0
+var direction = 1
+var velocity = Vector2(0,0)
 
 var damage = 3
 var damage_base = 3 #the value you use if you don't want staling to mess with things
@@ -22,9 +25,15 @@ var hitstopmod_self = 1.0
 var element = 'normal'
 var group = ''
 var hitboxpriority = 0
-
 var knockdowntype = 'normal' #allows for different behavior when a character hits the ground.
 var hitstunmod = 0.4 #don't change this unless you know wtf you're doing. Nintendo sure didn't 
+
+#projectile specific
+var hitsleft = 1
+var speed = 100
+var animationname = '' #also passed down to hit gfx and disappear gfx
+
+
 
 func _ready(): #happens BEFORE initialization in Player.gd apparently
 	process_priority = 5 #Don't change this. Makes hitbox physics_process code be processed earlier than character code, eliminating a frame of lag. 
@@ -42,10 +51,8 @@ func on_area_enter(area):
 	
 
 func impact(character): #called when you want to attack a character
-	if character.blocking:
-		hitblock(character)
-	else:
-		character.currenthits.append(self)
+	character.currenthits.append(self)
+	hitsleft -= 1
 	#	hit(character)
 
 func hitshield(character):
@@ -71,10 +78,10 @@ func hit(character): #Outdated
 		character.impactstop = int((damage/30 + 3)*hitstopmod) 
 		if hitboxtype_interaction == 'melee':
 			creator.impactstop = int((damage/30 +3)*hitstopmod_self)
-	
 #if character.maincharacter: character.get_parent().get_parent().update_debug_display(character,character.playerindex+'_debug')
 #(kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 #kb_growth/100 * (((14*(character.percentage/10+damage/10) * (damage/10 + 2))  / (character.weight+100)) + 18   )  + kb_base
+
 
 func clash(hitbox2): #called when you clash with a hitbox without colliding with their creator
 	#fail checks like clash state only for self.creator on projectiles or transcendental priority will be handled here 
@@ -89,7 +96,9 @@ func hitbox_collide():
 				if y.name == 'Hurtbox' and y.get_parent() == x.creator: #should also check for projectile sdjlhn;ngkhjfgAAH AHJDFg look I'll do the specific clash stuff after I'm done doing basic hitstun
 					impact(y.get_parent())
 					handled_characters.append(y.get_parent())
-			if not (x.creator in handled_characters) :clash(x)
+			if not (x.creator in handled_characters):
+				if x.priority == 0 and self.priority == 0:
+					clash(x)
 		if x.name == 'Hurtbox' and x.get_parent() != creator:
 			if not (x.get_parent() in handled_characters):
 				impact(x.get_parent())
@@ -100,6 +109,10 @@ func _physics_process(delta):
 	if hitboxtype == 'melee':
 		update_path()
 		if createdstate != creator.state:
+			queue_free()
+	if hitboxtype == 'projectile':
+		position.x += speed * direction
+		if hitsleft <= 0:
 			queue_free()
 	hitbox_collide()
 	collisions = []

@@ -1,11 +1,25 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Base/Hitbox.gd" type="Script" id=1]
+[ext_resource path="res://Graphics1/test_floor.png" type="Texture" id=2]
 
 [sub_resource type="Curve2D" id=1]
 _data = {
 "points": PoolVector2Array(  )
 }
+
+[sub_resource type="SpriteFrames" id=2]
+animations = [ {
+"frames": [  ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 2 ) ],
+"loop": true,
+"name": "red",
+"speed": 0.0
+} ]
 
 [node name="Hitbox" type="Area2D"]
 modulate = Color( 1, 1, 1, 0.415686 )
@@ -17,3 +31,8 @@ polygon = PoolVector2Array( 128, -128, -128, -128, -128, 128, 128, 128 )
 
 [node name="path" type="Path2D" parent="."]
 curve = SubResource( 1 )
+
+[node name="hitboxsprite" type="AnimatedSprite" parent="."]
+modulate = Color( 1, 0.0196078, 0.662745, 0.745098 )
+rotation = 1.5708
+frames = SubResource( 2 )

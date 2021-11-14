@@ -1,5 +1,6 @@
 extends KinematicBody2D
 #https://www.youtube.com/watch?v=KikLLLeyVOk
+var charactercode = '' #the same name as the folder/tscn in Characters/
 var charactername = 'pass'
 var characterdescription = 'my jambo jet flies cheerfully'
 var playerindex = ''
@@ -338,14 +339,15 @@ var currentreplay = {
 	downtaunt : [],
 	
 }
-
 var controllable = true #false when replay
+
 
 
 var analogstick = Vector2(128,128)
 var analog_deadzone = 24 #should probably be the same as analog_tilt
 var analog_tilt = 24 #how much distance you need for the game to consider something a tilt input rather than neutral
 var analog_smash = 64 #how much distance the stick has to travel to be considered an u/d/l/r/ or smash input
+var smashattacksensitivity = 3 #AKA stick sensitivity in Ultimate. That's literally all it does
 func analogconvert(floatL,floatR,floatD,floatU):
 #Godot returns analog "strength" of actions as a float going from 0 to 1.
 #This function converts up/down/left/right inputs into a Vector2() which represents both axes as 256-bit digits.
@@ -470,8 +472,6 @@ func replayprep(): #called on _ready to make your character controllable or not
 		if playerindex == "p2": currentreplay = global.fullreplay['p_data'][1][4]
 		if playerindex == "p3": currentreplay = global.fullreplay['p_data'][2][4]
 
-
-
 var motionqueue = "5"
 var motiontimer = 8
 func tiltinput(inp): #returns true if you have an analog input beyond analog_tilt on the control stick, which is 24 by default.
@@ -534,6 +534,7 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 	frame = newframe
 	state_handler()
 	char_state_handler()
+	attackcode()
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 
 
@@ -548,103 +549,23 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 
 
 
-func get_hit(hitbox):
-	hitqueue_plus(hitbox.group)
-	hitstunknockback = (hitbox.kb_growth*0.01) * ((14*(percentage/10+hitbox.damage/10)*(hitbox.damage/10+2))/(weight + 100)+18) + hitbox.kb_base
-	percentage+=hitbox.damage
-	hitstunmod = hitbox.hitstunmod
-	hitstunknockdown = hitbox.knockdowntype
-	state('hitstun')
-	if hitbox.creator.position.x < position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==1):
-		velocity.x = cos(deg2rad(hitbox.angle))*hitstunknockback*20 #the 20 is arbitrary
-		velocity.y = sin(deg2rad(hitbox.angle*-1))*hitstunknockback*20
-	if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
-		velocity.x = cos(deg2rad(-1*(hitbox.angle+90) -90))*hitstunknockback*20
-		velocity.y = sin(deg2rad(-1*(hitbox.angle*-1+90) -90))*hitstunknockback*20
-	#hitstop
-	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
-	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod) 
-	if hitbox.hitboxtype_interaction == 'melee' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
-		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
 
-var currenthits = []
-var hitqueue = []
-var nochange = false #used to break the while loop
-var lasthitbox = []
+
+
 func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
-	if currenthits != []:
-		nochange = false
-		while nochange == false:
-			prune_ids()
-		nochange = false
-		lasthitbox = currenthits
-		while nochange == false: sorthitbox_byparam('priority')
-		nochange = false
-		while nochange == false: sorthitbox_byparam('id')
-		nochange = false
-		while nochange == false: sorthitbox_byparam('damage')
-		nochange = false
-		while nochange == false: sorthitbox_byparam('lengroup')
-		nochange = false
-		while nochange == false: sorthitbox_byparam('port')
-		
-		for x in currenthits:
-			if not (x.group in hitqueue) and x != lasthitbox[0]:get_hit(x)
-			
-		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0])
+	hit_processing()
 	#Might as well put this here, don't see a reason not to atm
 	state_called = []
 	currenthits = []
 	lasthitbox = []
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 
-func prune_ids(): #should move this to ###hitboxes###
-	var initialhits = currenthits
-	for x in currenthits:
-		for y in currenthits:
-			if y.creator == x.creator and y.group == x.group and not (x == y):
-				if y.id > x.id:
-					currenthits.erase(x)
-					return
-				if x.id > y.id:
-					currenthits.erase(y)
-					return
-				if x.id == y.id: #this shouldn't happen
-					currenthits.erase(y) #whichever was created later will be erased
-					return
-	nochange = true
-
-func sorthitbox_byparam(param):
-	var initial = lasthitbox
-	for x in lasthitbox:
-		for y in lasthitbox:
-			if param == 'priority' and y.priority > x.priority:
-				lasthitbox.erase(x)
-				return
-			if param == 'id' and y.id > x.id:
-				lasthitbox.erase(x)
-				return
-			if param == 'lengroup' and len(y.group) > len(x.group):
-				lasthitbox.erase(x)
-				return
-			if param == 'damage' and y.damage > x.damage:
-				lasthitbox.erase(x)
-				return
-			if param == 'port' and int(y.creator.playerindex[1]) > int(x.creator.playerindex[1]): #this is fucked up 
-				lasthitbox.erase(x)
-				return
-	nochange = true
 
 
 
-func hitqueue_plus(hit): #disallows hit groups that you've already been hit with. 12 entries. 
-#Can happen if you slide into someone with a move with multiple hitboxes and different ids, the id code cannot prevent that. 
-	if len(hitqueue) < 12:
-		hitqueue.push_back(hit)
-	else:
-		hitqueue.pop_front()
-		hitqueue.push_back(hit)
+
+
 
 
 func state_check(statecompare):#state handler function for checking if the state is correct AND if it's been processed before.
@@ -742,7 +663,7 @@ func crouch_state(): #AKA SquatWait
 			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1) #But I might be making dash too good with this line
 			state(TURN)
 		else: state(DASH)
-	if not motionqueue[-1] in ['1','2','3']: #makes sure you can hold down without also dropping from a platform
+	if not tiltinput(down): #makes sure you can hold down without also dropping from a platform
 		state(CROUCHEXIT)
 	if inputpressed(jump) and grounded: state(JUMPSQUAT)
 
@@ -1021,7 +942,6 @@ func bairdash_state():
 	if frame == bairdash_end:
 		state(AIR)
 
-
 func send_airdodge(): #shorthand for the airdodge state so I can repeat the same code for the first frame
 	var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
 	if analogstick == Vector2(128,128): #Neutral airdodge. The one place in the game, probably, where the deadzone code I made actually matters
@@ -1093,6 +1013,9 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	hitbox_inst.position = self.position
 	hitbox_inst.creator = self
 	hitbox_inst.createdstate = state
+	hitbox_inst.direction = direction
+	
+	
 	hitbox_inst.get_node('polygon').set_polygon(polygon) #Revolver Ocelot
 	hitbox_inst.damage = damage
 	hitbox_inst.kb_base = kb_base
@@ -1134,7 +1057,6 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		pass
 	else:
 		hitbox_inst.group = self.name + self.state + str(global.gametime)
-
 	if hitboxdict.has('hitboxpriority'): #Transcendent priority. 0= regular, 1= transcendent.
 		hitbox_inst.hitboxpriority = hitboxdict['hitboxpriority']
 	if hitboxdict.has('meteorcancel'): #-1= unconditionally uncancellable, 0= melee behavior, 1= unconditionally cancellable 
@@ -1161,7 +1083,6 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		pass
 	else: pass
 
-
 	#shorthands for polygon creation
 func rectangle(wid,hei):
 	return [Vector2(-1*wid,hei),Vector2(wid,hei),Vector2(wid,-1*hei),Vector2(-1*wid,-1*hei)]
@@ -1177,10 +1098,95 @@ func fuckingdie(): #highly placeholder
 	velocity = Vector2(0,0)
 	refresh_air_options()
 	hitqueue = []
-	
+
+var currenthits = []
+var hitqueue = []
+var nochange = false #used to break the while loop
+var lasthitbox = []
+func hit_processing():
+	if currenthits != []:
+		nochange = false
+		while nochange == false:
+			prune_ids()
+		nochange = false
+		lasthitbox = currenthits
+		while nochange == false: sorthitbox_byparam('priority')
+		nochange = false
+		while nochange == false: sorthitbox_byparam('id')
+		nochange = false
+		while nochange == false: sorthitbox_byparam('damage')
+		nochange = false
+		while nochange == false: sorthitbox_byparam('lengroup')
+		nochange = false
+		while nochange == false: sorthitbox_byparam('port')
+		for x in currenthits: #hits everything except the last hitbox
+			if not (x.group in hitqueue) and x != lasthitbox[0]:get_hit(x)
+		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0]) #hits w the last (or only) hitbox
 
 
+func prune_ids(): #should move this to ###hitboxes###
+	var initialhits = currenthits
+	for x in currenthits:
+		for y in currenthits:
+			if y.creator == x.creator and y.group == x.group and not (x == y):
+				if y.id > x.id:
+					currenthits.erase(x)
+					return
+				if x.id > y.id:
+					currenthits.erase(y)
+					return
+				if x.id == y.id: #this shouldn't happen
+					currenthits.erase(y) #whichever was created later will be erased
+					return
+	nochange = true
 
+func sorthitbox_byparam(param):
+	var initial = lasthitbox
+	for x in lasthitbox:
+		for y in lasthitbox:
+			if param == 'priority' and y.priority > x.priority:
+				lasthitbox.erase(x)
+				return
+			if param == 'id' and y.id > x.id:
+				lasthitbox.erase(x)
+				return
+			if param == 'lengroup' and len(y.group) > len(x.group):
+				lasthitbox.erase(x)
+				return
+			if param == 'damage' and y.damage > x.damage:
+				lasthitbox.erase(x)
+				return
+			if param == 'port' and int(y.creator.playerindex[1]) > int(x.creator.playerindex[1]): #this is fucked up 
+				lasthitbox.erase(x)
+				return
+	nochange = true
+
+func hitqueue_plus(hit): #disallows hit groups that you've already been hit with. 12 entries. 
+#Can happen if you slide into someone with a move with multiple hitboxes and different ids, the id code cannot prevent that. 
+	if len(hitqueue) < 12:
+		hitqueue.push_back(hit)
+	else:
+		hitqueue.pop_front()
+		hitqueue.push_back(hit)
+
+func get_hit(hitbox):
+	hitqueue_plus(hitbox.group)
+	hitstunknockback = (hitbox.kb_growth*0.01) * ((14*(percentage/10+hitbox.damage/10)*(hitbox.damage/10+2))/(weight + 100)+18) + hitbox.kb_base
+	percentage+=hitbox.damage
+	hitstunmod = hitbox.hitstunmod
+	hitstunknockdown = hitbox.knockdowntype
+	state('hitstun')
+	if hitbox.creator.position.x < position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==1):
+		velocity.x = cos(deg2rad(hitbox.angle))*hitstunknockback*20 #the 20 is arbitrary
+		velocity.y = sin(deg2rad(hitbox.angle*-1))*hitstunknockback*20
+	if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
+		velocity.x = cos(deg2rad(-1*(hitbox.angle+90) -90))*hitstunknockback*20
+		velocity.y = sin(deg2rad(-1*(hitbox.angle*-1+90) -90))*hitstunknockback*20
+	#hitstop
+	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
+	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod) 
+	if hitbox.hitboxtype_interaction == 'melee' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
+		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
 
 
 
@@ -1230,7 +1236,7 @@ func aerial_acceleration(drift=1.0,ff=true):
 	#ff=false will disallow fastfalling.
 	if tiltinput(left): #if drifting left
 		if velocity.x > -1*drift_max: #so that drifting wouldn't cancel out existing run momentum
-			velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-driftaccel_analog*action_analogconvert()/action_range + driftaccel))
+			velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-driftaccel_analog*action_analogconvert()/action_range - driftaccel))
 	if tiltinput(right): #if drifting right
 		if velocity.x < drift_max:
 			velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+driftaccel_analog*action_analogconvert()/action_range + driftaccel))
