@@ -10,20 +10,8 @@ func _ready():
 
 func jab_state():
 	if frame == 2: #frame 3 jab
-		create_hitbox(rectangle(64,64),45,15,100,50,9, \
-		{
-		'type':'melee', 'hitstopmod':1.0,'hitstopmod_self':1.0,
-		'path':[Vector2(128,-64)],})
-		create_hitbox(rectangle(64,64),100,15,100,50,9, \
-		{
-		'type':'melee', 'hitstopmod':1.0,'hitstopmod_self':1.0,
-		'path':[Vector2(96,-64)],})
-		create_hitbox(rectangle(64,64),180,15,100,50,9, \
-		{
-		'type':'melee', 'hitstopmod':1.0,'hitstopmod_self':1.0,
-		'path':[Vector2(96,-64)],})
 		create_hitbox(rectangle(64,64),10,15,100,50,9, \
-		{
+		{'id':50,
 		'type':'melee', 'hitstopmod':1.0,'hitstopmod_self':1.0,
 		'path':[Vector2(96,-64)],})
 	if frame == 16:
@@ -32,11 +20,11 @@ func jab_state():
 func memehitbox_state():
 	if frame == 2:
 		create_hitbox(rectangle(256,256),10,15,100,90,9, \
-		{
+		{'id':50,
 		'type':'melee', 'hitstopmod':1.0,'hitstopmod_self':1.5,
-		'priority':1,
 		'path':[Vector2(96,-64)],})
-	
+
+
 	if frame == 16:
 		state(STAND)
 

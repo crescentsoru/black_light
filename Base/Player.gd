@@ -579,10 +579,15 @@ func persistentlogic(): #contains code that is ran during impactstop.
 			prune_ids()
 		nochange = false
 		lasthitbox = currenthits
-		while nochange == false:
-			sorthitbox_byparam('priority')
+		while nochange == false: sorthitbox_byparam('priority')
 		nochange = false
-		
+		while nochange == false: sorthitbox_byparam('id')
+		nochange = false
+		while nochange == false: sorthitbox_byparam('damage')
+		nochange = false
+		while nochange == false: sorthitbox_byparam('lengroup')
+		nochange = false
+		while nochange == false: sorthitbox_byparam('port')
 		
 		for x in currenthits:
 			if not (x.group in hitqueue) and x != lasthitbox[0]:get_hit(x)
@@ -620,7 +625,15 @@ func sorthitbox_byparam(param):
 			if param == 'id' and y.id > x.id:
 				lasthitbox.erase(x)
 				return
-	print (lasthitbox[0].group)
+			if param == 'lengroup' and len(y.group) > len(x.group):
+				lasthitbox.erase(x)
+				return
+			if param == 'damage' and y.damage > x.damage:
+				lasthitbox.erase(x)
+				return
+			if param == 'port' and int(y.creator.playerindex[1]) > int(x.creator.playerindex[1]): #this is fucked up 
+				lasthitbox.erase(x)
+				return
 	nochange = true
 
 
@@ -1162,6 +1175,9 @@ func fuckingdie(): #highly placeholder
 	percentage = 0
 	state(AIR)
 	velocity = Vector2(0,0)
+	refresh_air_options()
+	hitqueue = []
+	
 
 
 

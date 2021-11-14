@@ -71,7 +71,7 @@ var p3_data = [
 	{}, 
 	]
 var p4_data = [
-	'',
+	'ExampleChar',
 	0, 
 	'',
 	['p4_up','p4_down','p4_left','p4_right','p4_jump','p4_attackA','p4_attackB','p4_attackC','p4_attackD','p4_attackE','p4_attackF', #these dont exist yet pls dont
@@ -81,12 +81,7 @@ var p4_data = [
 	]
 
 
-var p3_char = '' #if empty, don't have a player in that port
-var p4_char = ''
-var p5_char = ''
-var p6_char = ''
-var p7_char = ''
-var p8_char = ''
+
 
 
 
