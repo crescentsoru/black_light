@@ -564,24 +564,34 @@ func get_hit(hitbox):
 	#hitstop
 	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
 	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod) 
-	if hitbox.hitboxtype_interaction == 'melee':
-		hitbox.creator.impactstop += int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
+	if hitbox.hitboxtype_interaction == 'melee' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
+		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
 
 var currenthits = []
 var hitqueue = []
 var nochange = false #used to break the while loop
+var lasthitbox = []
 func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
 	if currenthits != []:
 		nochange = false
 		while nochange == false:
 			prune_ids()
-
+		nochange = false
+		lasthitbox = currenthits
+		while nochange == false:
+			sorthitbox_byparam('priority')
+		nochange = false
+		
+		
 		for x in currenthits:
-			if not (x.group in hitqueue): get_hit(x)
+			if not (x.group in hitqueue) and x != lasthitbox[0]:get_hit(x)
+			
+		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0])
 	#Might as well put this here, don't see a reason not to atm
 	state_called = []
 	currenthits = []
+	lasthitbox = []
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 
 func prune_ids(): #should move this to ###hitboxes###
@@ -596,10 +606,23 @@ func prune_ids(): #should move this to ###hitboxes###
 					currenthits.erase(y)
 					return
 				if x.id == y.id: #this shouldn't happen
-
 					currenthits.erase(y) #whichever was created later will be erased
 					return
 	nochange = true
+
+func sorthitbox_byparam(param):
+	var initial = lasthitbox
+	for x in lasthitbox:
+		for y in lasthitbox:
+			if param == 'priority' and y.priority > x.priority:
+				lasthitbox.erase(x)
+				return
+			if param == 'id' and y.id > x.id:
+				lasthitbox.erase(x)
+				return
+	nochange = true
+
+
 
 func hitqueue_plus(hit): #disallows hit groups that you've already been hit with. 12 entries. 
 #Can happen if you slide into someone with a move with multiple hitboxes and different ids, the id code cannot prevent that. 

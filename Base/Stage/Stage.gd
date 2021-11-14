@@ -56,6 +56,7 @@ func initialize_players():
 	if global.p4_data[0] != '':
 		pass
 
+var pause_default = false
 var ispause = false
 var whopause = '' #the player who paused the game is specified here
 var pauseframe = 0 #for forwarding by 1 frame
@@ -71,6 +72,10 @@ func update_debug_display(caller,textobj='p1_debug'):
 
 func _physics_process(delta):
 	if Input.is_action_just_pressed('d_record'): #Moved it here so I could reset the game while paused
+		ispause = false
+		get_node("Stage").pause_mode = Node.PAUSE_MODE_PROCESS
+		get_node("UI_persistent").pause_mode = Node.PAUSE_MODE_PROCESS
+		get_tree().paused = false
 		global.replaying = false
 		global.resetgame() #wipes the replay file
 	if Input.is_action_pressed('d_forward'): pausehold+=1

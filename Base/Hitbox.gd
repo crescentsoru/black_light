@@ -54,7 +54,7 @@ func hitshield(character):
 func hitblock(character):
 	pass
 
-func hit(character):
+func hit(character): #Outdated
 		character.hitstunknockback = (kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 		character.percentage+=damage
 		character.hitstunmod = hitstunmod

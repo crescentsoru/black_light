@@ -31,7 +31,11 @@ func jab_state():
 
 func memehitbox_state():
 	if frame == 2:
-		create_hitbox(rectangle(256,256),30,10,40,80,9999, {})
+		create_hitbox(rectangle(256,256),10,15,100,90,9, \
+		{
+		'type':'melee', 'hitstopmod':1.0,'hitstopmod_self':1.5,
+		'priority':1,
+		'path':[Vector2(96,-64)],})
 	
 	if frame == 16:
 		state(STAND)
@@ -43,7 +47,6 @@ func groundedattack_ok():
 	if state in GROUNDATTACKSTATES:
 		return true
 	else:
-		
 		return false
 
 func attackcode():

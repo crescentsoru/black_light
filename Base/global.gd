@@ -62,7 +62,7 @@ var p2_data = [
 	{}, 
 	]
 var p3_data = [
-	'',
+	'ExampleChar',
 	0, 
 	'',
 	['p3_up','p3_down','p3_left','p3_right','p3_jump','p3_attackA','p3_attackB','p3_attackC','p3_attackD','p3_attackE','p3_attackF', #these dont exist yet pls dont

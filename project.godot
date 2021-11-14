@@ -253,6 +253,90 @@ p2_downtaunt={
 "deadzone": 0.5,
 "events": [  ]
 }
+p3_up={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_down={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_left={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_right={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_attackA={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_attackB={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_attackC={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_attackD={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_attackE={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_attackF={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_dodge={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_jump={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_grab={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_cstickup={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_cstickdown={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_cstickleft={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_cstickright={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_pause={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_uptaunt={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_sidetaunt={
+"deadzone": 0.5,
+"events": [  ]
+}
+p3_downtaunt={
+"deadzone": 0.5,
+"events": [  ]
+}
 
 [physics]
 
