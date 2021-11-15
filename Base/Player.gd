@@ -1001,6 +1001,7 @@ func waveland_state():
 
 func hitstun_state():
 	if frame == 1:
+
 		velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
 		velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
 	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
@@ -1140,13 +1141,19 @@ func hit_processing():
 		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0]) #hits w the last (or only) hitbox
 	
 	if impactstop == 1 and state == HITSTUN: #second last hitstop frame
-		var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
-		var distance = stickangle - hitstunangle
+		#shoutouts to Numacow for babying me through perpendicular distance calculation 
+		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)).normalized().x)
+		var angle_as_vector = Vector2(cos(deg2rad(hitstunangle)),sin(deg2rad(hitstunangle)))
+		var perpendicular_distance = angle_as_vector.dot(stick_normalized)
 		if analogstick != Vector2(128,128):
-			hitstunangle = hitstunangle + 18 * (min(90,distance) / 90)
-		print ("distance= " + str(distance) + " newangle= " + str(hitstunangle))
+			hitstunangle = hitstunangle + 18 + (min(90,90) / 90)
+		print ("angle as vector= " + str(angle_as_vector) + " perpendicular distance= " + str(perpendicular_distance) \
+		+ "     0= " + str(0))
 
-func prune_ids(): #should move this to ###hitboxes###
+
+
+
+func prune_ids(): 
 	var initialhits = currenthits
 	for x in currenthits:
 		for y in currenthits:
