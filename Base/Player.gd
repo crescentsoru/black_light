@@ -1145,8 +1145,7 @@ func hit_processing():
 		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)).normalized().x)
 		var angle_as_vector = Vector2(cos(deg2rad(hitstunangle)),sin(deg2rad(hitstunangle)))
 		var perpendicular_distance = angle_as_vector.dot(stick_normalized)
-		if analogstick != Vector2(128,128):
-			hitstunangle = hitstunangle + 18 + (min(90,90) / 90)
+		hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
 		print ("angle as vector= " + str(angle_as_vector) + " perpendicular distance= " + str(perpendicular_distance) \
 		+ "     0= " + str(0))
 
