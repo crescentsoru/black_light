@@ -377,7 +377,7 @@ func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a
 			if left != "": #prevents error spam if a character doesn't have control stick inputs. 
 				analogstick = analogconvert(Input.get_action_strength(left),Input.get_action_strength(right),Input.get_action_strength(down),Input.get_action_strength(up))
 
-			#analogstick = analogdeadzone(analogstick,analog_deadzone) #Did this for testing. Apparently doesn't break the game cause tilts are in the deadzone anyways
+			analogstick = analogdeadzone(analogstick,analog_deadzone) #Only really needed for airdodging and DI
 			if currentreplay['analog'] == []:
 				currentreplay['analog'].append([global.gametime, analogstick.x, analogstick.y])
 			else:
@@ -1134,14 +1134,17 @@ func hit_processing():
 		nochange = false
 		while nochange == false: sorthitbox_byparam('lengroup')
 		nochange = false
-		while nochange == false: sorthitbox_byparam('port')
+		while nochange == false: sorthitbox_byparam('port') 
 		for x in currenthits: #hits everything except the last hitbox
 			if not (x.group in hitqueue) and x != lasthitbox[0]:get_hit(x)
 		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0]) #hits w the last (or only) hitbox
 	
 	if impactstop == 1 and state == HITSTUN: #second last hitstop frame
-		print ('changed angle')
-		hitstunangle = 90
+		var stickangle = (rad2deg(atan2(((analogstick-Vector2(128,128)).normalized() ).y, ((analogstick-Vector2(128,128)).normalized()).x)))
+		var distance = stickangle - hitstunangle
+		if analogstick != Vector2(128,128):
+			hitstunangle = hitstunangle + 18 * (min(90,distance) / 90)
+		print ("distance= " + str(distance) + " newangle= " + str(hitstunangle))
 
 func prune_ids(): #should move this to ###hitboxes###
 	var initialhits = currenthits
@@ -1176,7 +1179,7 @@ func sorthitbox_byparam(param):
 				lasthitbox.erase(x)
 				return
 			if param == 'port' and int(y.creator.playerindex[1]) > int(x.creator.playerindex[1]): #this is fucked up 
-				lasthitbox.erase(x)
+				lasthitbox.erase(x) #lengroup check is kind of a port check cause p1 doesn't have additional symbols after its name
 				return
 	nochange = true
 
