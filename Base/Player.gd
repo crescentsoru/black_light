@@ -367,17 +367,28 @@ func analogconvert(floatL,floatR,floatD,floatU):
 		analogY = 128 + 127*floatU
 	#return finished calculations
 	return Vector2(round(analogX),round(analogY))
-func analogdeadzone(stick,zone): #applies a deadzone to a stick value
+func analogdeadzone(stick,zone): #applies a center deadzone to a stick value
 	if not( stick.x <= 128-zone or stick.x >= 128+zone):
 		if not (stick.y <= 128-zone or stick.y >= 128+zone):
 			return Vector2(128,128)
 	return stick
+
+func analogdeadzone_axis(stick,zone): #applies an axis deadzone, accurate to Melee
+	var resultstick = Vector2(128,128)
+	if not( stick.x <= 128-zone or stick.x >= 128+zone):
+		resultstick.x = 128
+	else: resultstick.x = stick.x
+	if not (stick.y <= 128-zone or stick.y >= 128+zone):
+		resultstick.y = 128
+	else: resultstick.y = stick.y
+	return resultstick
+
 func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a deadzone
 		if controllable:
 			if left != "": #prevents error spam if a character doesn't have control stick inputs. 
 				analogstick = analogconvert(Input.get_action_strength(left),Input.get_action_strength(right),Input.get_action_strength(down),Input.get_action_strength(up))
 
-			analogstick = analogdeadzone(analogstick,analog_deadzone) #Only really needed for airdodging and DI
+			analogstick = analogdeadzone_axis(analogstick,analog_deadzone) #Only really needed for airdodging and DI
 			if currentreplay['analog'] == []:
 				currentreplay['analog'].append([global.gametime, analogstick.x, analogstick.y])
 			else:
