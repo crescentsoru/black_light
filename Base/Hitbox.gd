@@ -30,8 +30,8 @@ var hitstunmod = 0.4 #don't change this unless you know wtf you're doing. Ninten
 
 #projectile specific
 var hitsleft = 1
-var speed = 100
-
+var speedX = 100
+var speedY = 0
 
 
 
@@ -111,7 +111,8 @@ func _physics_process(delta):
 		if createdstate != creator.state:
 			queue_free()
 	if hitboxtype == 'projectile':
-		position.x += speed/60 * direction
+		position.x += speedX/60 * direction
+		position.y += speedY/60
 		if hitsleft <= 0:
 			queue_free()
 	hitbox_collide()

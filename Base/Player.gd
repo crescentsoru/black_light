@@ -893,7 +893,6 @@ func doublejump():
 	#play animation
 
 func jumpsquat_state():
-	
 	if frame == jumpsquat:
 		velocity.y = 0 #needs to be done under the new move_and_collide system
 		velocity.x = velocity.x * runjumpmod #modifier
@@ -1099,8 +1098,10 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	#Projectile
 	if hitboxdict.has('hitsleft'):
 		hitbox_inst.hitsleft = hitboxdict['hitsleft']
-	if hitboxdict.has('speed'):
-		hitbox_inst.speed = hitboxdict['speed']
+	if hitboxdict.has('speedX'):
+		hitbox_inst.speedX = hitboxdict['speedX']
+	if hitboxdict.has('speedY'):
+		hitbox_inst.speedY = hitboxdict['speedY']
 	if hitboxdict.has('sprite'): #technically can be used for anything but projectiles are making the most out of this
 		hitbox_inst.get_node('hitboxsprite').animation = hitboxdict['sprite']
 	else:#this probably results in interpreter lag memes but only for 1 frame hopefully
@@ -1159,7 +1160,8 @@ func hit_processing():
 		hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
 		print ("angle as vector= " + str(angle_as_vector) + " perpendicular distance= " + str(perpendicular_distance) \
 		+ "     0= " + str(0))
-
+		#ASDI
+		#if motionqueue at value AND (inputjustpressed(left) OR inputjustpressed(down))
 
 
 
