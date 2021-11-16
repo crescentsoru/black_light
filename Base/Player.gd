@@ -162,11 +162,11 @@ var landingstates = [AIR,FAIRDASH,BAIRDASH] #States that will enter LAND when yo
 
 
 	#Pressure vars
-var weight = 90
+var weight = 100
 
 var blocking = false #Unused
 var extrablockstun = 0 #Don't use
-var hitstunknockback = 0 #used on startup in hitstun to save the end frame of hitstun
+var hitstunknockback = 0.0 #used on startup in hitstun to save the end frame of hitstun
 var hitstunmod = 0.4 #do not
 var hitstunknockdown = 'normal' #normal= techroll after tumble, 'okizeme'= enter standup state
 var hitstunangle = 0
@@ -628,7 +628,7 @@ func debug():
 		global.compilereplay()
 		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
-		velocity.x = -4000
+		move_and_collide(Vector2(0,5000))
 	if Input.is_action_just_released("d_b"):
 		get_tree().change_scene("res://Menus/Button_remap.tscn")
 
@@ -1158,10 +1158,10 @@ func hit_processing():
 		var angle_as_vector = Vector2(cos(deg2rad(hitstunangle)),sin(deg2rad(hitstunangle)))
 		var perpendicular_distance = angle_as_vector.dot(stick_normalized)
 		hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
-		print ("angle as vector= " + str(angle_as_vector) + " perpendicular distance= " + str(perpendicular_distance) \
-		+ "     0= " + str(0))
 		#ASDI
-		#if motionqueue at value AND (inputjustpressed(left) OR inputjustpressed(down))
+		if analogstick != Vector2(128,128):
+			if analogstick.x <= 128-80 or analogstick.x >= 128+80 or analogstick.y <= 128-80 or analogstick.y >= 128+80: #if the stick is pressed hard enough, arbitrary value
+				move_and_collide(Vector2(stick_normalized.y*30,stick_normalized.x*-30)) #30 is arbitrary value, there'll be an update where I do accurate scaling later
 
 
 
@@ -1212,7 +1212,12 @@ func hitqueue_plus(hit): #disallows hit groups that you've already been hit with
 
 func get_hit(hitbox):
 	hitqueue_plus(hitbox.group)
-	hitstunknockback = (hitbox.kb_growth*0.01) * ((14*(percentage/10+hitbox.damage/10)*(hitbox.damage/10+2))/(weight + 100)+18) + hitbox.kb_base
+
+	hitstunknockback = (hitbox.kb_growth*0.01) *  \
+	((14*(percentage/10+hitbox.damage/10)*(hitbox.damage/10+2)) \
+	/             (weight + 100)                 +18) \
+	+ hitbox.kb_base
+	
 	percentage+=hitbox.damage
 	hitstunmod = hitbox.hitstunmod
 	hitstunknockdown = hitbox.knockdowntype
@@ -1436,6 +1441,7 @@ func _physics_process(delta):
 	writebuffer()
 #motionqueue update
 	motionqueueprocess()
+	#insert cstick code here. if a cstick input is held, completely wipe motionqueue and append the cstick input. Then, press the button in the buffer
 #if blockstop/hitstop > 0: ignore game logic, otherwise decrement hitstop
 
 #game logic.
