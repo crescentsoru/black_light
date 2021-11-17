@@ -75,7 +75,7 @@ func update_debug_display(caller,textobj='p1_debug'):
 	$UI_persistent.get_node(textobj).text = "gametime= " + str(global.gametime) \
 	 + "\nvelocity= " + str(caller.velocity) + "\nmotionqueue= " + caller.motionqueue \
 	 + "\nstate= " + str(caller.state) + "\nframe= " + str(caller.frame) + "\nanalog= " + str(caller.analogstick) \
-	 + "\n" + str(caller.stocks) + " stocks  " + str(caller.percentage/10) + "%  " 
+	+ "\n" + str(caller.stocks) + " stocks  " + str(caller.percentage/10) + "%  " 
 
 
 func _physics_process(delta):
@@ -88,6 +88,12 @@ func _physics_process(delta):
 		global.resetgame() #wipes the replay file
 	if Input.is_action_pressed('d_forward'): pausehold+=1
 	else: pausehold = 0
+	if Input.is_action_just_pressed('d_c'):
+		for x in get_node("Stage").get_children():
+			print (x.name)
+			if x.name.substr(0,4) == '@Exa':
+				if x.playerindex == 'p2':
+					x.state('jab')
 	if Input.is_action_just_pressed("p1_pause"):
 		if ispause == false:
 			ispause = true

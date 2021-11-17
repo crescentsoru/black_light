@@ -79,7 +79,12 @@ const UNOAIR = 'unoair' #down-backward aerial
 const ZAIR = 'zair'
 
 const JAB = 'jab'
-
+const FTILT = 'ftilt'
+const UTILT = 'utilt'
+const DTILT = 'dtilt'
+const FSMASH = 'fsmash'
+const USMASH = 'usmash'
+const DSMASH = 'dsmash'
 
 
 	#Movement vars
@@ -300,7 +305,7 @@ var buffer = [
 [downtaunt,0,9000,9000],
 ]
 var pressbuffer = 4
-var releasebuffer = 4 #aka negative edge
+var releasebuffer = 4
 
 #After inputs come into the engine, EVERY input should be checked by using the data in the buffer variable,
 #or functions/vars that get their data on inputs from buffer, like motionqueue. 
@@ -309,7 +314,7 @@ var releasebuffer = 4 #aka negative edge
 #To get inputs for the state machine and such, use the following functions that use buffer var:
 #	inputheld() is self_explanatory.
 #	inputpressed() checks for a pressbuffer.
-#	inputreleased() has its own buffer, basically negative edge
+#	inputreleased() has its own buffer
 #	inputjustreleased() (no input buffer)
 #	inputjustpressed() (checks for an input press, has no input buffer)
 
@@ -345,6 +350,7 @@ var controllable = true #false when replay
 
 
 var analogstick = Vector2(128,128)
+var analogstick_prev = Vector2(128,128)
 var analog_deadzone = 24 #should probably be the same as analog_tilt
 var analog_tilt = 24 #how much distance you need for the game to consider something a tilt input rather than neutral
 var analog_smash = 64 #how much distance the stick has to travel to be considered an u/d/l/r/ or smash input
@@ -384,8 +390,10 @@ func analogdeadzone_axis(stick,zone): #applies an axis deadzone, accurate to Mel
 	return resultstick
 
 func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a deadzone
+		analogstick_prev = analogstick #For SDI
 		if controllable:
-			if left != "": #prevents error spam if a character doesn't have control stick inputs. 
+			if left != "": #prevents error spam if a character doesn't have control stick inputs.
+				
 				analogstick = analogconvert(Input.get_action_strength(left),Input.get_action_strength(right),Input.get_action_strength(down),Input.get_action_strength(up))
 
 			analogstick = analogdeadzone_axis(analogstick,analog_deadzone) #Only really needed for airdodging and DI
@@ -1133,6 +1141,27 @@ var hitqueue = []
 var nochange = false #used to break the while loop
 var lasthitbox = []
 func hit_processing():
+
+
+	if state == HITSTUN:
+		if impactstop > 0: #SDI code. Put here before the getting hit code so that first frame of hitstop couldn't SDI
+			if analogstick_prev.x == 128 or analogstick_prev.y == 128: #if previous input was a cardinal. Yes this buffs digital inputs atm
+				print ('fuick')
+			else:
+				pass
+				
+		if impactstop == 0 and frame == 1:
+		#shoutouts to Numacow for babying me through perpendicular distance calculation
+			#TDI
+			var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)).normalized().x)
+			var angle_as_vector = Vector2(cos(deg2rad(hitstunangle)),sin(deg2rad(hitstunangle)))
+			var perpendicular_distance = angle_as_vector.dot(stick_normalized)
+			hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
+			#ASDI
+			if analogstick != Vector2(128,128):
+				if hardinput(analogstick): 
+					move_and_collide(Vector2(stick_normalized.y*35,stick_normalized.x*-35)) #30 is arbitrary value, there'll be an update where I do accurate scaling later
+
 	if currenthits != []:
 		nochange = false
 		while nochange == false:
@@ -1152,17 +1181,12 @@ func hit_processing():
 			if not (x.group in hitqueue) and x != lasthitbox[0]:get_hit(x)
 		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0]) #hits w the last (or only) hitbox
 	
-	if impactstop == 1 and state == HITSTUN: #second last hitstop frame
-		#shoutouts to Numacow for babying me through perpendicular distance calculation 
-		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)).normalized().x)
-		var angle_as_vector = Vector2(cos(deg2rad(hitstunangle)),sin(deg2rad(hitstunangle)))
-		var perpendicular_distance = angle_as_vector.dot(stick_normalized)
-		hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
-		#ASDI
-		if analogstick != Vector2(128,128):
-			if analogstick.x <= 128-80 or analogstick.x >= 128+80 or analogstick.y <= 128-80 or analogstick.y >= 128+80: #if the stick is pressed hard enough, arbitrary value
-				move_and_collide(Vector2(stick_normalized.y*30,stick_normalized.x*-30)) #30 is arbitrary value, there'll be an update where I do accurate scaling later
+	
 
+
+func hardinput(stick): #if an input beyond 80 is on any of the cardinals, 80 is arbitrary
+	if stick.x <= 128-80 or stick.x >= 128+80 or stick.y <= 128-80 or stick.y >= 128+80:
+		return true
 
 
 func prune_ids(): 
