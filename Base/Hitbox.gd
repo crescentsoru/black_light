@@ -51,15 +51,12 @@ func on_area_enter(area):
 	
 
 func impact(character): #called when you want to attack a character
-	character.currenthits.append(self)
-	hitsleft -= 1
+	if not (self.group in character.hitqueue):
+		character.currenthits.append(self)
+		hitsleft -= 1
 	#	hit(character)
 
-func hitshield(character):
-	pass
 
-func hitblock(character):
-	pass
 
 func hit(character): #Outdated
 		character.hitstunknockback = (kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base

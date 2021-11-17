@@ -14,7 +14,7 @@ var frame = 0
 var velocity = Vector2(0,0)
 var direction = -1 #   -1 is left; 1 is right
 var impactstop = 0 #hitstop and blockstop. Also known as hitlag. 
-var impactstop_trigger = false #necessary to allow for 1f impactstops.
+
 
 var stocks = 99
 var percentage = 0 #Technically it's permillage since it goes down to the decimals
@@ -558,14 +558,7 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 
 
-func framechange(): #increments the frames, decrements the impactstop timer and stops decrementing frame if impactstop > 0.
-	if impactstop == 0: #moved to a separate function for brevity
-		frame+=1
-		impactstop_trigger = false
-	if impactstop > 0:
-		impactstop-=1
-		if impactstop == 0 and not impactstop_trigger:
-			impactstop_trigger = true
+
 
 
 
@@ -1143,29 +1136,27 @@ var lasthitbox = []
 func hit_processing():
 
 	if state == HITSTUN:
-		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)).normalized().x)
+		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)	).normalized().x)
 		if impactstop > 0: #SDI code. Put here before the getting hit code so that first frame of hitstop couldn't SDI
 			if analogstick != analogstick_prev: #all of this is kind of a mess but it works a
-				if analogstick_prev.x == 128 or analogstick_prev.y == 128: #if previous input was a cardinal. Yes this buffs digital inputs atm
-					if (analogstick.x != 128 or analogstick.y != 128) and not (analogzone(2) or analogzone(4) or analogzone(6) or analogzone(8)):
-						move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70))
-					else: print ('sdi fail')
+				if (analogstick.x != 128 or analogstick.y != 128) and not (analogzone(2) or analogzone(4) or analogzone(6) or analogzone(8)):
+					move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70)) #70 is arbitrary. ^^^ buffs digital inputs ATM.
 				else:
 					if not (analogzone(1) or analogzone(3) or analogzone(7) or analogzone(9)):
 						move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70))
-					else: print ('same zone fail')
 
 
 		if impactstop == 0 and frame == 1:
 		#shoutouts to Numacow for babying me through perpendicular distance calculation
 			#TDI
+			var stick_prev_normalized = Vector2((analogstick_prev-Vector2(128,128)).normalized().y,(analogstick_prev-Vector2(128,128)).normalized().x)
 			var angle_as_vector = Vector2(cos(deg2rad(hitstunangle)),sin(deg2rad(hitstunangle)))
-			var perpendicular_distance = angle_as_vector.dot(stick_normalized)
+			var perpendicular_distance = angle_as_vector.dot(stick_prev_normalized)
 			hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
 			#ASDI
 			if analogstick != Vector2(128,128):
 				if hardinput(analogstick): 
-					move_and_collide(Vector2(stick_normalized.y*35,stick_normalized.x*-35)) #30 is arbitrary value, there'll be an update where I do accurate scaling later
+					move_and_collide(Vector2(stick_prev_normalized.y*35,stick_prev_normalized.x*-35)) #30 is arbitrary value, there'll be an update where I do accurate scaling later
 
 	if currenthits != []:
 		nochange = false
@@ -1205,6 +1196,11 @@ func analogzone(dir):
 	if dir == 6:
 		if analogstick.y == 128 and analogstick_prev.y == 128 and analogstick.x > 128 and analogstick_prev.x > 128: return true
 
+func dig2anal_diagonals(stick): #Made so that digital users couldn't output SDI impossible on a real controller
+	if stick == Vector2(0,0): return Vector2(36,36)
+	if stick == Vector2(255,0): return Vector2(226,43)
+	if stick == Vector2(0,255): return Vector2(36,226)
+	if stick == Vector2(255,255): return Vector2(226,226)
 
 func hardinput(stick): #if an input beyond 80 is on any of the cardinals, 80 is arbitrary
 	if stick.x <= 128-80 or stick.x >= 128+80 or stick.y <= 128-80 or stick.y >= 128+80:
@@ -1274,8 +1270,10 @@ func get_hit(hitbox):
 	#hitstop
 	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
 	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod) 
+
 	if hitbox.hitboxtype_interaction == 'melee' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
 		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
+
 
 
 
@@ -1493,7 +1491,7 @@ func _physics_process(delta):
 	debug()
 	persistentlogic()
 
-	if impactstop == 0 and not impactstop_trigger:
+	if impactstop == 0:
 		actionablelogic(delta)
 		update_animation()
 
@@ -1501,6 +1499,13 @@ func _physics_process(delta):
 #frame+=1. If hitstop > 0, don't increment frame
 	framechange()
 
+
+
+func framechange(): #increments the frames, decrements the impactstop timer and stops decrementing frame if impactstop > 0.
+	if impactstop > 0:
+		impactstop-=1
+	if impactstop == 0:
+		frame+=1
 
 
 
