@@ -1139,8 +1139,9 @@ func hit_processing():
 		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)	).normalized().x)
 		if impactstop > 0: #SDI code. Put here before the getting hit code so that first frame of hitstop couldn't SDI
 			if analogstick != analogstick_prev: #all of this is kind of a mess but it works a
-				if (analogstick.x != 128 or analogstick.y != 128) and not (analogzone(2) or analogzone(4) or analogzone(6) or analogzone(8)):
-					move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70)) #70 is arbitrary. ^^^ buffs digital inputs ATM.
+				if (analogstick_prev.x == 128 or analogstick_prev.y == 128):
+					if not (analogzone(2) or analogzone(4) or analogzone(6) or analogzone(8)):
+						move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70)) #70 is arbitrary
 				else:
 					if not (analogzone(1) or analogzone(3) or analogzone(7) or analogzone(9)):
 						move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70))
@@ -1156,7 +1157,7 @@ func hit_processing():
 			#ASDI
 			if analogstick != Vector2(128,128):
 				if hardinput(analogstick): 
-					move_and_collide(Vector2(stick_prev_normalized.y*35,stick_prev_normalized.x*-35)) #30 is arbitrary value, there'll be an update where I do accurate scaling later
+					move_and_collide(Vector2(stick_prev_normalized.y*35,stick_prev_normalized.x*-35)) #35 is arbitrary value, there'll be an update where I do accurate scaling later
 
 	if currenthits != []:
 		nochange = false
@@ -1181,20 +1182,28 @@ func hit_processing():
 func analogzone(dir):
 	if dir == 1: #same zones
 		if analogstick.y <= 128 and analogstick_prev.y <= 128 and analogstick.x <= 128 and analogstick_prev.x <= 128: return true
+		else: return false
 	if dir == 3:
 		if analogstick.y <= 128 and analogstick_prev.y <= 128 and analogstick.x >= 128 and analogstick_prev.x >= 128: return true
+		else: return false
 	if dir == 7:
 		if analogstick.y >= 128 and analogstick_prev.y >= 128 and analogstick.x <= 128 and analogstick_prev.x <= 128: return true
+		else: return false
 	if dir == 9:
 		if analogstick.y >= 128 and analogstick_prev.y >= 128 and analogstick.x >= 128 and analogstick_prev.x >= 128: return true
+		else: return false
 	if dir == 2: #same cardinals
-		if analogstick.y > 128 and analogstick_prev.y > 128 and analogstick.x == 128 and analogstick.y == 128: return true
+		if analogstick.y > 128 and analogstick_prev.y > 128 and analogstick.x == 128 and analogstick_prev.y == 128: return true
+		else: return false
 	if dir == 4:
 		if analogstick.y == 128 and analogstick_prev.y == 128 and analogstick.x < 128 and analogstick_prev.x < 128: return true
+		else: return false
 	if dir == 8:
 		if analogstick.y > 128 and analogstick_prev.y > 128 and analogstick.x == 128 and analogstick_prev.x == 128: return true
+		else: return false
 	if dir == 6:
 		if analogstick.y == 128 and analogstick_prev.y == 128 and analogstick.x > 128 and analogstick_prev.x > 128: return true
+		else: return false
 
 func dig2anal_diagonals(stick): #Made so that digital users couldn't output SDI impossible on a real controller
 	if stick == Vector2(0,0): return Vector2(36,36)
