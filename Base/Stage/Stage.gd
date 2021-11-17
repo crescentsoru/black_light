@@ -89,11 +89,7 @@ func _physics_process(delta):
 	if Input.is_action_pressed('d_forward'): pausehold+=1
 	else: pausehold = 0
 	if Input.is_action_just_pressed('d_c'):
-		for x in get_node("Stage").get_children():
-			print (x.name)
-			if x.name.substr(0,4) == '@Exa':
-				if x.playerindex == 'p2':
-					x.state('jab')
+		pass
 	if Input.is_action_just_pressed("p1_pause"):
 		if ispause == false:
 			ispause = true

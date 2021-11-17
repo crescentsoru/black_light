@@ -1142,18 +1142,23 @@ var nochange = false #used to break the while loop
 var lasthitbox = []
 func hit_processing():
 
-
 	if state == HITSTUN:
+		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)).normalized().x)
 		if impactstop > 0: #SDI code. Put here before the getting hit code so that first frame of hitstop couldn't SDI
-			if analogstick_prev.x == 128 or analogstick_prev.y == 128: #if previous input was a cardinal. Yes this buffs digital inputs atm
-				print ('fuick')
-			else:
-				pass
-				
+			if analogstick != analogstick_prev: #all of this is kind of a mess but it works a
+				if analogstick_prev.x == 128 or analogstick_prev.y == 128: #if previous input was a cardinal. Yes this buffs digital inputs atm
+					if (analogstick.x != 128 or analogstick.y != 128) and not (analogzone(2) or analogzone(4) or analogzone(6) or analogzone(8)):
+						move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70))
+					else: print ('sdi fail')
+				else:
+					if not (analogzone(1) or analogzone(3) or analogzone(7) or analogzone(9)):
+						move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70))
+					else: print ('same zone fail')
+
+
 		if impactstop == 0 and frame == 1:
 		#shoutouts to Numacow for babying me through perpendicular distance calculation
 			#TDI
-			var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)).normalized().x)
 			var angle_as_vector = Vector2(cos(deg2rad(hitstunangle)),sin(deg2rad(hitstunangle)))
 			var perpendicular_distance = angle_as_vector.dot(stick_normalized)
 			hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
@@ -1182,12 +1187,28 @@ func hit_processing():
 		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0]) #hits w the last (or only) hitbox
 	
 	
+func analogzone(dir):
+	if dir == 1: #same zones
+		if analogstick.y <= 128 and analogstick_prev.y <= 128 and analogstick.x <= 128 and analogstick_prev.x <= 128: return true
+	if dir == 3:
+		if analogstick.y <= 128 and analogstick_prev.y <= 128 and analogstick.x >= 128 and analogstick_prev.x >= 128: return true
+	if dir == 7:
+		if analogstick.y >= 128 and analogstick_prev.y >= 128 and analogstick.x <= 128 and analogstick_prev.x <= 128: return true
+	if dir == 9:
+		if analogstick.y >= 128 and analogstick_prev.y >= 128 and analogstick.x >= 128 and analogstick_prev.x >= 128: return true
+	if dir == 2: #same cardinals
+		if analogstick.y > 128 and analogstick_prev.y > 128 and analogstick.x == 128 and analogstick.y == 128: return true
+	if dir == 4:
+		if analogstick.y == 128 and analogstick_prev.y == 128 and analogstick.x < 128 and analogstick_prev.x < 128: return true
+	if dir == 8:
+		if analogstick.y > 128 and analogstick_prev.y > 128 and analogstick.x == 128 and analogstick_prev.x == 128: return true
+	if dir == 6:
+		if analogstick.y == 128 and analogstick_prev.y == 128 and analogstick.x > 128 and analogstick_prev.x > 128: return true
 
 
 func hardinput(stick): #if an input beyond 80 is on any of the cardinals, 80 is arbitrary
 	if stick.x <= 128-80 or stick.x >= 128+80 or stick.y <= 128-80 or stick.y >= 128+80:
 		return true
-
 
 func prune_ids(): 
 	var initialhits = currenthits
