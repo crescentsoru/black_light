@@ -18,8 +18,8 @@ var angle = 30
 var duration = 10
 var id = 0
 onready var path = Path2D.new().get_curve()
-var hitboxtype = 'melee' #follows the character
-var hitboxtype_interaction = 'melee' #hitstop, deletion when creator state ends
+var hitboxtype = 'strike' #follows the character
+var hitboxtype_interaction = 'strike' #hitstop, deletion when creator state ends
 var hitstopmod = 1.0
 var hitstopmod_self = 1.0
 var element = 'normal'
@@ -51,30 +51,18 @@ func on_area_enter(area):
 	
 
 func impact(character): #called when you want to attack a character
-	if not (self.group in character.hitqueue):
-		character.currenthits.append(self)
-		hitsleft -= 1
-	#	hit(character)
+	if (not (self.group in character.hitqueue)):
+		
+		if hitboxtype == 'projectile' and character.invulns['projectile'] == 0:
+			character.currenthits.append(self)
+			hitsleft -= 1
+		if hitboxtype == 'strike' and character.invulns['strike'] == 0:
+			character.currenthits.append(self)
+			hitsleft -= 1
 
 
 
-func hit(character): #Outdated
-		character.hitstunknockback = (kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
-		character.percentage+=damage
-		character.hitstunmod = hitstunmod
-		character.hitstunknockdown = knockdowntype
-		character.state('hitstun') #this should be last otherwise there will be no hitstun on the first hit
-		if creator.position.x < character.position.x or (creator.position.x == character.position.x and creator.direction==1):
-			character.velocity.x = cos(deg2rad(angle))*character.hitstunknockback*20 #the 20 is arbitrary
-			character.velocity.y = sin(deg2rad(-angle))*character.hitstunknockback*20
-		if creator.position.x > character.position.x or (creator.position.x == character.position.x and creator.direction==-1):
-			character.velocity.x = cos(deg2rad(-1*(angle+90) -90))*character.hitstunknockback*20
-			character.velocity.y = sin(deg2rad(-1*(-angle+90) -90))*character.hitstunknockback*20
-		#hitstop
-		character.update_animation() #otherwise their first hitstop frame will be the state they were in before hitstun
-		character.impactstop = int((damage/30 + 3)*hitstopmod) 
-		if hitboxtype_interaction == 'melee':
-			creator.impactstop = int((damage/30 +3)*hitstopmod_self)
+
 #if character.maincharacter: character.get_parent().get_parent().update_debug_display(character,character.playerindex+'_debug')
 #(kb_growth*0.01) * ((14*(character.percentage/10+damage/10)*(damage/10+2))/(character.weight + 100)+18) + kb_base
 #kb_growth/100 * (((14*(character.percentage/10+damage/10) * (damage/10 + 2))  / (character.weight+100)) + 18   )  + kb_base
@@ -103,7 +91,7 @@ func hitbox_collide():
 
 
 func _physics_process(delta):
-	if hitboxtype == 'melee':
+	if hitboxtype == 'strike':
 		update_path()
 		if createdstate != creator.state:
 			queue_free()
@@ -114,6 +102,6 @@ func _physics_process(delta):
 			queue_free()
 	hitbox_collide()
 	collisions = []
-	if hitboxtype_interaction != 'melee' or (hitboxtype_interaction == 'melee' and creator.impactstop == 0):
+	if hitboxtype_interaction != 'strike' or (hitboxtype_interaction == 'strike' and creator.impactstop == 0):
 		frame+=1
 	if frame == duration: queue_free()

@@ -10,16 +10,19 @@ func _ready():
 
 func jab_state():
 	if frame == 2: #frame 3 jab
-		create_hitbox(rectangle(64,64),40,15,100,90,9, \
+		create_hitbox(rectangle(64,64),40,15,100,50,9, \
 		{'id':50,
-		'type':'melee', 'hitstopmod':16.0,
+		'type':'strike', 'hitstopmod':16.0,
 		'path':[Vector2(96,-64)],})
 	if frame == 16:
 		state(STAND)
 
 func memehitbox_state():
-	if frame == 2:
-		create_hitbox(rectangle(256,128),80,15,100,90,9000, \
+	apply_traction()
+	velocity.y = fall_accel
+	rooted = true
+	if frame == 8:
+		create_hitbox(rectangle(256,128),80,45,70,100,9000, \
 		{'id':50,
 		'type':'projectile', 'hitstopmod':1.0,'hitstopmod_self':1.0,
 		'path':[Vector2(96,0)],
@@ -27,7 +30,7 @@ func memehitbox_state():
 		})
 
 
-	if frame == 16:
+	if frame == 32:
 		state(STAND)
 
 

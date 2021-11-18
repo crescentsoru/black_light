@@ -4,6 +4,7 @@ var charactercode = '' #the same name as the folder/tscn in Characters/
 var charactername = 'pass'
 var characterdescription = 'my jambo jet flies cheerfully'
 var playerindex = ''
+var gamertag = 'thegamer69'
 var maincharacter = true #if false, then it's probably a Nana thing
 var spawnpoint = Vector2(0,0)
 
@@ -115,7 +116,7 @@ var drift_max = 1100
 var fall_accel = 120
 var fall_max = 1900
 var fastfall_speed = 2375
-var airfriction = 10 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
+var airfriction = 8 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
 
 var jumpsquat = 3
 var shorthopspeed = 1600
@@ -127,7 +128,7 @@ var airjumps = 0
 
 var airdodgespeed = 2600 #Please do not change this unless you know what you're doing! Can be used to give characters a speedier wavedash without affecting traction
 var airdodgestartup = 3 #the frame invuln starts
-var airdodgeend = 25
+var airdodgeduration = 26
 var airdodgelandlag = 20 #landing lag for airdodging into the ground after the initial velocity
 var airdodges = 0 #incremented when you use an airdodge. One airdodge per jump arc. 
 
@@ -175,6 +176,17 @@ var hitstunknockback = 0.0 #used on startup in hitstun to save the end frame of 
 var hitstunmod = 0.4 #do not
 var hitstunknockdown = 'normal' #normal= techroll after tumble, 'okizeme'= enter standup state
 var hitstunangle = 0
+
+var invulns = { #There will later be a system with three different hurtboxes each being either grabbable, projectile-able or strikable, but it won't replace this system at all
+	'strike':0,
+	'projectile':0,
+	'grab':0,}
+var invulntype = 'intangible'
+
+#ukemi = ground tech. Please do not change these values, there's a reason a certain game made ground tech frame data universal
+var ukemiEnd = 59
+
+
 
 	#etc
 var characterscale = 1
@@ -653,7 +665,7 @@ func stand_state():
 		state(WALK)
 		direction= 1
 	if tiltinput(down):
-		state(CROUCHSTART)
+		state(CROUCH) #it might be better to put crouch and crouchstart in animexceptions then manually set the animation to crouchstart so the character doesn't enter crouch instantly
 	if inputpressed(jump): state(JUMPSQUAT)
 
 func crouchstart_state(): #AKA Squat
@@ -687,6 +699,7 @@ func crouchexit_state(): #AKA SquatRV
 	if frame == 10:
 		state(STAND)
 	if inputpressed(jump): state(JUMPSQUAT)
+	if inputheld(down): state(CROUCH)
 
 func action_analogconvert(): #returns how hard you're pressing your stick.x from 0 to 80(action_range)
 	if analogstick.x <= 128:
@@ -702,7 +715,7 @@ func walk_state():
 	if motionqueue[-1] in ["5","8"]:
 		state(STAND) #go to STAND if nothing is held
 	if inputheld(down) and not (inputheld(right) or inputheld(left)):
-		state(CROUCHSTART)
+		state(CROUCH)
 	if inputpressed(jump): state(JUMPSQUAT)
 	if frame <= 1 and not inputheld(up): #UCF
 		if inputheld(left,2):
@@ -977,6 +990,7 @@ func send_airdodge(): #shorthand for the airdodge state so I can repeat the same
 
 func airdodge_state():
 	if frame==0:
+		airdodges+=1
 		velocity = Vector2(0,0) #reset velocity before applying airdodge 
 		send_airdodge()
 	if frame==1:
@@ -1001,8 +1015,13 @@ func airdodge_state():
 			state(WAVELAND)
 		else:
 			state(LAND)
-	if frame == airdodgestartup: pass #insert invuln here
+	if frame == airdodgestartup: 
+		fullinvuln(airdodgeduration)
+		
 	if frame == 100: state(AIR)
+	#invuln
+
+
 
 func waveland_state():
 	apply_traction()
@@ -1032,7 +1051,6 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	hitbox_inst.createdstate = state
 	hitbox_inst.direction = direction
 	
-	
 	hitbox_inst.get_node('polygon').set_polygon(polygon) #Revolver Ocelot
 	hitbox_inst.damage = damage
 	hitbox_inst.kb_base = kb_base
@@ -1051,8 +1069,8 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 			hitbox_inst.hitboxtype = hitboxdict['type']
 			hitbox_inst.hitboxtype_interaction = hitboxdict['type']
 	else:
-		hitbox_inst.hitboxtype = 'melee'
-		hitbox_inst.hitboxtype_interaction = 'melee'
+		hitbox_inst.hitboxtype = 'strike'
+		hitbox_inst.hitboxtype_interaction = 'strike'
 	if hitboxdict.has('path'):
 		if direction == 1:
 			for point in hitboxdict['path']:
@@ -1111,8 +1129,6 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		pass
 	else: pass
 
-
-
 	#shorthands for polygon creation
 func rectangle(wid,hei):
 	return [Vector2(-1*wid,hei),Vector2(wid,hei),Vector2(wid,-1*hei),Vector2(-1*wid,-1*hei)]
@@ -1134,7 +1150,6 @@ var hitqueue = []
 var nochange = false #used to break the while loop
 var lasthitbox = []
 func hit_processing():
-
 	if state == HITSTUN:
 		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)	).normalized().x)
 		if impactstop > 0: #SDI code. Put here before the getting hit code so that first frame of hitstop couldn't SDI
@@ -1156,7 +1171,7 @@ func hit_processing():
 			hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
 			#ASDI
 			if analogstick != Vector2(128,128):
-				if hardinput(analogstick): 
+				if motionqueue[-1] != "5": 
 					move_and_collide(Vector2(stick_prev_normalized.y*35,stick_prev_normalized.x*-35)) #35 is arbitrary value, there'll be an update where I do accurate scaling later
 
 	if currenthits != []:
@@ -1177,9 +1192,9 @@ func hit_processing():
 		for x in currenthits: #hits everything except the last hitbox
 			if not (x.group in hitqueue) and x != lasthitbox[0]:get_hit(x)
 		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0]) #hits w the last (or only) hitbox
-	
-	
-func analogzone(dir):
+
+
+func analogzone(dir): #I made it this way cause it feels like this will be useful later, I doubt that though
 	if dir == 1: #same zones
 		if analogstick.y <= 128 and analogstick_prev.y <= 128 and analogstick.x <= 128 and analogstick_prev.x <= 128: return true
 		else: return false
@@ -1204,16 +1219,6 @@ func analogzone(dir):
 	if dir == 6:
 		if analogstick.y == 128 and analogstick_prev.y == 128 and analogstick.x > 128 and analogstick_prev.x > 128: return true
 		else: return false
-
-func dig2anal_diagonals(stick): #Made so that digital users couldn't output SDI impossible on a real controller
-	if stick == Vector2(0,0): return Vector2(36,36)
-	if stick == Vector2(255,0): return Vector2(226,43)
-	if stick == Vector2(0,255): return Vector2(36,226)
-	if stick == Vector2(255,255): return Vector2(226,226)
-
-func hardinput(stick): #if an input beyond 80 is on any of the cardinals, 80 is arbitrary
-	if stick.x <= 128-80 or stick.x >= 128+80 or stick.y <= 128-80 or stick.y >= 128+80:
-		return true
 
 func prune_ids(): 
 	var initialhits = currenthits
@@ -1280,10 +1285,21 @@ func get_hit(hitbox):
 	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
 	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod) 
 
-	if hitbox.hitboxtype_interaction == 'melee' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
+	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
 		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
 
 
+
+func invuln_processing():
+	for x in invulns:
+
+		if invulns[x] > 0:
+			invulns[x]-=1
+
+func fullinvuln(number):
+	invulns['strike'] = number
+	invulns['projectile'] = number
+	invulns['grab'] = number
 
 
 	##################
@@ -1332,10 +1348,10 @@ func aerial_acceleration(drift=1.0,ff=true):
 	#ff=false will disallow fastfalling.
 	if tiltinput(left): #if drifting left
 		if velocity.x > -1*drift_max: #so that drifting wouldn't cancel out existing run momentum
-			velocity.x = round( max(-1 * drift_max*action_analogconvert()/action_range,velocity.x-driftaccel_analog*action_analogconvert()/action_range - driftaccel))
+			velocity.x = round( max(-1 * drift_max*drift*action_analogconvert()/action_range,velocity.x-driftaccel_analog*drift*action_analogconvert()/action_range - driftaccel*drift))
 	if tiltinput(right): #if drifting right
 		if velocity.x < drift_max:
-			velocity.x = round( min(drift_max*action_analogconvert()/action_range,velocity.x+driftaccel_analog*action_analogconvert()/action_range + driftaccel))
+			velocity.x = round( min(drift_max*drift*action_analogconvert()/action_range,velocity.x+driftaccel_analog*drift*action_analogconvert()/action_range + driftaccel*drift))
 	#fastfall
 	if inputpressed(down) and !fastfall and ff:
 		if fastfall_instant or velocity.y >= 0:
@@ -1383,6 +1399,7 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 	$ECB.scale.x = direction
 	$Hurtbox.scale.x = direction
 	$pECB.scale.x = direction
+	invuln_processing()
 	state_handler()
 	char_state_handler()
 	attackcode()
@@ -1430,9 +1447,6 @@ var in_platform = true #will trigger dfghjduhpfsdlnjk;hblhnjk;sdfgb;luhjkfsdg
 var grounded = false
 var pecbgrounded = false
 func collision_handler(delta): #For platform/floor/wall collision.
-	#But first, velocity memes. Get your wok piping hot, then swirl a neutral tasting oil arou
-
-
 	for x in get_slide_count(): #necessary for rooted states
 		if not (get_slide_collision(x).collider in collisions):
 			collisions.append(get_slide_collision(x).collider)
