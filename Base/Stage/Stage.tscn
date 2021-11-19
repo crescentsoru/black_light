@@ -65,25 +65,25 @@ collision_layer = 2
 collision_mask = 0
 
 [node name="PlatformL" parent="Stage" instance=ExtResource( 5 )]
-position = Vector2( 3635, 4630 )
-scale = Vector2( 16, 1 )
+position = Vector2( 3774, 4598 )
+scale = Vector2( 12, 1 )
 collision_layer = 4
 collision_mask = 0
 
 [node name="PlatformT" parent="Stage" instance=ExtResource( 5 )]
-position = Vector2( 4510, 4100 )
-scale = Vector2( 16, 1 )
+position = Vector2( 4644, 4100 )
+scale = Vector2( 12, 1 )
 collision_layer = 4
 collision_mask = 0
 
 [node name="PlatformR" parent="Stage" instance=ExtResource( 5 )]
-position = Vector2( 5440, 4630 )
-scale = Vector2( 16, 1 )
+position = Vector2( 5516, 4598 )
+scale = Vector2( 12, 1 )
 collision_layer = 4
 collision_mask = 0
 
 [node name="Blastzone2" parent="Stage" instance=ExtResource( 1 )]
-position = Vector2( 898.218, 7344.01 )
+position = Vector2( 880.257, 6643.59 )
 scale = Vector2( 128, 1 )
 
 [node name="Blastzone" parent="Stage" instance=ExtResource( 1 )]
@@ -91,7 +91,7 @@ position = Vector2( 874.975, 7328.46 )
 scale = Vector2( 1, 128 )
 
 [node name="BlastzoneTop" parent="Stage" instance=ExtResource( 1 )]
-position = Vector2( 859.591, 1600.74 )
+position = Vector2( 859.591, 2048.74 )
 scale = Vector2( 128, 1 )
 blastzonetype = "top"
 

@@ -162,7 +162,6 @@ var landinglag = 4 #changed all the time in states that can land.
 	#State definitions
 var rootedstates = [SHIELD,SHIELDBREAK,JAB] #Rooted state. Ground attacks should be this.
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
-var tractionstates = [DASHEND] #Only adds traction
 var landingstates = [AIR,FAIRDASH,BAIRDASH] #States that will enter LAND when you land on the ground.
 
 
@@ -783,7 +782,7 @@ func dashend_state():
 	if frame == dashendframes:
 		state(STAND)
 	if inputpressed(jump): state(JUMPSQUAT) 
-
+	apply_traction()
 
 
 func run_state():
@@ -1034,10 +1033,12 @@ func hitstun_state():
 
 		velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
 		velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
+	if frame > 1:
+		velocity.y += fall_accel
 	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
 		print (str(hitstunknockback) + " knockback units  " + str(hitstunangle) + " degrees")
-		state(AIR)
-
+		if grounded: state(STAND)
+		else: state(AIR)
 	##################
 	##HITBOXES##
 	##################
@@ -1446,8 +1447,6 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 	if state in rootedstates:
 		velocity.y = fall_accel #makes it so that you don't fall with full fall speed when you slide off after a rooted state.  
 		rooted = true #^^^Not doing this at all will fuck the collision needed to make rooted states work in the first place.
-	if state in tractionstates:
-		apply_traction()
 	if state in slidestates:
 		apply_gravity() #this is still necessary so that rooted states on f0 don't halt velocity
 		if not grounded:
@@ -1502,7 +1501,7 @@ func collision_handler(delta): #For platform/floor/wall collision.
 	for x in $pECB.collisions: #post velocity move check for pECB
 		if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly
 			if (self.position.x >= x.position.x and self.position.x <= x.position.x + 64*x.scale.x): #Prevents colliding w platforms from the side
-				if not in_platform and velocity.y >= 0:
+				if not in_platform and velocity.y >= 0 and self.position.y < x.position.y:
 					pecbgrounded = true
 					enable_platform()
 
