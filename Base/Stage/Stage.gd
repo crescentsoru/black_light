@@ -55,14 +55,14 @@ func initialize_players():
 		p3_instance.stocks = global.stockcount
 	if global.p4_data[0] != '':
 		pass
-	#	var p4_load = load('res://Characters/' + global.p4_data[0] + "/" + global.p4_data[0] + ".tscn")
-	#	var p4_instance = p4_load.instance()
-	#	get_node("Stage").call_deferred('add_child',p4_instance)
-	#	p3_instance.position = global.spawn_3rd + self.position
-	#	p3_instance.spawnpoint = p3_instance.position
-	#	p3_instance.playerindex = "p3"
-	#	p3_instance.initialize_buttons(global.p3_data[3])
-	#	p3_instance.stocks = global.stockcount
+		var p4_load = load('res://Characters/' + global.p4_data[0] + "/" + global.p4_data[0] + ".tscn")
+		var p4_instance = p4_load.instance()
+		get_node("Stage").call_deferred('add_child',p4_instance)
+		p4_instance.position = global.spawn_4th + self.position
+		p4_instance.spawnpoint = p4_instance.position
+		p4_instance.playerindex = "p4"
+		p4_instance.initialize_buttons(global.p4_data[3])
+		p4_instance.stocks = global.stockcount
 
 var pause_default = false
 var ispause = false

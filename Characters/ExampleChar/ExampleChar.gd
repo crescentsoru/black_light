@@ -12,7 +12,7 @@ func jab_state():
 	if frame == 2: #frame 3 jab
 		create_hitbox(rectangle(64,64),40,15,100,50,9, \
 		{'id':50,
-		'type':'strike', 'hitstopmod':1.0,
+		'type':'strike', 'hitstopmod':155.0,
 		'path':[Vector2(96,-64)],})
 		invulns['projectile'] = 3000
 	if frame == 16:

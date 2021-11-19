@@ -580,7 +580,8 @@ func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
 	hit_processing()
 
-		
+	if state == HITSTUN:
+		print (str(grounded) + "  " + str(global.gametime))
 	
 	state_called = []
 	currenthits = []
@@ -1153,8 +1154,9 @@ var lasthitbox = []
 func hit_processing():
 	if state == HITSTUN:
 		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)	).normalized().x)
-		if impactstop > 0: #SDI code. Put here before the getting hit code so that first frame of hitstop couldn't SDI
-			if analogstick != analogstick_prev: #all of this is kind of a mess but it works a
+		#SDI
+		if impactstop > 0: #Placed before the getting hit code so that first frame of hitstop couldn't SDI
+			if analogstick != analogstick_prev: #all of this is kind of a mess but it works 
 				if (analogstick_prev.x == 128 or analogstick_prev.y == 128):
 					if not (analogzone(2) or analogzone(4) or analogzone(6) or analogzone(8)):
 						move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70)) #70 is arbitrary
@@ -1194,6 +1196,14 @@ func hit_processing():
 			if not (x.group in hitqueue) and x != lasthitbox[0]:get_hit(x)
 		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0]) #hits w the last (or only) hitbox
 
+func sdi(normal):
+	if grounded: #Forbidden SDI check for grounded attacks
+		pass
+	else: #Air forbidden SDI.
+		pass
+#use raycasts. in grounded sdi, check if the horizontal sdi has the same floor collision as the full sdi, then apply if they do.
+#in air sdi, idfk is forbidden sdi even worth implementing considering move_and_collide() prevents going through collisions already?
+#
 
 func analogzone(dir): #I made it this way cause it feels like this will be useful later, I doubt that though
 	if dir == 1: #same zones
