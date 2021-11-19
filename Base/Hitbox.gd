@@ -48,18 +48,20 @@ func update_path():
 
 func on_area_enter(area):
 	collisions.append(area)
-	
+
 
 func impact(character): #called when you want to attack a character
 	if (not (self.group in character.hitqueue)):
-		
-		if hitboxtype == 'projectile' and character.invulns['projectile'] == 0:
+		if character.invulntype == 'intangible':
+			if hitboxtype == 'projectile' and character.invulns['projectile'] == 0:
+				character.currenthits.append(self)
+				hitsleft -= 1
+			if hitboxtype == 'strike' and character.invulns['strike'] == 0:
+				character.currenthits.append(self)
+				hitsleft -= 1
+		else:
 			character.currenthits.append(self)
 			hitsleft -= 1
-		if hitboxtype == 'strike' and character.invulns['strike'] == 0:
-			character.currenthits.append(self)
-			hitsleft -= 1
-
 
 
 

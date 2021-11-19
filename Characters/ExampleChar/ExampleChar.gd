@@ -14,11 +14,13 @@ func jab_state():
 		{'id':50,
 		'type':'strike', 'hitstopmod':16.0,
 		'path':[Vector2(96,-64)],})
+		invulns['projectile'] = 3000
 	if frame == 16:
 		state(STAND)
+	apply_traction2x()
 
 func memehitbox_state():
-	apply_traction()
+	apply_traction2x()
 	velocity.y = fall_accel
 	rooted = true
 	if frame == 8:

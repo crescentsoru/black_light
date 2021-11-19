@@ -65,22 +65,29 @@ var p3_data = [
 	'',
 	0, 
 	'',
-	['p3_up','p3_down','p3_left','p3_right','p3_jump','p3_attackA','p3_attackB','p3_attackC','p3_attackD','p3_attackE','p3_attackF', #these dont exist yet pls dont
+	['p3_up','p3_down','p3_left','p3_right','p3_jump','p3_attackA','p3_attackB','p3_attackC','p3_attackD','p3_attackE','p3_attackF',
 	'p3_dodge','p3_grab','p3_cstickdown','p3_cstickup','p3_cstickleft','p3_cstickright','p3_uptaunt','p3_sidetaunt','p3_downtaunt',
 	],
 	{}, 
 	]
 var p4_data = [
-	'ExampleChar',
+	'',
 	0, 
 	'',
-	['p4_up','p4_down','p4_left','p4_right','p4_jump','p4_attackA','p4_attackB','p4_attackC','p4_attackD','p4_attackE','p4_attackF', #these dont exist yet pls dont
+	['p4_up','p4_down','p4_left','p4_right','p4_jump','p4_attackA','p4_attackB','p4_attackC','p4_attackD','p4_attackE','p4_attackF', 
 	'p4_dodge','p4_grab','p4_cstickdown','p4_cstickup','p4_cstickleft','p4_cstickright','p4_uptaunt','p4_sidetaunt','p4_downtaunt',
 	],
 	{}, 
 	]
-
-
+var p5_data = [
+	'',
+	0, 
+	'',
+	['p5_up','p5_down','p5_left','p5_right','p5_jump','p5_attackA','p5_attackB','p5_attackC','p5_attackD','p5_attackE','p5_attackF', 
+	'p5_dodge','p5_grab','p5_cstickdown','p5_cstickup','p5_cstickleft','p5_cstickright','p5_uptaunt','p5_sidetaunt','p5_downtaunt',
+	],
+	{}, 
+	]
 
 
 

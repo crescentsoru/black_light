@@ -162,7 +162,7 @@ var landinglag = 4 #changed all the time in states that can land.
 	#State definitions
 var rootedstates = [SHIELD,SHIELDBREAK,JAB] #Rooted state. Ground attacks should be this.
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
-var tractionstates = [STAND,LAND,DASHEND,CROUCH,CROUCHSTART,CROUCHEXIT,JAB] #Only adds traction
+var tractionstates = [STAND,LAND,DASHEND,CROUCH,CROUCHSTART,CROUCHEXIT] #Only adds traction
 var landingstates = [AIR,FAIRDASH,BAIRDASH] #States that will enter LAND when you land on the ground.
 
 
@@ -676,9 +676,6 @@ func crouchstart_state(): #AKA Squat
 
 func crouch_state(): #AKA SquatWait
 	platform_drop()
-	if inputheld(down):
-		disable_platform()
-		if not grounded: state(AIR)
 	if inputpressed(left):
 		if direction == 1:
 			flip()
@@ -1266,8 +1263,22 @@ func hitqueue_plus(hit): #disallows hit groups that you've already been hit with
 		hitqueue.push_back(hit)
 
 func get_hit(hitbox):
-	hitqueue_plus(hitbox.group)
 
+	hitqueue_plus(hitbox.group)
+	
+	if hitbox.hitboxtype_interaction == 'strike':
+		if invulns['strike'] > 0:
+			hit_invincibled(hitbox)
+		else:
+			hit_success(hitbox)
+	if hitbox.hitboxtype_interaction == 'projectile':
+		if invulns['projectile'] > 0:
+			hit_invincibled(hitbox)
+		else:
+			hit_success(hitbox)
+
+
+func hit_success(hitbox):
 	hitstunknockback = (hitbox.kb_growth*0.01) *  \
 	((14*(percentage/10+hitbox.damage/10)*(hitbox.damage/10+2)) \
 	/             (weight + 100)                 +18) \
@@ -1281,12 +1292,22 @@ func get_hit(hitbox):
 	if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
 		hitstunangle = 90 + -1*(hitbox.angle-90)
 	state('hitstun')
+	invulns['strike'] = 0
+	invulns['projectile'] = 0
+	invulns['grab'] = 0
 	#hitstop
 	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
 	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod) 
 
 	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
 		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
+func hit_blocked(hitbox):
+	pass
+
+func hit_invincibled(hitbox):
+	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
+		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
+	#no staling queue add
 
 
 
@@ -1373,6 +1394,19 @@ func apply_traction(mod=1.0): #mod = modifier for traction.
 			velocity.x-=traction * mod
 		else:
 			velocity.x+=traction * mod
+
+func apply_traction2x():
+	#Traction for states like jumpsquat, crouch, land and some grounded attacks.
+	#The traction is doubled if your current speed is higher than the maximum walk speed. 
+	if abs(velocity.x)-traction*2 >= walk_max:
+		apply_traction(2.0)
+	elif abs(velocity.x)-traction*2 <= walk_max:
+		if abs(velocity.x) >= walk_max+traction:
+			if velocity.x > 0:
+				velocity.x = walk_max
+			else: velocity.x = walk_max * -1
+		else: apply_traction()
+
 
 func apply_gravity(): #this is called in ground states as well to prevent bugs regarding collision not working if you don't have a
 #downward vector at all times.
