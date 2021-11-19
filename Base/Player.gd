@@ -162,7 +162,7 @@ var landinglag = 4 #changed all the time in states that can land.
 	#State definitions
 var rootedstates = [SHIELD,SHIELDBREAK,JAB] #Rooted state. Ground attacks should be this.
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
-var tractionstates = [STAND,LAND,DASHEND,CROUCH,CROUCHSTART,CROUCHEXIT] #Only adds traction
+var tractionstates = [DASHEND] #Only adds traction
 var landingstates = [AIR,FAIRDASH,BAIRDASH] #States that will enter LAND when you land on the ground.
 
 
@@ -667,6 +667,7 @@ func stand_state():
 	if tiltinput(down):
 		state(CROUCH) #it might be better to put crouch and crouchstart in animexceptions then manually set the animation to crouchstart so the character doesn't enter crouch instantly
 	if inputpressed(jump): state(JUMPSQUAT)
+	apply_traction()
 
 func crouchstart_state(): #AKA Squat
 	platform_drop()
@@ -691,12 +692,15 @@ func crouch_state(): #AKA SquatWait
 	if not tiltinput(down): #makes sure you can hold down without also dropping from a platform
 		state(CROUCHEXIT)
 	if inputpressed(jump) and grounded: state(JUMPSQUAT)
+	apply_traction2x()
+
 
 func crouchexit_state(): #AKA SquatRV
 	if frame == 10:
 		state(STAND)
 	if inputpressed(jump): state(JUMPSQUAT)
 	if inputheld(down): state(CROUCH)
+	apply_traction2x()
 
 func action_analogconvert(): #returns how hard you're pressing your stick.x from 0 to 80(action_range)
 	if analogstick.x <= 128:
@@ -813,7 +817,6 @@ func run_state():
 			state(BRAKE)
 	if inputpressed(jump): state(JUMPSQUAT)
 
-
 func skid_state():
 	platform_drop()
 	if frame >= 1 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
@@ -914,14 +917,14 @@ func jumpsquat_state():
 		if not inputheld(jump): #shorthop
 			velocity.y-=shorthopspeed
 			state(AIR)
-	#What is the traction-like opposite velocity applied during KneeBend??????!
-	apply_traction() #putting this here as a placeholder
+	apply_traction2x()
 func land_state():
 	if frame == 0:
 		refresh_air_options()
 	if frame == landinglag:
 		if inputheld(down): state(CROUCH) #looks better
 		else: state(STAND)
+	apply_traction2x()
 
 func airdashstart(): #just a shorthand
 	airdashes+=1
@@ -1401,10 +1404,12 @@ func apply_traction2x():
 	if abs(velocity.x)-traction*2 >= walk_max:
 		apply_traction(2.0)
 	elif abs(velocity.x)-traction*2 <= walk_max:
-		if abs(velocity.x) >= walk_max+traction:
+		if abs(velocity.x) > walk_max+traction:
+			#this part never happens but the function works so I lost the ability to care
 			if velocity.x > 0:
 				velocity.x = walk_max
-			else: velocity.x = walk_max * -1
+			else:
+				velocity.x = walk_max * -1
 		else: apply_traction()
 
 
