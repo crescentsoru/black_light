@@ -10,7 +10,7 @@ func _ready():
 
 func jab_state():
 	if frame == 2: #frame 3 jab
-		create_hitbox(rectangle(64,64),60,25,90,90,9, \
+		create_hitbox(rectangle(64,64),60,25,90,0,9, \
 		{'id':50,
 		'type':'strike', 'hitstopmod':1.0,
 		'path':[Vector2(96,-64)],})
@@ -25,7 +25,7 @@ func memehitbox_state():
 	if frame == 8:
 		create_hitbox(rectangle(256,128),180,30,112,280,9000, \
 		{'id':50,
-		'type':'projectile', 'hitstopmod':1.0,'hitstopmod_self':1.0,
+		'type':'projectile', 'hitstopmod':1.0,
 		'path':[Vector2(96,0)],
 		'speedX':1750, 'speedY':0, 'sprite':'red',
 		})
@@ -38,14 +38,14 @@ func memehitbox_state():
 
 const GROUNDATTACKSTATES = [STAND,CROUCHSTART,CROUCH,CROUCHEXIT,WALK,DASHEND,BRAKE,RUN]
 
-func groundedattack_ok():
+func groundattack_ok():
 	if state in GROUNDATTACKSTATES:
 		return true
 	else:
 		return false
 
 func attackcode():
-	if groundedattack_ok():
+	if groundattack_ok():
 		if motionqueue[-1] == "5" and inputpressed(attackA):
 			state(JAB)
 		if motionqueue[-1] == "5" and inputpressed(attackB):

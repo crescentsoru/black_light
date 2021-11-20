@@ -580,8 +580,7 @@ func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
 	hit_processing()
 
-	if state == HITSTUN:
-		print (str(grounded) + "  " + str(global.gametime))
+
 	
 	state_called = []
 	currenthits = []
@@ -1034,10 +1033,13 @@ func waveland_state():
 
 func hitstun_state():
 	if frame == 1:
-
-		velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
-		velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
-	if frame > 1:
+		if grounded and hitstunknockback >= 80: #the only way you could be grounded and have tumble KB is if you're hit with a downward angle
+			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 / 1.2 #1.2 is the bounce multiplier
+			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20 / 1.2
+		else:
+			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
+			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
+	if frame >= 1:
 		velocity.y += fall_accel
 	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
 		print (str(hitstunknockback) + " knockback units  " + str(hitstunangle) + " degrees")
@@ -1207,11 +1209,22 @@ func hit_processing():
 		if not (lasthitbox[0] in hitqueue): get_hit(lasthitbox[0]) #hits w the last (or only) hitbox
 
 func sdi(normal):
-	if grounded: #Forbidden SDI check for grounded attacks
-		move_and_collide(Vector2(normal.y*70,0)) #why the fuck 
-		pass
-		#create y pointing raycast here, if it goes through a 
-	else: #Air forbidden SDI.
+	if grounded and hitstunknockback < 80: #Forbidden SDI check for grounded attacks
+		var space_state = get_world_2d().direct_space_state
+		move_and_collide(Vector2(normal.y*70,0))
+		var ray_standing = space_state.intersect_ray(self.global_position+ecb_down(), Vector2(0,0),[self],collision_mask) #for getting the floor you're on
+		var ray_y = space_state.intersect_ray(self.global_position+ecb_down(), Vector2(0,normal.x*-70),[self],collision_mask)
+		print ("STANDING: " + str(ray_standing) + "  " + str(global.gametime))
+		print ("RAY_Y:" + str(ray_y) + "  " + str(global.gametime) )
+
+#https://www.reddit.com/r/SSBM/comments/6k7goj/new_sdi_exception_unforbidden_di_and_conditional/		
+#In Melee, there's a loophole regarding grounded Forbidden SDI- if you are inputting a diagonal SDI, and the horizontal vector of that SDI
+#will put you outside of the ground anyways, then the vertical vector will also go through so long as it has the same collisions.
+#Anyways I've tried to implement this with raycasts for like 2 hours and it didn't work
+#piece of shit 
+#have fun with this 
+
+	else: #Air SDI
 		move_and_collide(Vector2(normal.y*70,normal.x*-70)) #70 is arbitrary
 #use raycasts. in grounded sdi, check if the horizontal sdi has the same floor collision as the full sdi, then apply if they do.
 #in air sdi, idfk is forbidden sdi even worth implementing considering move_and_collide() prevents going through floors/plats already?
@@ -1317,10 +1330,11 @@ func hit_success(hitbox):
 	if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
 		hitstunangle = 90 + -1*(hitbox.angle-90)
 
-	if (hitbox.angle >= 180 or hitbox.angle == 0) and grounded:
-		if hitstunknockback < 80: grounded = true #grounded hitstun
-		else: hitstunangle = hitstunangle * -1 # bounce
-	else: grounded == false
+	if (hitbox.angle >= 180 or hitbox.angle == 0):
+		if grounded:
+			if hitstunknockback < 80: grounded = true #grounded hitstun
+			else: hitstunangle = hitstunangle * -1 # bounce
+	else: grounded = false
 	state('hitstun')
 	invulns['strike'] = 0
 	invulns['projectile'] = 0
