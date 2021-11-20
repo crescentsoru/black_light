@@ -1316,11 +1316,11 @@ func hit_success(hitbox):
 		hitstunangle = hitbox.angle
 	if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
 		hitstunangle = 90 + -1*(hitbox.angle-90)
-	grounded = false
-	#bounce
-	if (hitbox.angle >= 180 or hitbox.angle == 0):
+
+	if (hitbox.angle >= 180 or hitbox.angle == 0) and grounded:
 		if hitstunknockback < 80: grounded = true #grounded hitstun
-		else: hitstunangle = hitstunangle * -1
+		else: hitstunangle = hitstunangle * -1 # bounce
+	else: grounded == false
 	state('hitstun')
 	invulns['strike'] = 0
 	invulns['projectile'] = 0
