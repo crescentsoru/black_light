@@ -10,9 +10,9 @@ func _ready():
 
 func jab_state():
 	if frame == 2: #frame 3 jab
-		create_hitbox(rectangle(64,64),40,15,100,50,9, \
+		create_hitbox(rectangle(64,64),60,25,90,0,9, \
 		{'id':50,
-		'type':'strike', 'hitstopmod':155.0,
+		'type':'strike', 'hitstopmod':1.0,
 		'path':[Vector2(96,-64)],})
 		invulns['projectile'] = 3000
 	if frame == 16:
@@ -23,7 +23,7 @@ func memehitbox_state():
 
 	rooted = true
 	if frame == 8:
-		create_hitbox(rectangle(256,128),180,30,112,80,9000, \
+		create_hitbox(rectangle(256,128),180,30,112,280,9000, \
 		{'id':50,
 		'type':'projectile', 'hitstopmod':1.0,'hitstopmod_self':1.0,
 		'path':[Vector2(96,0)],

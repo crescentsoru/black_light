@@ -1029,6 +1029,9 @@ func waveland_state():
 	if frame == 10:
 		state(STAND)
 
+
+
+
 func hitstun_state():
 	if frame == 1:
 
@@ -1040,6 +1043,13 @@ func hitstun_state():
 		print (str(hitstunknockback) + " knockback units  " + str(hitstunangle) + " degrees")
 		if grounded: state(STAND)
 		else: state(AIR)
+
+func tumble_state(): #test
+	pass
+	if inputpressed(jump): doublejump()
+	apply_gravity()
+	
+
 	##################
 	##HITBOXES##
 	##################
@@ -1159,10 +1169,10 @@ func hit_processing():
 			if analogstick != analogstick_prev: #all of this is kind of a mess but it works 
 				if (analogstick_prev.x == 128 or analogstick_prev.y == 128):
 					if not (analogzone(2) or analogzone(4) or analogzone(6) or analogzone(8)):
-						move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70)) #70 is arbitrary
+						sdi(stick_normalized)
 				else:
 					if not (analogzone(1) or analogzone(3) or analogzone(7) or analogzone(9)):
-						move_and_collide(Vector2(stick_normalized.y*70,stick_normalized.x*-70))
+						sdi(stick_normalized)
 
 
 		if impactstop == 0 and frame == 1:
@@ -1198,11 +1208,13 @@ func hit_processing():
 
 func sdi(normal):
 	if grounded: #Forbidden SDI check for grounded attacks
+		move_and_collide(Vector2(normal.y*70,0)) #why the fuck 
 		pass
+		#create y pointing raycast here, if it goes through a 
 	else: #Air forbidden SDI.
-		pass
+		move_and_collide(Vector2(normal.y*70,normal.x*-70)) #70 is arbitrary
 #use raycasts. in grounded sdi, check if the horizontal sdi has the same floor collision as the full sdi, then apply if they do.
-#in air sdi, idfk is forbidden sdi even worth implementing considering move_and_collide() prevents going through collisions already?
+#in air sdi, idfk is forbidden sdi even worth implementing considering move_and_collide() prevents going through floors/plats already?
 #
 
 func analogzone(dir): #I made it this way cause it feels like this will be useful later, I doubt that though
@@ -1297,7 +1309,6 @@ func hit_success(hitbox):
 	((14*(percentage/10+hitbox.damage/10)*(hitbox.damage/10+2)) \
 	/             (weight + 100)                 +18) \
 	+ hitbox.kb_base
-	
 	percentage+=hitbox.damage
 	hitstunmod = hitbox.hitstunmod
 	hitstunknockdown = hitbox.knockdowntype
@@ -1305,6 +1316,11 @@ func hit_success(hitbox):
 		hitstunangle = hitbox.angle
 	if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
 		hitstunangle = 90 + -1*(hitbox.angle-90)
+	grounded = false
+	#bounce
+	if (hitbox.angle >= 180 or hitbox.angle == 0):
+		if hitstunknockback < 80: grounded = true #grounded hitstun
+		else: hitstunangle = hitstunangle * -1
 	state('hitstun')
 	invulns['strike'] = 0
 	invulns['projectile'] = 0
@@ -1362,6 +1378,7 @@ func state_handler():
 	if state_check(AIRDODGE): airdodge_state()
 	if state_check(WAVELAND): waveland_state()
 	if state_check(HITSTUN): hitstun_state()
+	if state_check(TUMBLE): tumble_state()
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
 func attackcode():
