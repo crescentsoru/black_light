@@ -63,7 +63,7 @@ const ATGHITSTUN = 'atghitstun'  #this is the 4f air-to-ground transition that A
 const TUMBLE = 'tumble'
 
 const UKEMISS = 'ukemiss' #ukemi refers to ground teching. Given a different name in code to differentiate from throw teching
-const UKEMISTAND = 'ukemistand'
+const UKEMINEUTRAL = 'ukemineutral'
 const UKEMIBACK = 'ukemiback'
 const UKEMIFORTH = 'ukemiforth'
 const HARDKNOCKDOWN = 'hardknockdown'
@@ -1040,7 +1040,7 @@ func hitstungrounded_state():
 		print (str(hitstunknockback) + " knockback units  " + str(hitstunangle) + " degrees")
 		if grounded: state(STAND)
 		else: state(AIR)
-
+	apply_traction()
 
 func hitstun_state():
 	if frame == 1:
@@ -1060,8 +1060,11 @@ func hitstun_state():
 		
 	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
 		print (str(hitstunknockback) + " knockback units  " + str(hitstunangle) + " degrees")
-		if grounded: state(STAND)
-		else: state(AIR)
+		if hitstunknockback >= 80:
+			state(TUMBLE)
+		else:
+			if grounded: state(STAND)
+			else: state(AIR)
 
 func atghitstun_state(): #in melee, characters go to the landing state instead of this. I made it into a separate state
 						#so designers could make anti-ASDIdown moves without changing the angle of the move.
@@ -1084,19 +1087,42 @@ func ukemi_input():
 	if inputjustpressed(dodge):
 		if ukemi_buffer >= 40:
 			ukemi_buffer = 0
-	if ukemi_buffer < 40: ukemi_buffer +=0
-
+	if ukemi_buffer < 40: ukemi_buffer+=0
 func ukemi_ok():
 	if ukemi_buffer <= 20: return true
 
 func tumble_state(): #test
-
 	if inputpressed(jump): doublejump()
-	apply_gravity()
-
+	#inputs
+	
+	if grounded: ukemi_check()
+	aerial_acceleration()
+	
 
 func ukemiss_state():
-	apply_traction()
+
+	if frame == 50: state(STAND)
+#as far as I understand, the traction during missed tech is universal at 0.051, which is why I copy the traction code here
+	if abs(velocity.x) - 50 < 0:
+		velocity.x = 0
+	else:
+		if velocity.x > 0:
+			velocity.x-=50
+		else:
+			velocity.x+=50
+
+func ukemineutral_state():
+	pass
+
+func ukemiback_state():
+	pass
+
+func ukemiforth_state():
+	pass
+
+
+
+
 
 
 	##################
@@ -1446,6 +1472,10 @@ func state_handler():
 	if state_check(ATGHITSTUN): atghitstun_state()
 	if state_check(TUMBLE): tumble_state()
 	if state_check(UKEMISS): ukemiss_state()
+	if state_check(UKEMINEUTRAL): ukemineutral_state()
+	if state_check(UKEMIBACK): ukemiback_state()
+	if state_check(UKEMIFORTH): ukemiforth_state()
+	
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
 func attackcode():
