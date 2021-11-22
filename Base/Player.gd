@@ -1087,11 +1087,16 @@ func ukemi_check(): #switches state to different techs depending on your input
 
 var ukemi_buffer = 40
 func ukemi_input():
+	print (str(ukemi_buffer) + "   " + str(global.gametime) + "  " + str(playerindex))
+	if ukemi_buffer < 40: ukemi_buffer+=1
 	if inputjustpressed(dodge):
-		if ukemi_buffer >= 40:
+		if ukemi_buffer == 40:
 			ukemi_buffer = 0
-	if ukemi_buffer < 40: ukemi_buffer+=0
-func ukemi_ok(): if ukemi_buffer <= 20: return true
+
+func ukemi_ok():
+
+	if ukemi_buffer < 20: return true
+	else: return false
 
 func tumble_state(): #test
 	if inputpressed(jump): doublejump()
@@ -1099,7 +1104,7 @@ func tumble_state(): #test
 	
 	if grounded: ukemi_check()
 	aerial_acceleration()
-	
+
 
 func ukemiss_state():
 	if frame == 50: state(STAND)
