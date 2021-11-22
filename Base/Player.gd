@@ -58,8 +58,10 @@ const SHIELDRELEASE = 'shieldrelease'
 const SHIELDBREAK = 'shieldbreak'
 const BLOCKSTUN = 'blockstun'
 const HITSTUN = 'hitstun'
+const HITSTUNGROUNDED = 'hitstungrounded'
+const ATGHITSTUN = 'atghitstun'  #this is the 4f air-to-ground transition that ASDI down makes use of, which I made into a separate state.
 const TUMBLE = 'tumble'
-const LANDSTUN = 'landstun' #this is the 4f air-to-ground transition that ASDI down makes use of, which I made into a separate state.
+
 const UKEMISS = 'ukemiss' #ukemi refers to ground teching. Given a different name in code to differentiate from throw teching
 const UKEMISTAND = 'ukemistand'
 const UKEMIBACK = 'ukemiback'
@@ -161,7 +163,7 @@ var landinglag = 4 #changed all the time in states that can land.
 
 	#State definitions
 var rootedstates = [SHIELD,SHIELDBREAK,JAB] #Rooted state. Ground attacks should be this.
-var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,TURN,SKID,DASHEND,BRAKE,WAVELAND] #Usually ground movement, will slide off when not grounded.
+var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH] #States that will enter LAND when you land on the ground.
 
 
@@ -579,7 +581,7 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
 	hit_processing()
-
+	ukemi_input()
 
 	
 	state_called = []
@@ -598,9 +600,8 @@ func persistentlogic(): #contains code that is ran during impactstop.
 func state_check(statecompare):#state handler function for checking if the state is correct AND if it's been processed before.
 	if state == statecompare:
 		if not (state in state_called):
-			state_called.append(state) #wip
+			state_called.append(state) #I think this works
 			return true
-
 		else:
 			return false
 	else: return false
@@ -1028,7 +1029,17 @@ func waveland_state():
 	if frame == 10:
 		state(STAND)
 
-
+func hitstungrounded_state():
+	if frame == 1:
+		velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20
+		velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
+	if frame >= 1:
+		velocity.y += fall_accel
+		if !grounded: state(AIR)
+	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
+		print (str(hitstunknockback) + " knockback units  " + str(hitstunangle) + " degrees")
+		if grounded: state(STAND)
+		else: state(AIR)
 
 
 func hitstun_state():
@@ -1039,18 +1050,54 @@ func hitstun_state():
 		else:
 			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
 			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
-	if frame >= 1:
+	if frame >= 1: #does gravity get applied on frame == 1 or frame == 2?
 		velocity.y += fall_accel
+	if grounded and frame > 1:
+		if hitstunknockback < 80:
+			state(ATGHITSTUN) #air to ground transition, the thing that makes ASDI down good
+		else: #ukemi
+			ukemi_check()
+		
 	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
 		print (str(hitstunknockback) + " knockback units  " + str(hitstunangle) + " degrees")
 		if grounded: state(STAND)
 		else: state(AIR)
 
+func atghitstun_state(): #in melee, characters go to the landing state instead of this. I made it into a separate state
+						#so designers could make anti-ASDIdown moves without changing the angle of the move.
+	if frame == 0:
+		refresh_air_options()
+	if frame == 4:
+		if inputheld(down): state(CROUCH) #looks better
+		else: state(STAND)
+	apply_traction2x()
+
+func ukemi_check(): #switches state to different techs depending on your input
+	if ukemi_ok():
+		if inputheld(left): pass
+		elif inputheld(right): pass
+		else: pass
+	else: state(UKEMISS)
+
+var ukemi_buffer = 40
+func ukemi_input():
+	if inputjustpressed(dodge):
+		if ukemi_buffer >= 40:
+			ukemi_buffer = 0
+	if ukemi_buffer < 40: ukemi_buffer +=0
+
+func ukemi_ok():
+	if ukemi_buffer <= 20: return true
+
 func tumble_state(): #test
-	pass
+
 	if inputpressed(jump): doublejump()
 	apply_gravity()
-	
+
+
+func ukemiss_state():
+	apply_traction()
+
 
 	##################
 	##HITBOXES##
@@ -1164,9 +1211,9 @@ var hitqueue = []
 var nochange = false #used to break the while loop
 var lasthitbox = []
 func hit_processing():
-	if state == HITSTUN:
+	if state == HITSTUN or state == HITSTUNGROUNDED:
 		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)	).normalized().x)
-		#SDI
+			#SDI
 		if impactstop > 0: #Placed before the getting hit code so that first frame of hitstop couldn't SDI
 			if analogstick != analogstick_prev: #all of this is kind of a mess but it works 
 				if (analogstick_prev.x == 128 or analogstick_prev.y == 128):
@@ -1214,9 +1261,10 @@ func sdi(normal):
 		move_and_collide(Vector2(normal.y*70,0))
 		var ray_standing = space_state.intersect_ray(self.global_position+ecb_down(), Vector2(0,0),[self],collision_mask) #for getting the floor you're on
 		var ray_y = space_state.intersect_ray(self.global_position+ecb_down(), Vector2(0,normal.x*-70),[self],collision_mask)
-		print ("STANDING: " + str(ray_standing) + "  " + str(global.gametime))
-		print ("RAY_Y:" + str(ray_y) + "  " + str(global.gametime) )
-
+	#	print ("STANDING: " + str(ray_standing) + "  " + str(global.gametime))
+	#	print ("RAY_Y:" + str(ray_y) + "  " + str(global.gametime) )
+	else: #Air SDI
+		move_and_collide(Vector2(normal.y*70,normal.x*-70)) #70 is arbitrary
 #https://www.reddit.com/r/SSBM/comments/6k7goj/new_sdi_exception_unforbidden_di_and_conditional/		
 #In Melee, there's a loophole regarding grounded Forbidden SDI- if you are inputting a diagonal SDI, and the horizontal vector of that SDI
 #will put you outside of the ground anyways, then the vertical vector will also go through so long as it has the same collisions.
@@ -1224,11 +1272,7 @@ func sdi(normal):
 #piece of shit 
 #have fun with this 
 
-	else: #Air SDI
-		move_and_collide(Vector2(normal.y*70,normal.x*-70)) #70 is arbitrary
-#use raycasts. in grounded sdi, check if the horizontal sdi has the same floor collision as the full sdi, then apply if they do.
-#in air sdi, idfk is forbidden sdi even worth implementing considering move_and_collide() prevents going through floors/plats already?
-#
+
 
 func analogzone(dir): #I made it this way cause it feels like this will be useful later, I doubt that though
 	if dir == 1: #same zones
@@ -1332,10 +1376,16 @@ func hit_success(hitbox):
 
 	if (hitbox.angle >= 180 or hitbox.angle == 0):
 		if grounded:
-			if hitstunknockback < 80: grounded = true #grounded hitstun
-			else: hitstunangle = hitstunangle * -1 # bounce
-	else: grounded = false
-	state('hitstun')
+			if hitstunknockback < 80:
+				grounded = true#grounded hitstun
+				state(HITSTUNGROUNDED)
+			else:
+				hitstunangle = hitstunangle * -1 # bounce
+				state(HITSTUN)
+	else:
+		grounded = false
+		state(HITSTUN)
+
 	invulns['strike'] = 0
 	invulns['projectile'] = 0
 	invulns['grab'] = 0
@@ -1392,7 +1442,10 @@ func state_handler():
 	if state_check(AIRDODGE): airdodge_state()
 	if state_check(WAVELAND): waveland_state()
 	if state_check(HITSTUN): hitstun_state()
+	if state_check(HITSTUNGROUNDED): hitstungrounded_state()
+	if state_check(ATGHITSTUN): atghitstun_state()
 	if state_check(TUMBLE): tumble_state()
+	if state_check(UKEMISS): ukemiss_state()
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
 func attackcode():

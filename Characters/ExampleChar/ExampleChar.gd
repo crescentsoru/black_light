@@ -15,7 +15,7 @@ func jab_state():
 		'type':'strike', 'hitstopmod':1.0,
 		'path':[Vector2(96,-64)],})
 		invulns['projectile'] = 3000
-	if frame == 16:
+	if frame == 17:
 		state(STAND)
 	apply_traction2x()
 
