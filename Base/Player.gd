@@ -63,6 +63,7 @@ const ATGHITSTUN = 'atghitstun'  #this is the 4f air-to-ground transition that A
 const TUMBLE = 'tumble'
 
 const UKEMISS = 'ukemiss' #ukemi refers to ground teching. Given a different name in code to differentiate from throw teching
+const UKEMIATTACK = 'ukemiattack'
 const UKEMINEUTRAL = 'ukemineutral'
 const UKEMIBACK = 'ukemiback'
 const UKEMIFORTH = 'ukemiforth'
@@ -162,9 +163,9 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var rootedstates = [SHIELD,SHIELDBREAK,JAB] #Rooted state. Ground attacks should be this.
-var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS] #Usually ground movement, will slide off when not grounded.
-var landingstates = [AIR,FAIRDASH,BAIRDASH] #States that will enter LAND when you land on the ground.
+var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH] #Rooted state. Ground attacks should be this.
+var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,] #Usually ground movement, will slide off when not grounded.
+var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
 
 
 
@@ -185,7 +186,11 @@ var invulns = { #There will later be a system with three different hurtboxes eac
 var invulntype = 'intangible'
 
 #ukemi = ground tech. Please do not change these values, there's a reason a certain game made ground tech frame data universal
-var ukemiEnd = 59
+var ukemineutral_end = 26
+var ukemineutral_invuln = 20
+var ukemiroll_end = 40
+var ukemiroll_invuln = 20
+
 
 
 
@@ -1021,8 +1026,6 @@ func airdodge_state():
 	if frame == 100: state(AIR)
 	#invuln
 
-
-
 func waveland_state():
 	apply_traction()
 	refresh_air_options()
@@ -1077,9 +1080,9 @@ func atghitstun_state(): #in melee, characters go to the landing state instead o
 
 func ukemi_check(): #switches state to different techs depending on your input
 	if ukemi_ok():
-		if inputheld(left): pass
-		elif inputheld(right): pass
-		else: pass
+		if inputheld(left): state(UKEMIBACK)
+		elif inputheld(right): state(UKEMIFORTH)
+		else: state(UKEMINEUTRAL)
 	else: state(UKEMISS)
 
 var ukemi_buffer = 40
@@ -1088,8 +1091,7 @@ func ukemi_input():
 		if ukemi_buffer >= 40:
 			ukemi_buffer = 0
 	if ukemi_buffer < 40: ukemi_buffer+=0
-func ukemi_ok():
-	if ukemi_buffer <= 20: return true
+func ukemi_ok(): if ukemi_buffer <= 20: return true
 
 func tumble_state(): #test
 	if inputpressed(jump): doublejump()
@@ -1100,7 +1102,6 @@ func tumble_state(): #test
 	
 
 func ukemiss_state():
-
 	if frame == 50: state(STAND)
 #as far as I understand, the traction during missed tech is universal at 0.051, which is why I copy the traction code here
 	if abs(velocity.x) - 50 < 0:
@@ -1111,14 +1112,31 @@ func ukemiss_state():
 		else:
 			velocity.x+=50
 
+func ukemiattack_state():
+	if frame == 400: #i'll work on this later 
+		state(STAND)
+
 func ukemineutral_state():
-	pass
+	if frame == 0:
+		fullinvuln(ukemineutral_invuln)
+	if frame == ukemineutral_end:
+		state(STAND)
 
 func ukemiback_state():
-	pass
+	if frame == 0:
+		fullinvuln(ukemiroll_invuln)
+		velocity.x -= 500
+	if frame == ukemiroll_end:
+		velocity.x += 500
+		state(STAND)
 
 func ukemiforth_state():
-	pass
+	if frame == 0:
+		fullinvuln(ukemiroll_invuln)
+		velocity.x += 500
+	if frame == ukemiroll_end:
+		velocity.x -= 500
+		state(STAND)
 
 
 
@@ -1472,6 +1490,7 @@ func state_handler():
 	if state_check(ATGHITSTUN): atghitstun_state()
 	if state_check(TUMBLE): tumble_state()
 	if state_check(UKEMISS): ukemiss_state()
+	if state_check(UKEMIATTACK): ukemiattack_state()
 	if state_check(UKEMINEUTRAL): ukemineutral_state()
 	if state_check(UKEMIBACK): ukemiback_state()
 	if state_check(UKEMIFORTH): ukemiforth_state()
