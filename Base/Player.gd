@@ -1072,7 +1072,7 @@ func hitstun_state():
 			else: state(AIR)
 
 func atghitstun_state(): #in melee, characters go to the landing state instead of this. I made it into a separate state
-						#so designers could make anti-ASDIdown moves without changing the angle of the move.
+					#so designers could make anti-ASDIdown moves without changing the angle of the move.
 	if frame == 0:
 		refresh_air_options()
 	if frame == 4:
