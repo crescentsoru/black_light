@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Base/Hitbox.gd" type="Script" id=1]
-[ext_resource path="res://Graphics1/test_floor.png" type="Texture" id=2]
+[ext_resource path="res://Graphics1/test_hitbox.png" type="Texture" id=2]
 
 [sub_resource type="Curve2D" id=1]
 _data = {
@@ -34,5 +34,4 @@ curve = SubResource( 1 )
 
 [node name="hitboxsprite" type="AnimatedSprite" parent="."]
 modulate = Color( 1, 0.0196078, 0.662745, 0.745098 )
-rotation = 1.5708
 frames = SubResource( 2 )

@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=45 format=2]
+[gd_resource type="SpriteFrames" load_steps=46 format=2]
 
 [ext_resource path="res://Graphics2/skid (1).png" type="Texture" id=1]
 [ext_resource path="res://Graphics2/skid (2).png" type="Texture" id=2]
@@ -44,6 +44,7 @@
 [ext_resource path="res://Graphics2/airdodgd.png" type="Texture" id=42]
 [ext_resource path="res://Graphics2/master_testspecial.png" type="Texture" id=43]
 [ext_resource path="res://Graphics2/master_airtest.png" type="Texture" id=44]
+[ext_resource path="res://Graphics2/master_ukemiss.png" type="Texture" id=45]
 
 [resource]
 animations = [ {
@@ -52,9 +53,9 @@ animations = [ {
 "name": "brake",
 "speed": 0.0
 }, {
-"frames": [ ExtResource( 9 ), ExtResource( 11 ), ExtResource( 10 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 6 ), ExtResource( 5 ), ExtResource( 4 ), ExtResource( 24 ), ExtResource( 23 ), ExtResource( 21 ), ExtResource( 13 ), ExtResource( 14 ), ExtResource( 22 ), ExtResource( 25 ), ExtResource( 12 ) ],
+"frames": [ ExtResource( 39 ), ExtResource( 40 ) ],
 "loop": false,
-"name": "walk",
+"name": "jumpsquat",
 "speed": 0.0
 }, {
 "frames": [ ExtResource( 30 ) ],
@@ -72,14 +73,14 @@ animations = [ {
 "name": "airdodge",
 "speed": 0.0
 }, {
+"frames": [ ExtResource( 9 ), ExtResource( 11 ), ExtResource( 10 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 6 ), ExtResource( 5 ), ExtResource( 4 ), ExtResource( 24 ), ExtResource( 23 ), ExtResource( 21 ), ExtResource( 13 ), ExtResource( 14 ), ExtResource( 22 ), ExtResource( 25 ), ExtResource( 12 ) ],
+"loop": false,
+"name": "walk",
+"speed": 0.0
+}, {
 "frames": [ ExtResource( 1 ), ExtResource( 2 ), ExtResource( 34 ), ExtResource( 33 ) ],
 "loop": false,
 "name": "skid",
-"speed": 0.0
-}, {
-"frames": [ ExtResource( 35 ), ExtResource( 36 ) ],
-"loop": false,
-"name": "land",
 "speed": 0.0
 }, {
 "frames": [ ExtResource( 29 ) ],
@@ -102,9 +103,19 @@ animations = [ {
 "name": "dash",
 "speed": 0.0
 }, {
+"frames": [ ExtResource( 35 ), ExtResource( 36 ) ],
+"loop": false,
+"name": "land",
+"speed": 0.0
+}, {
 "frames": [ ExtResource( 35 ), ExtResource( 36 ), ExtResource( 37 ) ],
 "loop": false,
 "name": "crouchexit",
+"speed": 0.0
+}, {
+"frames": [ ExtResource( 35 ), ExtResource( 36 ) ],
+"loop": false,
+"name": "waveland",
 "speed": 0.0
 }, {
 "frames": [ ExtResource( 38 ) ],
@@ -112,19 +123,14 @@ animations = [ {
 "name": "bairdash",
 "speed": 0.0
 }, {
+"frames": [ ExtResource( 34 ) ],
+"loop": false,
+"name": "hitstungrounded",
+"speed": 0.0
+}, {
 "frames": [ ExtResource( 43 ) ],
 "loop": false,
 "name": "memehitbox",
-"speed": 0.0
-}, {
-"frames": [ ExtResource( 44 ) ],
-"loop": false,
-"name": "air",
-"speed": 0.0
-}, {
-"frames": [ ExtResource( 26 ) ],
-"loop": false,
-"name": "turn",
 "speed": 0.0
 }, {
 "frames": [ ExtResource( 3 ) ],
@@ -137,19 +143,19 @@ animations = [ {
 "name": "stand",
 "speed": 0.0
 }, {
-"frames": [ ExtResource( 35 ), ExtResource( 36 ) ],
-"loop": false,
-"name": "waveland",
-"speed": 0.0
-}, {
 "frames": [ ExtResource( 37 ) ],
 "loop": false,
 "name": "crouch",
 "speed": 0.0
 }, {
-"frames": [ ExtResource( 34 ) ],
+"frames": [ ExtResource( 26 ) ],
 "loop": false,
-"name": "hitstungrounded",
+"name": "turn",
+"speed": 0.0
+}, {
+"frames": [ ExtResource( 44 ) ],
+"loop": false,
+"name": "air",
 "speed": 0.0
 }, {
 "frames": [ ExtResource( 35 ), ExtResource( 36 ) ],
@@ -157,8 +163,8 @@ animations = [ {
 "name": "atghitstun",
 "speed": 0.0
 }, {
-"frames": [ ExtResource( 39 ), ExtResource( 40 ) ],
+"frames": [ ExtResource( 45 ) ],
 "loop": false,
-"name": "jumpsquat",
-"speed": 0.0
+"name": "ukemiss",
+"speed": 5.0
 } ]

@@ -748,7 +748,7 @@ func dash_state():
 			state(DASHEND)
 		else: state(RUN)
 
-	if frame <= dashframes:
+	if frame <= dashframes and frame > 1:
 		if inputpressed(left) and direction == 1:
 			direction = -1
 			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), -1) #abs(velocity.x) makes sure you don't just get a free boost the other direction in STAND 
@@ -1053,6 +1053,8 @@ func hitstun_state():
 		else:
 			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
 			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
+		#move ASDI here later
+		
 	if frame >= 1: #does gravity get applied on frame == 1 or frame == 2?
 		velocity.y += fall_accel
 	if grounded and frame > 1:
@@ -1087,7 +1089,6 @@ func ukemi_check(): #switches state to different techs depending on your input
 
 var ukemi_buffer = 40
 func ukemi_input():
-	print (str(ukemi_buffer) + "   " + str(global.gametime) + "  " + str(playerindex))
 	if ukemi_buffer < 40: ukemi_buffer+=1
 	if inputjustpressed(dodge):
 		if ukemi_buffer == 40:
@@ -1107,7 +1108,7 @@ func tumble_state(): #test
 
 
 func ukemiss_state():
-	if frame == 50: state(STAND)
+	if frame == 60: state(STAND)
 #as far as I understand, the traction during missed tech is universal at 0.051, which is why I copy the traction code here
 	if abs(velocity.x) - 50 < 0:
 		velocity.x = 0

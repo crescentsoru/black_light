@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=2]
+[gd_scene load_steps=34 format=2]
 
 [ext_resource path="res://Base/Hurtbox.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Graphics2/Player_spriteframes.tres" type="SpriteFrames" id=2]
@@ -724,7 +724,7 @@ tracks/1/keys = {
 "times": PoolRealArray( 0 ),
 "transitions": PoolRealArray( 1 ),
 "update": 1,
-"values": [ Vector2( 0, 0 ) ]
+"values": [ Vector2( 0, 40 ) ]
 }
 tracks/2/type = "value"
 tracks/2/path = NodePath("AnimationPlayer:playback_speed")
@@ -1066,6 +1066,48 @@ tracks/2/keys = {
 "values": [ 0.25 ]
 }
 
+[sub_resource type="Animation" id=29]
+resource_name = "ukemiss"
+length = 0.283334
+loop = true
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Sprite:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ Vector2( 0, 70 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.25 ]
+}
+
 [sub_resource type="Animation" id=22]
 length = 0.25
 loop = true
@@ -1155,8 +1197,8 @@ script = ExtResource( 3 )
 [node name="Sprite" type="AnimatedSprite" parent="."]
 modulate = Color( 1, 1, 1, 0.854902 )
 frames = ExtResource( 2 )
-animation = "atghitstun"
-offset = Vector2( 25, 17 )
+animation = "ukemiss"
+offset = Vector2( 0, 30 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 position = Vector2( 0, 18 )
@@ -1170,6 +1212,7 @@ position = Vector2( 0, 18 )
 polygon = PoolVector2Array( 0, -135, -50, 0, 0, 182, 50, 0 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+playback_speed = 0.25
 anims/air = SubResource( 1 )
 anims/airdodge = SubResource( 2 )
 anims/atghitstun = SubResource( 28 )
@@ -1196,5 +1239,6 @@ anims/run = SubResource( 18 )
 anims/skid = SubResource( 19 )
 anims/stand = SubResource( 20 )
 anims/turn = SubResource( 21 )
+anims/ukemiss = SubResource( 29 )
 anims/walk = SubResource( 22 )
 anims/waveland = SubResource( 23 )

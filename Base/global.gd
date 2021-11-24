@@ -2,8 +2,8 @@ extends Node
 
 	#Video game specific
 
-var gamename = 'Blacklight pre-release'
-var gameversion = 'alphav0.2'
+var gamename = 'Blacklight'
+var gameversion = 'alpha v0.2 Second Contact'
 
 
 
