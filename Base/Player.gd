@@ -50,8 +50,7 @@ const BAIRDASH = 'bairdash'
 const AIRDODGE = 'airdodge'
 const WAVELAND = 'waveland'
 const FREEFALL = 'freefall'
-const WALLJUMP_L = 'walljump_l'
-const WALLJUMP_R = 'walljump_r'
+const WALLJUMP = 'walljump'
 	#Pressure
 const SHIELD = 'shield'
 const SHIELDRELEASE = 'shieldrelease'
@@ -64,6 +63,7 @@ const TUMBLE = 'tumble'
 
 const UKEMISS = 'ukemiss' #ukemi refers to ground teching. Given a different name in code to differentiate from throw teching
 const UKEMIATTACK = 'ukemiattack'
+const UKEMIWAIT = 'ukemiwait'
 const UKEMINEUTRAL = 'ukemineutral'
 const UKEMIBACK = 'ukemiback'
 const UKEMIFORTH = 'ukemiforth'
@@ -90,6 +90,10 @@ const FSMASH = 'fsmash'
 const USMASH = 'usmash'
 const DSMASH = 'dsmash'
 
+const NEUTRALB = 'neutralb'
+const SIDEB = 'sideb'
+const UPB = 'upb'
+const DOWNB = 'downb'
 
 	#Movement vars
 var traction = 70
@@ -164,9 +168,9 @@ var landinglag = 4 #changed all the time in states that can land.
 
 	#State definitions
 var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH] #Rooted state. Ground attacks should be this.
-var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,] #Usually ground movement, will slide off when not grounded.
+var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
-
+var recoverystates = [UPB] #these states will not be usable if you have exhausted your air options
 
 
 	#Pressure vars
@@ -1107,8 +1111,18 @@ func tumble_state(): #test
 	aerial_acceleration()
 
 
-func ukemiss_state():
-	if frame == 60: state(STAND)
+func ukemiss_state(): #AKA DownBound
+	if frame == 26:
+		if inputheld(left):
+			state(UKEMIBACK)
+		elif inputheld(right):
+			state(UKEMIFORTH)
+		elif (inputheld(jump) or inputheld(up) or inputheld(dodge)):
+			state(UKEMINEUTRAL)
+		elif (inputheld(attackA) or inputheld(attackB)):
+			state(UKEMIATTACK) #change to attack later
+		else:
+			state(UKEMIWAIT)
 #as far as I understand, the traction during missed tech is universal at 0.051, which is why I copy the traction code here
 	if abs(velocity.x) - 50 < 0:
 		velocity.x = 0
@@ -1118,8 +1132,31 @@ func ukemiss_state():
 		else:
 			velocity.x+=50
 
+func ukemiwait_state():
+	
+	
+	if frame >= 26:
+		if inputheld(left):
+			state(UKEMIBACK)
+		elif inputheld(right):
+			state(UKEMIFORTH)
+		elif (inputheld(jump) or inputheld(up) or inputheld(dodge)):
+			state(UKEMINEUTRAL)
+		else:
+			state(UKEMIWAIT)
+	if frame == 180: state(UKEMINEUTRAL)
+	#special miss tech traction
+	if abs(velocity.x) - 50 < 0:
+		velocity.x = 0
+	else:
+		if velocity.x > 0:
+			velocity.x-=50
+		else:
+			velocity.x+=50
+
+
 func ukemiattack_state():
-	if frame == 400: #i'll work on this later 
+	if frame == 25: #i'll work on this later 
 		state(STAND)
 
 func ukemineutral_state():
@@ -1131,17 +1168,17 @@ func ukemineutral_state():
 func ukemiback_state():
 	if frame == 0:
 		fullinvuln(ukemiroll_invuln)
-		velocity.x -= 500
+		velocity.x -= 1000
 	if frame == ukemiroll_end:
-		velocity.x += 500
+		velocity.x += 1000
 		state(STAND)
 
 func ukemiforth_state():
 	if frame == 0:
 		fullinvuln(ukemiroll_invuln)
-		velocity.x += 500
+		velocity.x += 1000
 	if frame == ukemiroll_end:
-		velocity.x -= 500
+		velocity.x -= 1000
 		state(STAND)
 
 
@@ -1496,6 +1533,7 @@ func state_handler():
 	if state_check(ATGHITSTUN): atghitstun_state()
 	if state_check(TUMBLE): tumble_state()
 	if state_check(UKEMISS): ukemiss_state()
+	if state_check(UKEMIWAIT): ukemiwait_state()
 	if state_check(UKEMIATTACK): ukemiattack_state()
 	if state_check(UKEMINEUTRAL): ukemineutral_state()
 	if state_check(UKEMIBACK): ukemiback_state()
