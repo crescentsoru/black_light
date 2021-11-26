@@ -1112,17 +1112,7 @@ func tumble_state(): #test
 
 
 func ukemiss_state(): #AKA DownBound
-	if frame == 26:
-		if inputheld(left):
-			state(UKEMIBACK)
-		elif inputheld(right):
-			state(UKEMIFORTH)
-		elif (inputheld(jump) or inputheld(up) or inputheld(dodge)):
-			state(UKEMINEUTRAL)
-		elif (inputheld(attackA) or inputheld(attackB)):
-			state(UKEMIATTACK) #change to attack later
-		else:
-			state(UKEMIWAIT)
+	if frame == 26: state(UKEMIWAIT)
 #as far as I understand, the traction during missed tech is universal at 0.051, which is why I copy the traction code here
 	if abs(velocity.x) - 50 < 0:
 		velocity.x = 0
@@ -1135,7 +1125,7 @@ func ukemiss_state(): #AKA DownBound
 func ukemiwait_state():
 	
 	
-	if frame >= 26:
+	if frame >= 0:
 		if inputheld(left):
 			state(UKEMIBACK)
 		elif inputheld(right):
