@@ -75,7 +75,8 @@ func update_debug_display(caller,textobj='p1_debug'):
 	$UI_persistent.get_node(textobj).text = "gametime= " + str(global.gametime) \
 	 + "\nvelocity= " + str(caller.velocity) + "\nmotionqueue= " + caller.motionqueue \
 	 + "\nstate= " + str(caller.state) + "\nframe= " + str(caller.frame) + " imp= " + str(caller.impactstop) + "\nanalog= " + str(caller.analogstick) \
-	+ "\n" + str(caller.stocks) + " stocks  " + str(caller.percentage/10) + "%  " 
+	+ "\n" + str(caller.stocks) + " stocks  " + str(caller.percentage/10) + "%  " \
+	+ "\nattackstate = " + caller.attackstate
 
 
 func _physics_process(delta):

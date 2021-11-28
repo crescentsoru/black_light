@@ -4,6 +4,7 @@ extends Area2D
 var creator = [] #The owner of the hitbox
 var creatorobject = []
 var createdstate = 'jab'
+var stalingentry = 'jab'
 var collisions = []
 var frame = 0
 var fuckshit = 0

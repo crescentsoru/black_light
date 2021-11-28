@@ -30,6 +30,7 @@ const STAND = 'stand'
 const CROUCH = 'crouch' #AKA SquatWait
 const CROUCHSTART = 'crouchstart' #AKA Squat
 const CROUCHEXIT = 'crouchexit' #AKA SquatRV
+const CRAWL = 'crawl'
 const WALK = 'walk'
 const WALKBACK = 'walkback'
 const DASH = 'dash'
@@ -188,6 +189,10 @@ var invulns = { #There will later be a system with three different hurtboxes eac
 	'projectile':0,
 	'grab':0,}
 var invulntype = 'intangible'
+
+var attackstate = 'whiff' #used for cancels on hit/block, fixing the melee multihit staling bug
+var killed = false #for Puff lol
+var stalingqueue = []
 
 #ukemi = ground tech. Please do not change these values, there's a reason a certain game made ground tech frame data universal
 var ukemineutral_end = 26
@@ -660,6 +665,7 @@ func debug():
 func stand_state():
 	platform_drop()
 	if frame == 0:
+		attackstate = 'whiff'
 		refresh_air_options()
 	if inputheld(left,3) and not inputheld(up): #might decrease below to 2? idk send your feedback
 		state(DASH)
@@ -679,12 +685,14 @@ func stand_state():
 	apply_traction()
 
 func crouchstart_state(): #AKA Squat
+	if frame == 0: attackstate = 'whiff'
 	platform_drop()
 	if frame == 8:
 		state(CROUCH)
 	if inputpressed(jump): state(JUMPSQUAT)
 
 func crouch_state(): #AKA SquatWait
+	if frame == 0: attackstate = 'whiff'
 	platform_drop()
 	if inputpressed(left):
 		if direction == 1:
@@ -872,6 +880,7 @@ func turn_state():
 		state(STAND)
 
 func air_state():
+	if frame == 0: attackstate = 'whiff'
 	aerial_acceleration()
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
@@ -929,6 +938,7 @@ func jumpsquat_state():
 	apply_traction2x()
 func land_state():
 	if frame == 0:
+		attackstate = 'whiff'
 		refresh_air_options()
 	if frame == landinglag:
 		if inputheld(down): state(CROUCH) #looks better
@@ -1226,6 +1236,9 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	if hitboxdict.has('decline_scale'):
 		pass
 	else: pass
+	if hitboxdict.has('stalingentry'):
+		hitbox_inst.stalingentry = hitboxdict['stalingentry']
+	else: hitbox_inst.stalingentry = self.state
 	if hitboxdict.has('group'):
 		hitbox_inst.group = hitboxdict['group'] #you better know what you're doing. It's best to involve gametime in the definition 
 	else:
@@ -1431,6 +1444,8 @@ func get_hit(hitbox):
 			hit_invincibled(hitbox)
 		else:
 			hit_success(hitbox)
+			hitbox.creator.attackstate = 'hit'
+			stalingqueue_plus(hitbox.stalingentry)
 	if hitbox.hitboxtype_interaction == 'projectile':
 		if invulns['projectile'] > 0:
 			hit_invincibled(hitbox)
@@ -1487,11 +1502,35 @@ func invuln_processing():
 
 		if invulns[x] > 0:
 			invulns[x]-=1
-
 func fullinvuln(number):
 	invulns['strike'] = number
 	invulns['projectile'] = number
 	invulns['grab'] = number
+
+func stalingqueue_plus(movename):
+	if len(stalingqueue) < 9:
+		stalingqueue.push_back(movename)
+	else:
+		stalingqueue.pop_front()
+		stalingqueue.push_back(movename)
+
+
+		####ATTACKS####
+		#####
+
+func stateA(newstate): #please use this when switching to attack states
+	state(newstate)
+	attackstate='whiff' #it's necessary to change attackstate to whiff when state switching or else block pressure stops making sense
+
+
+
+func groundattack_ok():
+	if state in [STAND,CROUCHSTART,CROUCH,CROUCHEXIT,CRAWL,WALK,DASHEND,BRAKE,RUN]:
+		return true
+	else:
+		return false
+
+
 
 
 	##################
@@ -1656,6 +1695,10 @@ func platform_drop(): #ran in state machine, disables platforms if 1/3 is presse
 	elif (inputpressed(left) or inputpressed(right)) and inputheld(down):
 		disable_platform()
 		if not grounded: state(AIR)
+	if inputheld(down,900000,8):
+		disable_platform()
+		if not grounded: #If the platform disabling actually worked,
+			state(AIR)
 
 var collisions = []
 var in_platform = true #will trigger dfghjduhpfsdlnjk;hblhnjk;sdfgb;luhjkfsdg

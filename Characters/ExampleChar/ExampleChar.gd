@@ -31,25 +31,15 @@ func memehitbox_state():
 		})
 	apply_traction2x()
 	velocity.y = fall_accel
-
 	if frame == 32:
 		state(STAND)
-
-
-const GROUNDATTACKSTATES = [STAND,CROUCHSTART,CROUCH,CROUCHEXIT,WALK,DASHEND,BRAKE,RUN]
-
-func groundattack_ok():
-	if state in GROUNDATTACKSTATES:
-		return true
-	else:
-		return false
 
 func attackcode():
 	if groundattack_ok():
 		if motionqueue[-1] == "5" and inputpressed(attackA):
-			state(JAB)
+			stateA(JAB)
 		if motionqueue[-1] == "5" and inputpressed(attackB):
-			state(MEMEHITBOX)
+			stateA(MEMEHITBOX)
 
 func char_state_handler():
 	if state_check(JAB): jab_state()
@@ -57,8 +47,4 @@ func char_state_handler():
 
 
 func _physics_process(delta):
-	if state == STAND:
-		if motionqueue[-1] == "5" and inputpressed(attackA):
-			state(JAB)
-		if motionqueue[-1] == "5" and inputpressed(attackB):
-			state(MEMEHITBOX)
+	pass
