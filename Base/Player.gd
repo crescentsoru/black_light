@@ -1294,6 +1294,7 @@ func fuckingdie(): #highly placeholder
 	state(AIR)
 	velocity = Vector2(0,0)
 	refresh_air_options()
+	stalingqueue = []
 	hitqueue = []
 
 var currenthits = []
@@ -1436,20 +1437,21 @@ func hitqueue_plus(hit): #disallows hit groups that you've already been hit with
 		hitqueue.push_back(hit)
 
 func get_hit(hitbox):
-
 	hitqueue_plus(hitbox.group)
 	
 	if hitbox.hitboxtype_interaction == 'strike':
 		if invulns['strike'] > 0:
 			hit_invincibled(hitbox)
 		else:
-			hit_success(hitbox)
+			if hitbox.creator.attackstate == 'whiff': stalingqueue_plus(hitbox.stalingentry)
 			hitbox.creator.attackstate = 'hit'
-			stalingqueue_plus(hitbox.stalingentry)
+			hit_success(hitbox)
+
 	if hitbox.hitboxtype_interaction == 'projectile':
 		if invulns['projectile'] > 0:
 			hit_invincibled(hitbox)
 		else:
+			stalingqueue_plus(hitbox.stalingentry)
 			hit_success(hitbox)
 
 

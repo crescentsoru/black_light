@@ -39,7 +39,7 @@ var speedY = 0
 func _ready(): #happens BEFORE initialization in Player.gd apparently
 	process_priority = 5 #Don't change this. Makes hitbox physics_process code be processed earlier than character code, eliminating a frame of lag. 
 	connect( "area_entered", self, "on_area_enter")
-
+	connect( "area_exited", self, "on_area_exit")
 func update_path():
 	if path.get_point_count() > 0:
 		var length_percentage = path.get_baked_length()*(float(frame)/duration)
@@ -50,6 +50,9 @@ func update_path():
 func on_area_enter(area):
 	collisions.append(area)
 
+func on_area_exit(area):
+	if area in collisions: collisions.erase(area)
+	
 
 func impact(character): #called when you want to attack a character
 	if (not (self.group in character.hitqueue)):
@@ -104,7 +107,7 @@ func _physics_process(delta):
 		if hitsleft <= 0:
 			queue_free()
 	hitbox_collide()
-	collisions = []
+	#collisions = []
 	if hitboxtype_interaction != 'strike' or (hitboxtype_interaction == 'strike' and creator.impactstop == 0):
 		frame+=1
 	if frame == duration: queue_free()
