@@ -596,8 +596,7 @@ func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
 	hit_processing()
 	ukemi_input()
-
-	
+	if inputpressed(up): print (stalingqueue)
 	state_called = []
 	currenthits = []
 	lasthitbox = []
@@ -1200,12 +1199,15 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	hitbox_inst.direction = direction
 	
 	hitbox_inst.get_node('polygon').set_polygon(polygon) #Revolver Ocelot
-	hitbox_inst.damage = damage
+	hitbox_inst.damage_base = damage
 	hitbox_inst.kb_base = kb_base
 	hitbox_inst.kb_growth = kb_growth
 	hitbox_inst.angle = angle
 	hitbox_inst.duration = duration
-
+	if hitboxdict.has('stalingentry'):
+		hitbox_inst.stalingentry = hitboxdict['stalingentry']
+	else: hitbox_inst.stalingentry = self.state
+	hitbox_inst.damage = apply_staling(damage,hitbox_inst.stalingentry)
 	if hitboxdict.has('id'):
 		hitbox_inst.id = hitboxdict['id']
 	else: hitbox_inst.id = damage #The hitbox w higher damage will have higher id by default. 
@@ -1236,9 +1238,7 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	if hitboxdict.has('decline_scale'):
 		pass
 	else: pass
-	if hitboxdict.has('stalingentry'):
-		hitbox_inst.stalingentry = hitboxdict['stalingentry']
-	else: hitbox_inst.stalingentry = self.state
+
 	if hitboxdict.has('group'):
 		hitbox_inst.group = hitboxdict['group'] #you better know what you're doing. It's best to involve gametime in the definition 
 	else:
@@ -1285,6 +1285,9 @@ func rectangle(wid,hei):
 	return [Vector2(-1*wid,hei),Vector2(wid,hei),Vector2(wid,-1*hei),Vector2(-1*wid,-1*hei)]
 func square(wid):
 	return [Vector2(-1*wid,wid),Vector2(wid,wid),Vector2(wid,-1*wid),Vector2(-1*wid,-1*wid)]
+
+
+
 
 func fuckingdie(): #highly placeholder
 	position = spawnpoint
@@ -1443,7 +1446,7 @@ func get_hit(hitbox):
 		if invulns['strike'] > 0:
 			hit_invincibled(hitbox)
 		else:
-			if hitbox.creator.attackstate == 'whiff': stalingqueue_plus(hitbox.stalingentry)
+			if hitbox.creator.attackstate == 'whiff': hitbox.creator.stalingqueue_plus(hitbox.stalingentry) 
 			hitbox.creator.attackstate = 'hit'
 			hit_success(hitbox)
 
@@ -1451,7 +1454,7 @@ func get_hit(hitbox):
 		if invulns['projectile'] > 0:
 			hit_invincibled(hitbox)
 		else:
-			stalingqueue_plus(hitbox.stalingentry)
+			hitbox.creator.stalingqueue_plus(hitbox.stalingentry) #ok this func is a bit messy
 			hit_success(hitbox)
 
 
@@ -1515,6 +1518,15 @@ func stalingqueue_plus(movename):
 	else:
 		stalingqueue.pop_front()
 		stalingqueue.push_back(movename)
+
+func apply_staling(dmgvalue,entry):
+	var dmgmod = 0.0
+	var stalingtable = [0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09]
+	for x in len(stalingqueue): #I wrote this in Broken Levee and it works so I'm not bothering to rewrite it
+		if entry == stalingqueue[x]:
+			if (x + (9-len(stalingqueue))) == 8 and self.attackstate == 'hit': pass #what the fuck is any of this? 
+			else: dmgmod = dmgmod + stalingtable[x + (9-len(stalingqueue))]
+	return round(dmgvalue - (dmgvalue*dmgmod))
 
 
 		####ATTACKS####

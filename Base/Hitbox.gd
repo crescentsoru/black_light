@@ -107,7 +107,6 @@ func _physics_process(delta):
 		if hitsleft <= 0:
 			queue_free()
 	hitbox_collide()
-	#collisions = []
 	if hitboxtype_interaction != 'strike' or (hitboxtype_interaction == 'strike' and creator.impactstop == 0):
 		frame+=1
 	if frame == duration: queue_free()
