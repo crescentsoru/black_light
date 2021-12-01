@@ -14,7 +14,11 @@ func jab_state():
 		{'id':50,
 		'type':'strike', 'hitstopmod':1.0,
 		'path':[Vector2(96,-64)],})
-
+#	if frame == 3:
+#		create_hitbox(rectangle(128,128),65,30,95,50,9, \
+#		{'id':50,
+#		'type':'strike', 'hitstopmod':1.0,
+#		'path':[Vector2(96,-64)],})
 	if frame == 17:
 		state(STAND)
 	apply_traction2x()
@@ -30,7 +34,6 @@ func memehitbox_state():
 		'path':[Vector2(96,0)],
 		'speedX':1750, 'speedY':0, 'sprite':'red',
 		})
-		
 	apply_traction2x()
 	velocity.y = fall_accel
 	if frame == 32:

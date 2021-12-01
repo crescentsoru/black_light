@@ -597,7 +597,7 @@ func persistentlogic(): #contains code that is ran during impactstop.
 	hit_processing()
 	ukemi_input()
 	if inputpressed(up): print (stalingqueue)
-	state_called = []
+
 	currenthits = []
 	lasthitbox = []
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
@@ -1059,14 +1059,15 @@ func hitstungrounded_state():
 	apply_traction()
 
 func hitstun_state():
-	if frame == 1:
+
+	if frame == 0:
 		if grounded and hitstunknockback >= 80: #the only way you could be grounded and have tumble KB is if you're hit with a downward angle
 			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 / 1.2 #1.2 is the bounce multiplier
 			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20 / 1.2
 		else:
 			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
 			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
-		#move ASDI here later
+		#move ASDI here later?
 		
 	if frame >= 1: #does gravity get applied on frame == 1 or frame == 2?
 		velocity.y += fall_accel
@@ -1329,7 +1330,7 @@ func hit_processing():
 			if analogstick != Vector2(128,128):
 				if motionqueue[-1] != "5": 
 					move_and_collide(Vector2(stick_prev_normalized.y*35,stick_prev_normalized.x*-35)) #35 is arbitrary value, there'll be an update where I do accurate scaling later
-
+					print ("ASDI " + str(self.frame))
 	if currenthits != []:
 		nochange = false
 		while nochange == false:
@@ -1488,10 +1489,12 @@ func hit_success(hitbox):
 	invulns['grab'] = 0
 	#hitstop
 	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
-	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod) 
-
 	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
 		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
+		get_parent().get_parent().update_debug_display(hitbox.creator,hitbox.creator.playerindex+'_debug')
+	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod)
+	get_parent().get_parent().update_debug_display(self,self.playerindex+'_debug')
+
 func hit_blocked(hitbox):
 	pass
 
@@ -1689,7 +1692,7 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 	if state in landingstates:
 		check_landing()
 	collision_handler(delta)
-
+	state_called = []
 
 func ecb_up(): #returns the scene position of the top point of your pECB.
 	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[0]
@@ -1797,6 +1800,7 @@ func _physics_process(delta):
 
 
 func framechange(): #increments the frames, decrements the impactstop timer and stops decrementing frame if impactstop > 0.
+
 	if impactstop > 0:
 		impactstop-=1
 	if impactstop == 0:
@@ -1818,11 +1822,3 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 	#Heritage For The Future 
 #(note down things for the future that might break)
 
-#Impactstop concerns-
-#1. Disabling character logic during hitstop might get fucky if the game's expecting a release input.
-#most/all things should either expect a buffer release or a not inputheld, but still, this should be something I keep in mind.
-#continuing inputs and motionqueue during hitstop is non-negotiable, removing that is not a solution
-
-#2. SDI is easily implementable only for defenders.
-#Put the defender into hitstun first, add impactstop based on damage values.
-#Add ability to SDI if state == HITSTUN in persistentlogic().
