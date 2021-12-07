@@ -603,7 +603,7 @@ func persistentlogic(): #contains code that is ran during impactstop.
 	lasthitbox = []
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 
-	if state == HITSTUN and frame < 2: print ('end of persistentlogic ' + str(impactstop))
+
 
 
 
@@ -1047,7 +1047,16 @@ func waveland_state():
 		state(STAND)
 
 func hitstungrounded_state():
-	if frame == 1:
+	if frame == 0:
+			#TDI
+		var stick_prev_normalized = Vector2((analogstick_prev-Vector2(128,128)).normalized().y,(analogstick_prev-Vector2(128,128)).normalized().x)
+		var angle_as_vector = Vector2(cos(deg2rad(hitstunangle)),sin(deg2rad(hitstunangle)))
+		var perpendicular_distance = angle_as_vector.dot(stick_prev_normalized) #shoutouts to Numacow
+		hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
+			#ASDI
+		if analogstick_prev != Vector2(128,128):
+			asdi = Vector2(stick_prev_normalized.y*1,stick_prev_normalized.x*-1)
+
 		velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20
 		velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
 	if frame >= 1:
@@ -1060,7 +1069,6 @@ func hitstungrounded_state():
 	apply_traction()
 
 func hitstun_state():
-
 	if frame == 0:
 			#TDI
 		var stick_prev_normalized = Vector2((analogstick_prev-Vector2(128,128)).normalized().y,(analogstick_prev-Vector2(128,128)).normalized().x)
@@ -1069,25 +1077,27 @@ func hitstun_state():
 		hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
 			#ASDI
 		if analogstick_prev != Vector2(128,128):
-			asdi = Vector2(stick_prev_normalized.y*350,stick_prev_normalized.x*-350)
-			print ("ASDI " + str(self.frame) + "         " + str(asdi))
+			asdi = Vector2(stick_prev_normalized.y*1,stick_prev_normalized.x*-1) #multiplied by 35 in the asdi_move func
 
-
+ 
 		if grounded and hitstunknockback >= 80: #the only way you could be grounded and have tumble KB is if you're hit with a downward angle
 			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 / 1.2 #1.2 is the bounce multiplier
 			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20 / 1.2
 		else:
 			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
 			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
-		print ('hitstun 0')
+	if frame == 1:
+		print (collisions)
 
 	if frame >= 1: #does gravity get applied on frame == 1 or frame == 2?
-		velocity.y += fall_accel
-	if grounded and frame > 1:
-		if hitstunknockback < 80:
-			state(ATGHITSTUN) #air to ground transition, the thing that makes ASDI down good
-		else: #ukemi
-			ukemi_check()
+		if grounded:
+			if hitstunknockback < 80:
+				state(ATGHITSTUN) #air to ground transition, the thing that makes ASDI down good
+			else: #ukemi
+				ukemi_check()
+	
+	if frame > 0:velocity.y += fall_accel
+
 		
 	if frame == int(hitstunknockback*hitstunmod):  #is it int or round?
 		print (str(hitstunknockback) + " knockback units  " + str(hitstunangle) + " degrees")
@@ -1155,7 +1165,7 @@ func ukemiwait_state():
 		elif (inputheld(jump) or inputheld(up) or inputheld(dodge)):
 			state(UKEMINEUTRAL)
 		else:
-			state(UKEMIWAIT)
+			pass
 	if frame == 180: state(UKEMINEUTRAL)
 	#special miss tech traction
 	if abs(velocity.x) - 50 < 0:
@@ -1378,7 +1388,8 @@ func sdi(normal):
 var asdi = Vector2(0,0)
 func asdi_move():
 	if asdi != Vector2(0,0):
-		move_and_collide(asdi)
+		move_and_collide(Vector2(asdi.x*35,asdi.y*35))
+		position = position + Vector2(0,asdi.y)
 		asdi = Vector2(0,0)
 		
 
@@ -1474,7 +1485,7 @@ func get_hit(hitbox):
 
 func hit_success(hitbox):
 	hitstunknockback = (hitbox.kb_growth*0.01) *  \
-	((14*(percentage/10+hitbox.damage/10)*(hitbox.damage/10+2)) \
+	((14*(percentage/10.0+hitbox.damage/10.0)*(hitbox.damage/10.0+2)) \
 	/             (weight + 100)                 +18) \
 	+ hitbox.kb_base
 	percentage+=hitbox.damage
@@ -1709,7 +1720,7 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 			disable_platform() 
 	if state in landingstates:
 		check_landing()
-	collision_handler(delta)
+
 	state_called = []
 
 func ecb_up(): #returns the scene position of the top point of your pECB.
@@ -1747,7 +1758,8 @@ func collision_handler(delta): #For platform/floor/wall collision.
 	$pECB.current_ecbcheck() #lets you die, done before pECB update so it's essentially the same as checking current frame collision 
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
 	if not (prune_disabledplats($pECB.collisions) != self.collisions and rooted):
-		velocity = move_and_slide(velocity, Vector2(0, -1))
+		if impactstop == 0:
+			velocity = move_and_slide(velocity, Vector2(0, -1))
 		#var collision = move_and_collide(velocity/60)
 		#if collision:    #Remnants of me trying to switch to move_and_collide. It kinda sorta works but there's no reason to use it atm
 		#	if collision.collider.name.substr(0,5) == 'Floor' or collision.collider.name.substr(0,4) == 'Plat':
@@ -1810,7 +1822,7 @@ func _physics_process(delta):
 	if impactstop == 0:
 		actionablelogic(delta)
 		update_animation()
-
+	collision_handler(delta)
 
 #frame+=1. If hitstop > 0, don't increment frame
 	framechange()
@@ -1822,7 +1834,7 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 		frame+=1
 	if impactstop > 0:
 		impactstop-=1
-		print ('i' + str(impactstop))
+
 
 
 
