@@ -579,9 +579,10 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 	state_previous = state
 	state = newstate
 	frame = newframe
-	state_handler()
-	char_state_handler()
-	attackcode()
+	if impactstop == 0:
+		state_handler()
+		char_state_handler()
+		attackcode()
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 
 
@@ -602,7 +603,7 @@ func persistentlogic(): #contains code that is ran during impactstop.
 	lasthitbox = []
 	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
 
-
+	if state == HITSTUN and frame < 2: print ('end of persistentlogic ' + str(impactstop))
 
 
 
@@ -1061,14 +1062,25 @@ func hitstungrounded_state():
 func hitstun_state():
 
 	if frame == 0:
+			#TDI
+		var stick_prev_normalized = Vector2((analogstick_prev-Vector2(128,128)).normalized().y,(analogstick_prev-Vector2(128,128)).normalized().x)
+		var angle_as_vector = Vector2(cos(deg2rad(hitstunangle)),sin(deg2rad(hitstunangle)))
+		var perpendicular_distance = angle_as_vector.dot(stick_prev_normalized) #shoutouts to Numacow
+		hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
+			#ASDI
+		if analogstick_prev != Vector2(128,128):
+			asdi = Vector2(stick_prev_normalized.y*350,stick_prev_normalized.x*-350)
+			print ("ASDI " + str(self.frame) + "         " + str(asdi))
+
+
 		if grounded and hitstunknockback >= 80: #the only way you could be grounded and have tumble KB is if you're hit with a downward angle
 			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 / 1.2 #1.2 is the bounce multiplier
 			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20 / 1.2
 		else:
 			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
 			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
-		#move ASDI here later?
-		
+		print ('hitstun 0')
+
 	if frame >= 1: #does gravity get applied on frame == 1 or frame == 2?
 		velocity.y += fall_accel
 	if grounded and frame > 1:
@@ -1309,7 +1321,7 @@ func hit_processing():
 	if state == HITSTUN or state == HITSTUNGROUNDED:
 		var stick_normalized = Vector2((analogstick-Vector2(128,128)).normalized().y,(analogstick-Vector2(128,128)	).normalized().x)
 			#SDI
-		if impactstop > 0: #Placed before the getting hit code so that first frame of hitstop couldn't SDI
+		if impactstop >= 0 and frame == 0: #Placed before the getting hit code so that first frame of hitstop couldn't SDI
 			if analogstick != analogstick_prev: #all of this is kind of a mess but it works 
 				if (analogstick_prev.x == 128 or analogstick_prev.y == 128):
 					if not (analogzone(2) or analogzone(4) or analogzone(6) or analogzone(8)):
@@ -1319,18 +1331,10 @@ func hit_processing():
 						sdi(stick_normalized)
 
 
-		if impactstop == 0 and frame == 1:
-		#shoutouts to Numacow for babying me through perpendicular distance calculation
-			#TDI
-			var stick_prev_normalized = Vector2((analogstick_prev-Vector2(128,128)).normalized().y,(analogstick_prev-Vector2(128,128)).normalized().x)
-			var angle_as_vector = Vector2(cos(deg2rad(hitstunangle)),sin(deg2rad(hitstunangle)))
-			var perpendicular_distance = angle_as_vector.dot(stick_prev_normalized)
-			hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
-			#ASDI
-			if analogstick != Vector2(128,128):
-				if motionqueue[-1] != "5": 
-					move_and_collide(Vector2(stick_prev_normalized.y*35,stick_prev_normalized.x*-35)) #35 is arbitrary value, there'll be an update where I do accurate scaling later
-					print ("ASDI " + str(self.frame))
+		if impactstop == 0 and frame == 0:
+			pass
+
+
 	if currenthits != []:
 		nochange = false
 		while nochange == false:
@@ -1368,6 +1372,15 @@ func sdi(normal):
 #have fun with this 
 
 
+
+#I made this  because it is necessary to have asdi down move your character after the hitstun impulse for floorhugs to work.
+#For that to happen, the asdi needs to move you in collision_handler, as there's no way to do it in the state machine.
+var asdi = Vector2(0,0)
+func asdi_move():
+	if asdi != Vector2(0,0):
+		move_and_collide(asdi)
+		asdi = Vector2(0,0)
+		
 
 func analogzone(dir): #I made it this way cause it feels like this will be useful later, I doubt that though
 	if dir == 1: #same zones
@@ -1472,6 +1485,17 @@ func hit_success(hitbox):
 	if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
 		hitstunangle = 90 + -1*(hitbox.angle-90)
 
+
+	invulns['strike'] = 0
+	invulns['projectile'] = 0
+	invulns['grab'] = 0
+	#hitstop
+
+	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
+		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
+		get_parent().get_parent().update_debug_display(hitbox.creator,hitbox.creator.playerindex+'_debug')
+	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod)
+
 	if (hitbox.angle >= 180 or hitbox.angle == 0):
 		if grounded:
 			if hitstunknockback < 80:
@@ -1483,17 +1507,11 @@ func hit_success(hitbox):
 	else:
 		grounded = false
 		state(HITSTUN)
-
-	invulns['strike'] = 0
-	invulns['projectile'] = 0
-	invulns['grab'] = 0
-	#hitstop
 	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
-	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
-		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
-		get_parent().get_parent().update_debug_display(hitbox.creator,hitbox.creator.playerindex+'_debug')
-	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod)
+
+
 	get_parent().get_parent().update_debug_display(self,self.playerindex+'_debug')
+
 
 func hit_blocked(hitbox):
 	pass
@@ -1734,6 +1752,7 @@ func collision_handler(delta): #For platform/floor/wall collision.
 		#if collision:    #Remnants of me trying to switch to move_and_collide. It kinda sorta works but there's no reason to use it atm
 		#	if collision.collider.name.substr(0,5) == 'Floor' or collision.collider.name.substr(0,4) == 'Plat':
 		#		collision = move_and_collide(collision.remainder.slide(collision.normal))
+	asdi_move()
 	if velocity.y < 0: disable_platform()
 	for x in $pECB.collisions: #post velocity move check for pECB
 		if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly
@@ -1741,7 +1760,6 @@ func collision_handler(delta): #For platform/floor/wall collision.
 				if not in_platform and velocity.y >= 0 and self.position.y < x.position.y:
 					pecbgrounded = true
 					enable_platform()
-
 		if x.name.substr(0,5) == 'Floor':
 			pecbgrounded = true
 			disable_platform() #Colliding with the floor in any way will disable platforms. Is this even ok? Haven't found issues so far
@@ -1800,11 +1818,12 @@ func _physics_process(delta):
 
 
 func framechange(): #increments the frames, decrements the impactstop timer and stops decrementing frame if impactstop > 0.
-
-	if impactstop > 0:
-		impactstop-=1
 	if impactstop == 0:
 		frame+=1
+	if impactstop > 0:
+		impactstop-=1
+		print ('i' + str(impactstop))
+
 
 
 
