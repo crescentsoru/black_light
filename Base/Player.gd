@@ -1484,10 +1484,18 @@ func get_hit(hitbox):
 
 
 func hit_success(hitbox):
-	hitstunknockback = (hitbox.kb_growth*0.01) *  \
-	((14*(percentage/10.0+hitbox.damage/10.0)*(hitbox.damage/10.0+2)) \
-	/             (weight + 100)                 +18) \
-	+ hitbox.kb_base
+#	hitstunknockback = (hitbox.kb_growth*0.01) *  \
+#	((14*(int(percentage/10)+hitbox.damage/10)*(hitbox.damage/10+2)) \
+#	/             (weight + 100)                 +18) \
+#	+ hitbox.kb_base
+#old formula which did not take into account base damage along w staled damage
+
+
+	hitstunknockback = (hitbox.kb_growth*0.01) * \
+	((1.4 * (((0.05 * ((hitbox.damage_base/10) * ((hitbox.damage/10) + int(percentage/10)))) + ((hitbox.damage/10) + int(percentage/10) ) * \
+	0.1 ) * (2.0 - (2.0 * (weight * 0.01) ) / (1.0 + (weight*0.01))))) + 18 ) + hitbox.kb_base
+
+
 	percentage+=hitbox.damage
 	hitstunmod = hitbox.hitstunmod
 	hitstunknockdown = hitbox.knockdowntype

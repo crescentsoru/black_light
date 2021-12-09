@@ -13,7 +13,7 @@ var direction = 1
 
 var damage = 3
 var damage_base = 3 #the value you use if you don't want staling to mess with things
-var kb_base = 20
+var kb_base = 15
 var kb_growth = 100
 var angle = 30
 var duration = 10
