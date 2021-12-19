@@ -42,9 +42,9 @@ func memehitbox_state():
 func attackcode():
 	if groundattack_ok():
 		if motionqueue[-1] == "5" and inputpressed(attackA):
-			stateA(JAB)
+			state(JAB)
 		if motionqueue[-1] == "5" and inputpressed(attackB):
-			stateA(MEMEHITBOX)
+			state(MEMEHITBOX)
 
 func char_state_handler():
 	if state_check(JAB): jab_state()

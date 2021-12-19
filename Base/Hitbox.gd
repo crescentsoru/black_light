@@ -29,6 +29,13 @@ var hitboxpriority = 0
 var knockdowntype = 'normal' #allows for different behavior when a character hits the ground.
 var hitstunmod = 0.4 #don't change this unless you know wtf you're doing. Nintendo sure didn't 
 
+#blocking
+var blockstopmod = 1.0
+var blockstopmod_self = 1.0
+
+var blockstun_min = 3
+var blockstun_mult = 0.6
+
 #projectile specific
 var hitsleft = 1
 var speedX = 100

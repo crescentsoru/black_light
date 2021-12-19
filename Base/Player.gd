@@ -168,7 +168,7 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH] #Rooted state. Ground attacks should be this.
+var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN] #Rooted state. Ground attacks should be this.
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
 var recoverystates = [UPB] #these states will not be usable if you have exhausted your air options
@@ -177,8 +177,11 @@ var recoverystates = [UPB] #these states will not be usable if you have exhauste
 	#Pressure vars
 var weight = 100
 
-var blocking = false #Unused
+var blocking = true #Unused
+var blockstunframes = 0
+var shieldhealth = 1000
 var extrablockstun = 0 #Don't use
+
 var hitstunknockback = 0.0 #used on startup in hitstun to save the end frame of hitstun
 var hitstunmod = 0.4 #do not
 var hitstunknockdown = 'normal' #normal= techroll after tumble, 'okizeme'= enter standup state
@@ -579,6 +582,7 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 	state_previous = state
 	state = newstate
 	frame = newframe
+	attackstate='whiff' #it's necessary to change attackstate to whiff when state switching or else block pressure stops making sense
 	if impactstop == 0:
 		state_handler()
 		char_state_handler()
@@ -1046,6 +1050,14 @@ func waveland_state():
 	if frame == 10:
 		state(STAND)
 
+	#Pressure
+
+func blockstun_state():
+	if frame >= blockstunframes:
+		if grounded: state(STAND)
+		else: state(AIR)
+
+
 func hitstungrounded_state():
 	if frame == 0:
 			#TDI
@@ -1275,7 +1287,7 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		hitbox_inst.element = hitboxdict['element']
 	else: hitbox_inst.element = 'normal'
 	if hitboxdict.has('hitstopmod'):
-		if hitboxdict.has('hitstopmod_self'):
+		if hitboxdict.has('hitstopmod_self'): #note to self: actually test all this crap
 			hitbox_inst.hitstopmod = hitboxdict['hitstopmod']
 			hitbox_inst.hitstopmod_self = hitboxdict['hitstopmod_self']
 		else:
@@ -1288,6 +1300,18 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		else:
 			hitbox_inst.hitstopmod = 1.0
 			hitbox_inst.hitstopmod_self = 1.0
+	if hitboxdict.has('blockstopmod'):
+		if hitboxdict.has('blockstopmod_self'): #note to self: actually test all this crap
+			hitbox_inst.blockstopmod = hitboxdict['blockstoppmod']
+			hitbox_inst.blockstopmod_self = hitboxdict['blockstopmod_self']
+		else:
+			hitbox_inst.blockstopmod = hitboxdict['blockstopmod']
+			hitbox_inst.blockstopmod = hitboxdict['blockstopmod']
+	else:
+		hitbox_inst.blockstopmod = hitbox_inst.hitstopmod
+		hitbox_inst.blockstopmod_self = hitbox_inst.blockstopmod_self
+	if hitboxdict.has('blockstun_min'): hitbox_inst.blockstun_min = hitboxdict['blockstun_min']
+	if hitboxdict.has('blockstun_mult'): hitbox_inst.blockstun_mult = hitboxdict['blockstun_mult']	
 	#Projectile
 	if hitboxdict.has('hitsleft'):
 		hitbox_inst.hitsleft = hitboxdict['hitsleft']
@@ -1470,6 +1494,9 @@ func get_hit(hitbox):
 	if hitbox.hitboxtype_interaction == 'strike':
 		if invulns['strike'] > 0:
 			hit_invincibled(hitbox)
+		elif blocking:
+			hitbox.creator.attackstate = 'block'
+			hit_blocked(hitbox)
 		else:
 			if hitbox.creator.attackstate == 'whiff': hitbox.creator.stalingqueue_plus(hitbox.stalingentry) 
 			hitbox.creator.attackstate = 'hit'
@@ -1478,6 +1505,9 @@ func get_hit(hitbox):
 	if hitbox.hitboxtype_interaction == 'projectile':
 		if invulns['projectile'] > 0:
 			hit_invincibled(hitbox)
+		elif blocking:
+			hitbox.creator.attackstate = 'block'
+			hit_blocked(hitbox)
 		else:
 			hitbox.creator.stalingqueue_plus(hitbox.stalingentry) #ok this func is a bit messy
 			hit_success(hitbox)
@@ -1531,7 +1561,18 @@ func hit_success(hitbox):
 
 
 func hit_blocked(hitbox):
-	pass
+	
+	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
+		hitbox.creator.impactstop = int((hitbox.damage_base/30 +6)*hitbox.blockstopmod_self)
+	impactstop = int((hitbox.damage_base/30 + 6)*hitbox.blockstopmod)
+
+	blockstunframes = int((hitbox.damage_base / 10 * hitbox.blockstun_mult) + hitbox.blockstun_min) 
+	grabinvuln(blockstunframes+7) #prevents unblockables and dumbass mixups
+	state(BLOCKSTUN)
+	update_animation()
+
+
+
 
 func hit_invincibled(hitbox):
 	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
@@ -1549,6 +1590,12 @@ func fullinvuln(number):
 	if invulns['strike'] < number: invulns['strike'] = number
 	if invulns['projectile'] < number: invulns['projectile'] = number
 	if invulns['grab'] < number: invulns['grab'] = number
+
+func strikeinvuln(number): if invulns['strike'] < number: invulns['strike'] = number
+func projectileinvuln(number): if invulns['projectile'] < number: invulns['projectile'] = number
+func grabinvuln(number): if invulns['grab'] < number: invulns['grab'] = number
+
+
 
 func stalingqueue_plus(movename):
 	if len(stalingqueue) < 9:
@@ -1570,9 +1617,6 @@ func apply_staling(dmgvalue,entry):
 		####ATTACKS####
 		#####
 
-func stateA(newstate): #please use this when switching to attack states
-	state(newstate)
-	attackstate='whiff' #it's necessary to change attackstate to whiff when state switching or else block pressure stops making sense
 
 
 
@@ -1609,6 +1653,7 @@ func state_handler():
 	if state_check(BAIRDASH): bairdash_state()
 	if state_check(AIRDODGE): airdodge_state()
 	if state_check(WAVELAND): waveland_state()
+	if state_check(BLOCKSTUN): blockstun_state()
 	if state_check(HITSTUN): hitstun_state()
 	if state_check(HITSTUNGROUNDED): hitstungrounded_state()
 	if state_check(ATGHITSTUN): atghitstun_state()
