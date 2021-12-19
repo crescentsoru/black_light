@@ -49,6 +49,9 @@ func update_path():
 
 func on_area_enter(area):
 	collisions.append(area)
+	if area.name.substr(0,7) == 'Hurtbox':
+		area.get_parent().process_priority = 89 #Do not change this!!! Fixes the impactstop offset bug, sort of 
+		creator.process_priority = 109
 
 func on_area_exit(area):
 	if area in collisions: collisions.erase(area)

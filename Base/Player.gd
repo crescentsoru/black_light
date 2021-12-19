@@ -1484,12 +1484,6 @@ func get_hit(hitbox):
 
 
 func hit_success(hitbox):
-#	hitstunknockback = (hitbox.kb_growth*0.01) *  \
-#	((14*(int(percentage/10)+hitbox.damage/10)*(hitbox.damage/10+2)) \
-#	/             (weight + 100)                 +18) \
-#	+ hitbox.kb_base
-#old formula which did not take into account base damage along w staled damage
-
 
 	hitstunknockback = (hitbox.kb_growth*0.01) * \
 	((1.4 * (((0.05 * ((hitbox.damage_base/10) * ((hitbox.damage/10) + int(percentage/10)))) + ((hitbox.damage/10) + int(percentage/10) ) * \
@@ -1499,11 +1493,16 @@ func hit_success(hitbox):
 	percentage+=hitbox.damage
 	hitstunmod = hitbox.hitstunmod
 	hitstunknockdown = hitbox.knockdowntype
-	if hitbox.creator.position.x < position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==1):
-		hitstunangle = hitbox.angle
-	if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
-		hitstunangle = 90 + -1*(hitbox.angle-90)
-
+	if hitbox.hitboxtype == 'strike':
+		if hitbox.creator.position.x < position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==1):
+			hitstunangle = hitbox.angle
+		if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
+			hitstunangle = 90 + -1*(hitbox.angle-90)
+	if hitbox.hitboxtype == 'projectile':
+		if hitbox.position.x < position.x:
+			hitstunangle = hitbox.angle
+		else:
+			hitstunangle = 90 + -1*(hitbox.angle-90)
 
 	invulns['strike'] = 0
 	invulns['projectile'] = 0
@@ -1512,7 +1511,6 @@ func hit_success(hitbox):
 
 	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
 		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
-		get_parent().get_parent().update_debug_display(hitbox.creator,hitbox.creator.playerindex+'_debug')
 	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod)
 
 	if (hitbox.angle >= 180 or hitbox.angle == 0):
@@ -1529,7 +1527,7 @@ func hit_success(hitbox):
 	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
 
 
-	get_parent().get_parent().update_debug_display(self,self.playerindex+'_debug')
+
 
 
 func hit_blocked(hitbox):
@@ -1548,9 +1546,9 @@ func invuln_processing():
 		if invulns[x] > 0:
 			invulns[x]-=1
 func fullinvuln(number):
-	invulns['strike'] = number
-	invulns['projectile'] = number
-	invulns['grab'] = number
+	if invulns['strike'] < number: invulns['strike'] = number
+	if invulns['projectile'] < number: invulns['projectile'] = number
+	if invulns['grab'] < number: invulns['grab'] = number
 
 func stalingqueue_plus(movename):
 	if len(stalingqueue) < 9:
@@ -1565,7 +1563,7 @@ func apply_staling(dmgvalue,entry):
 	for x in len(stalingqueue): #I wrote this in Broken Levee and it works so I'm not bothering to rewrite it
 		if entry == stalingqueue[x]:
 			if (x + (9-len(stalingqueue))) == 8 and self.attackstate == 'hit': pass #what the fuck is any of this? 
-			else: dmgmod = dmgmod + stalingtable[x + (9-len(stalingqueue))]
+			else:dmgmod = dmgmod + stalingtable[x + (9-len(stalingqueue))]
 	return round(dmgvalue - (dmgvalue*dmgmod))
 
 
