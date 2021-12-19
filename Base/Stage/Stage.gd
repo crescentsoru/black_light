@@ -32,7 +32,7 @@ func initialize_players():
 		get_node("Stage").call_deferred('add_child',p1_instance) #I forgot why call_deferred was good I'm just copying stuff
 		p1_instance.position = global.spawn_1st + self.position
 		p1_instance.spawnpoint = p1_instance.position
-		p1_instance.playerindex = "p1"
+		p1_instance.playerindex = 1
 		p1_instance.initialize_buttons(global.p1_data[3])
 		p1_instance.stocks = global.stockcount
 	if global.p2_data[0] != '':
@@ -41,7 +41,7 @@ func initialize_players():
 		get_node("Stage").call_deferred('add_child',p2_instance)
 		p2_instance.position = global.spawn_2nd + self.position
 		p2_instance.spawnpoint = p2_instance.position
-		p2_instance.playerindex = "p2"
+		p2_instance.playerindex = 2
 		p2_instance.initialize_buttons(global.p2_data[3])
 		p2_instance.stocks = global.stockcount
 	if global.p3_data[0] != '':
@@ -50,7 +50,7 @@ func initialize_players():
 		get_node("Stage").call_deferred('add_child',p3_instance)
 		p3_instance.position = global.spawn_3rd + self.position
 		p3_instance.spawnpoint = p3_instance.position
-		p3_instance.playerindex = "p3"
+		p3_instance.playerindex = 3
 		p3_instance.initialize_buttons(global.p3_data[3])
 		p3_instance.stocks = global.stockcount
 	if global.p4_data[0] != '':
@@ -60,7 +60,7 @@ func initialize_players():
 		get_node("Stage").call_deferred('add_child',p4_instance)
 		p4_instance.position = global.spawn_4th + self.position
 		p4_instance.spawnpoint = p4_instance.position
-		p4_instance.playerindex = "p4"
+		p4_instance.playerindex = 4
 		p4_instance.initialize_buttons(global.p4_data[3])
 		p4_instance.stocks = global.stockcount
 

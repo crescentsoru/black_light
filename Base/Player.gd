@@ -3,7 +3,7 @@ extends KinematicBody2D
 var charactercode = '' #the same name as the folder/tscn in Characters/
 var charactername = 'pass'
 var characterdescription = 'my jambo jet flies cheerfully'
-var playerindex = ''
+var playerindex = 0
 var gamertag = 'thegamer69'
 var maincharacter = true #if false, then it's probably a Nana thing
 var spawnpoint = Vector2(0,0)
@@ -515,9 +515,9 @@ func inputjustreleased(inp): #button released this frame, no buffer
 func replayprep(): #called on _ready to make your character controllable or not
 	if global.replaying == true and global.fullreplay.has('p_data'): #Will still crash if it has garbage data, but why would it? 
 		controllable = false
-		if playerindex == "p1": currentreplay = global.fullreplay['p_data'][0][4]
-		if playerindex == "p2": currentreplay = global.fullreplay['p_data'][1][4]
-		if playerindex == "p3": currentreplay = global.fullreplay['p_data'][2][4]
+		if playerindex == 1: currentreplay = global.fullreplay['p_data'][0][4]
+		if playerindex == 2: currentreplay = global.fullreplay['p_data'][1][4]
+		if playerindex == 3: currentreplay = global.fullreplay['p_data'][2][4]
 
 var motionqueue = "5"
 var motiontimer = 8
@@ -583,7 +583,7 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 		state_handler()
 		char_state_handler()
 		attackcode()
-	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
+	if maincharacter: get_parent().get_parent().update_debug_display(self,"p" + str(playerindex)+'_debug')
 
 
 
@@ -601,7 +601,7 @@ func persistentlogic(): #contains code that is ran during impactstop.
 
 	currenthits = []
 	lasthitbox = []
-	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
+	if maincharacter: get_parent().get_parent().update_debug_display(self,"p" + str(playerindex)+'_debug')
 
 
 
@@ -647,9 +647,9 @@ func debug():
 		global.replaying = false
 		global.resetgame() #wipes the replay file
 	if Input.is_action_just_pressed("d_play"):
-		if playerindex == "p1": global.p1_data[4] = currentreplay
-		if playerindex == "p2": global.p2_data[4] = currentreplay
-		if playerindex == "p3": global.p3_data[4] = currentreplay
+		if playerindex == 1: global.p1_data[4] = currentreplay
+		if playerindex == 2: global.p2_data[4] = currentreplay
+		if playerindex == 3: global.p3_data[4] = currentreplay
 
 		global.replaying = true
 		global.compilereplay()
@@ -1451,7 +1451,7 @@ func sorthitbox_byparam(param):
 			if param == 'damage' and y.damage > x.damage:
 				lasthitbox.erase(x)
 				return
-			if param == 'port' and int(y.creator.playerindex[1]) > int(x.creator.playerindex[1]): #this is fucked up 
+			if param == 'port' and y.creator.playerindex > x.creator.playerindex: #this is fucked up 
 				lasthitbox.erase(x) #lengroup check is kind of a port check cause p1 doesn't have additional symbols after its name
 				return
 	nochange = true
@@ -1711,7 +1711,7 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 	state_handler()
 	char_state_handler()
 	attackcode()
-	if maincharacter: get_parent().get_parent().update_debug_display(self,playerindex+'_debug')
+	if maincharacter: get_parent().get_parent().update_debug_display(self,"p" + str(playerindex)+'_debug')
 	if state in rootedstates:
 		velocity.y = fall_accel #makes it so that you don't fall with full fall speed when you slide off after a rooted state.  
 		rooted = true #^^^Not doing this at all will fuck the collision needed to make rooted states work in the first place.
