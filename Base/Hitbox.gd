@@ -34,7 +34,10 @@ var blockstopmod = 1.0
 var blockstopmod_self = 1.0
 
 var blockstun_min = 3
-var blockstun_mult = 0.6
+var blockstun_mult = 0.7
+
+var pushback = 700 #only on block
+
 
 #projectile specific
 var hitsleft = 1

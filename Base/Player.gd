@@ -56,6 +56,7 @@ const WALLJUMP = 'walljump'
 const SHIELD = 'shield'
 const SHIELDRELEASE = 'shieldrelease'
 const SHIELDBREAK = 'shieldbreak'
+const BLOCKBUTTON = 'blockbutton'
 const BLOCKSTUN = 'blockstun'
 const HITSTUN = 'hitstun'
 const HITSTUNGROUNDED = 'hitstungrounded'
@@ -171,13 +172,14 @@ var landinglag = 4 #changed all the time in states that can land.
 var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN] #Rooted state. Ground attacks should be this.
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
+var blockingstates = [BLOCKBUTTON,SHIELD,CROUCH,CROUCHSTART,BLOCKSTUN]
 var recoverystates = [UPB] #these states will not be usable if you have exhausted your air options
 
 
 	#Pressure vars
 var weight = 100
 
-var blocking = true #Unused
+var blocking = true
 var blockstunframes = 0
 var shieldhealth = 1000
 var extrablockstun = 0 #Don't use
@@ -1056,6 +1058,9 @@ func blockstun_state():
 	if frame >= blockstunframes:
 		if grounded: state(STAND)
 		else: state(AIR)
+	
+	apply_tractionspec(50) #cool design decision so that block pressure could be actually consistent :) 
+	
 
 
 func hitstungrounded_state():
@@ -1157,14 +1162,8 @@ func tumble_state(): #test
 
 func ukemiss_state(): #AKA DownBound
 	if frame == 26: state(UKEMIWAIT)
-#as far as I understand, the traction during missed tech is universal at 0.051, which is why I copy the traction code here
-	if abs(velocity.x) - 50 < 0:
-		velocity.x = 0
-	else:
-		if velocity.x > 0:
-			velocity.x-=50
-		else:
-			velocity.x+=50
+#as far as I understand, the traction during missed tech is universal at 0.051
+	apply_tractionspec(50)
 
 func ukemiwait_state():
 	
@@ -1311,7 +1310,9 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		hitbox_inst.blockstopmod = hitbox_inst.hitstopmod
 		hitbox_inst.blockstopmod_self = hitbox_inst.blockstopmod_self
 	if hitboxdict.has('blockstun_min'): hitbox_inst.blockstun_min = hitboxdict['blockstun_min']
-	if hitboxdict.has('blockstun_mult'): hitbox_inst.blockstun_mult = hitboxdict['blockstun_mult']	
+	if hitboxdict.has('blockstun_mult'): hitbox_inst.blockstun_mult = hitboxdict['blockstun_mult']
+	if hitboxdict.has('pushback'): hitbox_inst.pushback = hitboxdict['pushback']
+	else: hitbox_inst.pushback = 200 + hitbox_inst.damage_base * 7.5
 	#Projectile
 	if hitboxdict.has('hitsleft'):
 		hitbox_inst.hitsleft = hitboxdict['hitsleft']
@@ -1561,12 +1562,27 @@ func hit_success(hitbox):
 
 
 func hit_blocked(hitbox):
+	#Pushback
+	if hitbox.hitboxtype == 'strike':
+		if hitbox.creator.position.x < position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==1):
+			velocity.x += hitbox.pushback
+		if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
+			velocity.x -= hitbox.pushback
+	if hitbox.hitboxtype == 'projectile':
+		if hitbox.position.x < position.x:
+			velocity.x += hitbox.pushback
+		else:
+			velocity.x -= hitbox.pushback
+	
 	
 	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
-		hitbox.creator.impactstop = int((hitbox.damage_base/30 +6)*hitbox.blockstopmod_self)
-	impactstop = int((hitbox.damage_base/30 + 6)*hitbox.blockstopmod)
+		hitbox.creator.impactstop = int((hitbox.damage_base/30 +3)*hitbox.blockstopmod_self)
+	impactstop = int((hitbox.damage_base/30 + 3)*hitbox.blockstopmod)
 
-	blockstunframes = int((hitbox.damage_base / 10 * hitbox.blockstun_mult) + hitbox.blockstun_min) 
+
+
+	blockstunframes = int((hitbox.damage_base / 10 * hitbox.blockstun_mult) + hitbox.blockstun_min)
+	
 	grabinvuln(blockstunframes+7) #prevents unblockables and dumbass mixups
 	state(BLOCKSTUN)
 	update_animation()
@@ -1726,6 +1742,16 @@ func apply_traction2x():
 				velocity.x = walk_max * -1
 		else: apply_traction()
 
+func apply_tractionspec(value):
+	#when you want a specific trend towards x=0 that isn't based on the traction value at all
+	if abs(velocity.x) - value < 0:
+		velocity.x = 0
+	else:
+		if velocity.x > 0:
+			velocity.x-=value
+		else:
+			velocity.x+=value
+
 
 func apply_gravity(): #this is called in ground states as well to prevent bugs regarding collision not working if you don't have a
 #downward vector at all times.
@@ -1768,9 +1794,12 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 					velocity.x = drift_max
 				else: velocity.x = drift_max * -1
 			state(AIR)
-			disable_platform() 
+			disable_platform()
 	if state in landingstates:
 		check_landing()
+	if state in blockingstates:
+		blocking = true
+	else: blocking = false
 
 	state_called = []
 
