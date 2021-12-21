@@ -181,7 +181,9 @@ var weight = 100
 
 var blocking = true
 var blockstunframes = 0
-var shieldhealth = 1000
+var guardhealth = 1000 #Shield/block health
+var guardhealth_max = 1000
+var guardhealth_passive = 1 #amount you recover passively when not blocking
 var extrablockstun = 0 #Don't use
 
 var hitstunknockback = 0.0 #used on startup in hitstun to save the end frame of hitstun
@@ -1152,7 +1154,7 @@ func ukemi_ok():
 	if ukemi_buffer < 20: return true
 	else: return false
 
-func tumble_state(): #test
+func tumble_state():
 	if inputpressed(jump): doublejump()
 	#inputs
 	
@@ -1291,35 +1293,33 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 			hitbox_inst.hitstopmod_self = hitboxdict['hitstopmod_self']
 		else:
 			hitbox_inst.hitstopmod = hitboxdict['hitstopmod']
-			hitbox_inst.hitstopmod = hitboxdict['hitstopmod']
+			hitbox_inst.hitstopmod_self = hitboxdict['hitstopmod']
 	else:
-		if hitbox_inst.element == 'electric': #untested
-			hitbox_inst.hitstopmod = 1.5
-			hitbox_inst.hitstopmod_self = 1.0
-		else:
-			hitbox_inst.hitstopmod = 1.0
-			hitbox_inst.hitstopmod_self = 1.0
+		if hitboxdict.has('hitstopmod_self'):
+			hitbox_inst.hitstopmod_self = hitboxdict['hitstopmod_self']
+		else: #electric hitstop buff will only happen if both modifiers are unspecified
+			if hitbox_inst.element == 'electric': #untested
+				hitbox_inst.hitstopmod = 1.5
+				hitbox_inst.hitstopmod_self = 1.0
+
 	if hitboxdict.has('blockstopmod'):
-		if hitboxdict.has('blockstopmod_self'): #note to self: actually test all this crap
-			hitbox_inst.blockstopmod = hitboxdict['blockstoppmod']
+		if hitboxdict.has('blockstopmod_self'): #untested
+			hitbox_inst.blockstopmod = hitboxdict['blockstopmod']
 			hitbox_inst.blockstopmod_self = hitboxdict['blockstopmod_self']
 		else:
 			hitbox_inst.blockstopmod = hitboxdict['blockstopmod']
-			hitbox_inst.blockstopmod = hitboxdict['blockstopmod']
+			hitbox_inst.blockstopmod_self = hitboxdict['blockstopmod']
 	else:
-		hitbox_inst.blockstopmod = hitbox_inst.hitstopmod
-		hitbox_inst.blockstopmod_self = hitbox_inst.blockstopmod_self
+		if hitboxdict.has('blockstopmod_self'): #if only self mod is specified
+			hitbox_inst.blockstopmod_self = hitboxdict['blockstopmod_self']
 	if hitboxdict.has('blockstun_min'): hitbox_inst.blockstun_min = hitboxdict['blockstun_min']
 	if hitboxdict.has('blockstun_mult'): hitbox_inst.blockstun_mult = hitboxdict['blockstun_mult']
 	if hitboxdict.has('pushback'): hitbox_inst.pushback = hitboxdict['pushback']
 	else: hitbox_inst.pushback = 200 + hitbox_inst.damage_base * 7.5
 	#Projectile
-	if hitboxdict.has('hitsleft'):
-		hitbox_inst.hitsleft = hitboxdict['hitsleft']
-	if hitboxdict.has('speedX'):
-		hitbox_inst.speedX = hitboxdict['speedX']
-	if hitboxdict.has('speedY'):
-		hitbox_inst.speedY = hitboxdict['speedY']
+	if hitboxdict.has('hitsleft'): hitbox_inst.hitsleft = hitboxdict['hitsleft']
+	if hitboxdict.has('speedX'): hitbox_inst.speedX = hitboxdict['speedX']
+	if hitboxdict.has('speedY'): hitbox_inst.speedY = hitboxdict['speedY']
 	if hitboxdict.has('sprite'): #technically can be used for anything but projectiles are making the most out of this
 		hitbox_inst.get_node('hitboxsprite').animation = hitboxdict['sprite']
 	else:#this probably results in interpreter lag memes but only for 1 frame hopefully
@@ -1327,6 +1327,12 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	if hitboxdict.has('rage_growth'): #lol
 		pass
 	else: pass
+
+
+
+
+
+
 
 	#shorthands for polygon creation
 func rectangle(wid,hei):
@@ -1580,8 +1586,8 @@ func hit_blocked(hitbox):
 	impactstop = int((hitbox.damage_base/30 + 3)*hitbox.blockstopmod)
 
 
-
 	blockstunframes = int((hitbox.damage_base / 10 * hitbox.blockstun_mult) + hitbox.blockstun_min)
+	guardhealth -= blockstunframes
 	
 	grabinvuln(blockstunframes+7) #prevents unblockables and dumbass mixups
 	state(BLOCKSTUN)
@@ -1784,7 +1790,7 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 	attackcode()
 	if maincharacter: get_parent().get_parent().update_debug_display(self,"p" + str(playerindex)+'_debug')
 	if state in rootedstates:
-		velocity.y = fall_accel #makes it so that you don't fall with full fall speed when you slide off after a rooted state.  
+		velocity.y = fall_accel #makes it so that you don't fall with full fall speed when you slide off after a rooted state.  Not a problem in move_and_slide()
 		rooted = true #^^^Not doing this at all will fuck the collision needed to make rooted states work in the first place.
 	if state in slidestates:
 		apply_gravity() #this is still necessary so that rooted states on f0 don't halt velocity
@@ -1799,7 +1805,13 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 		check_landing()
 	if state in blockingstates:
 		blocking = true
-	else: blocking = false
+	else:
+		blocking = false
+		if guardhealth < guardhealth_max:
+			if guardhealth+guardhealth_passive >= guardhealth_max: guardhealth = guardhealth_max #untested
+			else: guardhealth += guardhealth_passive
+	
+
 
 	state_called = []
 
