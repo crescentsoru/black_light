@@ -5,7 +5,7 @@ var charactername = 'pass'
 var characterdescription = 'my jambo jet flies cheerfully'
 var playerindex = 0
 var gamertag = 'thegamer69'
-var maincharacter = true #if false, then it's probably a Nana thing
+var maincharacter = true #if false, then it's probably an Icies partner thing
 var spawnpoint = Vector2(0,0)
 
 var state = 'stand'
@@ -1216,7 +1216,10 @@ func ukemiforth_state():
 		velocity.x -= 1000
 		state(STAND)
 
-
+func freefall_state():
+	apply_gravity()
+	check_landing()
+	aerial_acceleration()
 
 
 
@@ -1643,7 +1646,13 @@ func apply_staling(dmgvalue,entry):
 
 
 func groundattack_ok():
-	if state in [STAND,CROUCHSTART,CROUCH,CROUCHEXIT,CRAWL,WALK,DASHEND,BRAKE,RUN]:
+	if state in [STAND,CROUCHSTART,CROUCH,CROUCHEXIT,CRAWL,WALK,DASHEND,BRAKE,SKID,RUN]:
+		return true
+	else:
+		return false
+
+func airattack_ok():
+	if state in [AIR,TUMBLE] or (state == FAIRDASH and frame >= fairdash_startup) or (state == BAIRDASH and frame >= bairdash_startup):
 		return true
 	else:
 		return false
@@ -1686,6 +1695,7 @@ func state_handler():
 	if state_check(UKEMINEUTRAL): ukemineutral_state()
 	if state_check(UKEMIBACK): ukemiback_state()
 	if state_check(UKEMIFORTH): ukemiforth_state()
+	if state_check(FREEFALL): freefall_state()
 	
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
