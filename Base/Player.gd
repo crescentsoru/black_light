@@ -116,7 +116,7 @@ var dashendframes = 11 #DASHEND duration
 var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
 var runjumpmax = 1900 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
-var runspeed = 1900 
+var runspeed = 1900 #none of this works 
 var runaccel = 0
 
 var driftaccel = 100 #Base drift acceleration
@@ -132,7 +132,7 @@ var shorthopspeed = 1600
 var fullhopspeed = 2900
 var airjumpspeed = 2700 #this is velocity.y not drifting
 
-var airjump_max = 2 
+var airjump_max = 1
 var airjumps = 0 
 
 var airdodgespeed = 2600 #Please do not change this unless you know what you're doing! Can be used to give characters a speedier wavedash without affecting traction
@@ -826,7 +826,7 @@ func run_state():
 				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
 					velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			else:
-				velocity.x = velocity_wmax(runaccel,runspeed,direction) #as you can see I didn't put much effort into run specific acceleration
+				velocity.x = velocity_wmax(runaccel,runspeed,direction) #not work
 		else: #if nothing held
 			state(BRAKE)
 	if direction == -1:
@@ -936,8 +936,20 @@ func doublejump():
 
 func jumpsquat_state():
 	if frame == jumpsquat:
-		velocity.y = 0 #needs to be done under the new move_and_collide system
-		velocity.x = velocity.x * runjumpmod #modifier
+		velocity.y = 0 #needs to be done under the move_and_collide system, doesn't do anything in move_and_slide so its ok
+		#forward/neutral/backward jumps
+		if tiltinput(left):
+			velocity.x -= drift_max
+			#if direction is 1 then backward jump anim, else forward
+#the max air speed being applied is just a guess. I have no fucking idea what momentum actually applies during those jumps cause they're all inconsistent
+		elif tiltinput(right):
+			velocity.x += drift_max
+			#backward/forward anim
+		else:
+			pass
+			#neutral jump animation
+		
+		velocity.x = velocity.x * runjumpmod #modifier. Don't know if this is applied before or after the jump direction momentum, PROBABLY after
 		if abs(velocity.x) > runjumpmax: velocity.x = runjumpmax * direction #maxifier
 		if inputheld(jump): #fullhop
 			velocity.y-= fullhopspeed
