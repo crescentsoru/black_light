@@ -117,7 +117,7 @@ var runjumpmod = 0.9 #A modifier on your momentum when you ground jump.
 var runjumpmax = 1900 #A maximum amount of momentum you can transfer from a dash/run into a jump. 
 
 var runspeed = 1900 
-var runaccel = 0 #applied after dash momentum 
+var runaccel = 0
 
 var driftaccel = 100 #Base drift acceleration
 var driftaccel_analog = 200 #Additional drift accel
@@ -125,7 +125,7 @@ var drift_max = 1100
 var fall_accel = 120
 var fall_max = 1900
 var fastfall_speed = 2375
-var airfriction = 8 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
+var airfriction = 3 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
 
 var jumpsquat = 3
 var shorthopspeed = 1600
@@ -173,7 +173,7 @@ var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLO
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
 var blockingstates = [BLOCKBUTTON,SHIELD,CROUCH,CROUCHSTART,BLOCKSTUN]
-var recoverystates = [UPB] #these states will not be usable if you have exhausted your air options
+
 
 
 	#Pressure vars
@@ -340,6 +340,7 @@ var buffer = [
 ]
 var pressbuffer = 4
 var releasebuffer = 4
+var smashattacksensivity = 3 
 
 #After inputs come into the engine, EVERY input should be checked by using the data in the buffer variable,
 #or functions/vars that get their data on inputs from buffer, like motionqueue. 
@@ -771,7 +772,7 @@ func dash_state():
 	if frame <= dashframes and frame > 1:
 		if inputpressed(left) and direction == 1:
 			direction = -1
-			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), -1) #abs(velocity.x) makes sure you don't just get a free boost the other direction in STAND 
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), -1) #abs(velocity.x) makes sure you don't just get a free boost the other direction in STAND
 			state(TURN)
 		if inputpressed(right) and direction == -1:
 			direction = 1
@@ -786,7 +787,7 @@ func dash_state():
 			velocity.x = velocity_wmax(dashinitial,dashspeed, direction)
 	if frame >=1:
 		if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
-			if not (motionqueue[-1] in ['5','8','2']):
+			if (tiltinput(left) or tiltinput(right)):
 				velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
 			elif frame > 1: apply_traction()
 		else: apply_traction()
@@ -909,9 +910,7 @@ func air_state():
 					else: state(BAIRDASH)
 				elif airdodges < 1: state(AIRDODGE)
 		elif airdodges < 1: state(AIRDODGE)
-	if motionqueue[-1] in ['5','8','2']: #if not drifting
-		if frame > 1: air_friction()
-		#I honestly don't like air friction as a mechanic but there's no reason not to include it for how simple it is
+
 	if inputpressed(down) and !fastfall and velocity.y >= 0:
 		fastfall = true
 		velocity.y = fastfall_speed
@@ -919,7 +918,8 @@ func air_state():
 		if velocity.y < fall_max: landinglag = softland #AKA NIL
 		else: landinglag = hardland
 
-func air_friction():
+func air_friction(point=0):
+	
 	if abs(velocity.x) - airfriction < 0:
 		velocity.x = 0
 	else:
@@ -927,6 +927,8 @@ func air_friction():
 			velocity.x-=airfriction
 		else:
 			velocity.x+=airfriction
+
+
 func doublejump():
 	velocity.y = -1 * airjumpspeed
 	airjumps+=1
@@ -1716,12 +1718,18 @@ func disable_platform(): #disables platform collision
 func aerial_acceleration(drift=1.0,ff=true):
 	#drift lets you set custom drift potential to use for specials.
 	#ff=false will disallow fastfalling.
+	
 	if tiltinput(left): #if drifting left
-		if velocity.x > -1*drift_max: #so that drifting wouldn't cancel out existing run momentum
+		if velocity.x >= -1*drift_max: #so that drifting wouldn't cancel out existing run momentum
 			velocity.x = round( max(-1 * drift_max*drift*action_analogconvert()/action_range,velocity.x-driftaccel_analog*drift*action_analogconvert()/action_range - driftaccel*drift))
-	if tiltinput(right): #if drifting right
-		if velocity.x < drift_max:
+		elif frame > 0: air_friction()
+	elif tiltinput(right): #if drifting right
+		if velocity.x <= drift_max:
 			velocity.x = round( min(drift_max*drift*action_analogconvert()/action_range,velocity.x+driftaccel_analog*drift*action_analogconvert()/action_range + driftaccel*drift))
+		elif frame > 0: air_friction()
+	elif frame > 0:
+		air_friction()
+	
 	#fastfall
 	if inputpressed(down) and !fastfall and ff:
 		if fastfall_instant or velocity.y >= 0:
@@ -1731,7 +1739,22 @@ func aerial_acceleration(drift=1.0,ff=true):
 	#falling
 	if airdashframes <= 0: apply_gravity()
 	if airdashframes>0: airdashframes-=1
+	#air friction
+	if not (tiltinput(left) or tiltinput(right)): #if not drifting
+		if frame > 1: air_friction()
+	else:
+		if abs(velocity.x) > drift_max:
+			air_friction()
 	if inputheld(down) and frame > 0: disable_platform() #frame>0 makes wavedashing on platforms not annoying, you'd need to hold 5 before JUMPSQUAT otherwise
+
+
+#	if frame >=1:
+#		if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
+#			if  (tiltinput(left) or tiltinput(right)):
+#				velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+#			elif frame > 1: apply_traction()
+#		else: apply_traction()
+
 
 
 var rooted = false #if true, then check for pECB collision 

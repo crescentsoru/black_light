@@ -50,7 +50,7 @@ func upb_state():
 
 	if frame == 3:
 		velocity.y -= 500
-	if frame == 5:
+	if frame == 4:
 		velocity.y -= 290
 		if inputheld(left) and velocity.x > -1200:
 			velocity.x = -1200
