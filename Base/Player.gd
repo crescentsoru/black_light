@@ -1261,7 +1261,6 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	hitbox_inst.creator = self
 	hitbox_inst.createdstate = state
 	hitbox_inst.direction = direction
-	
 	hitbox_inst.get_node('polygon').set_polygon(polygon) #Revolver Ocelot
 	hitbox_inst.damage_base = damage
 	hitbox_inst.kb_base = kb_base
@@ -1356,9 +1355,16 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		pass
 	else: pass
 
-
-
-
+func create_grabbox(polygon,duration,path,grabbingstate,grabbedstate):
+	var grabbox_load = load('res://Base/Grabbox.tscn')
+	var grabbox = grabbox_load.instance()
+	grabbox.creator = self
+	grabbox.createdstate = self.state
+	grabbox.position = self.position
+	grabbox.direction = self.direction
+	grabbox.get_node('polygon').set_polygon(polygon)
+	grabbox.duration = duration
+	
 
 
 
@@ -1670,11 +1676,12 @@ func apply_staling(dmgvalue,entry):
 
 
 
-func groundattack_ok():
+func groundnormal_ok():
 	if state in [STAND,CROUCHSTART,CROUCH,CROUCHEXIT,CRAWL,WALK,DASHEND,BRAKE,SKID,RUN]:
 		return true
 	else:
 		return false
+
 
 func airattack_ok():
 	if state in [AIR,TUMBLE] or (state == FAIRDASH and frame >= fairdash_startup) or (state == BAIRDASH and frame >= bairdash_startup):
