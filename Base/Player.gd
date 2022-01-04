@@ -931,8 +931,19 @@ func air_friction(point=0):
 
 func doublejump():
 	velocity.y = -1 * airjumpspeed
+	#It feels like all horizontal momentum is cancelled when you double jump and then you jump forward/backward/neutral but I'm not 100% sure
+	velocity.x = 0
+	if tiltinput(left):
+		velocity.x -= drift_max
+		#animation here
+	elif tiltinput(right):
+		velocity.x += drift_max
+		#animation here
+	else:
+		pass
+		#animation here
 	airjumps+=1
-	#play animation
+
 
 func jumpsquat_state():
 	if frame == jumpsquat:
