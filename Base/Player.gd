@@ -185,6 +185,8 @@ var guardhealth = 1000 #Shield/block health
 var guardhealth_max = 1000
 var guardhealth_passive = 1 #amount you recover passively when not blocking
 var extrablockstun = 0 #Don't use
+var attackchain = [] #list of moves that were used in the current cancel chain. Refreshes to 0 when you're in a neutral state. 
+
 
 var hitstunknockback = 0.0 #used on startup in hitstun to save the end frame of hitstun
 var hitstunmod = 0.4 #do not
@@ -606,7 +608,7 @@ func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
 	hit_processing()
 	ukemi_input()
-	if inputpressed(up): print (stalingqueue)
+	if inputpressed(up): print (attackchain)
 
 	currenthits = []
 	lasthitbox = []
@@ -675,6 +677,7 @@ func stand_state():
 	platform_drop()
 	if frame == 0:
 		attackstate = 'whiff'
+		attackchain = []
 		refresh_air_options()
 	if inputheld(left,3) and not inputheld(up): #might decrease below to 2? idk send your feedback
 		state(DASH)
@@ -694,14 +697,18 @@ func stand_state():
 	apply_traction()
 
 func crouchstart_state(): #AKA Squat
-	if frame == 0: attackstate = 'whiff'
+	if frame == 0:
+		attackstate = 'whiff'
+		attackchain = []
 	platform_drop()
 	if frame == 8:
 		state(CROUCH)
 	if inputpressed(jump): state(JUMPSQUAT)
 
 func crouch_state(): #AKA SquatWait
-	if frame == 0: attackstate = 'whiff'
+	if frame == 0:
+		attackstate = 'whiff'
+		attackchain = []
 	platform_drop()
 	if inputpressed(left):
 		if direction == 1:
@@ -889,7 +896,9 @@ func turn_state():
 		state(STAND)
 
 func air_state():
-	if frame == 0: attackstate = 'whiff'
+	if frame == 0:
+		attackstate = 'whiff'
+		attackchain = []
 	aerial_acceleration()
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
@@ -972,6 +981,7 @@ func jumpsquat_state():
 func land_state():
 	if frame == 0:
 		attackstate = 'whiff'
+		attackchain = [] #Fuck you melty blood
 		refresh_air_options()
 	if frame == landinglag:
 		if inputheld(down): state(CROUCH) #looks better
@@ -1341,8 +1351,11 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 			hitbox_inst.blockstopmod_self = hitboxdict['blockstopmod_self']
 	if hitboxdict.has('blockstun_min'): hitbox_inst.blockstun_min = hitboxdict['blockstun_min']
 	if hitboxdict.has('blockstun_mult'): hitbox_inst.blockstun_mult = hitboxdict['blockstun_mult']
+	#pushbacks
 	if hitboxdict.has('pushback'): hitbox_inst.pushback = hitboxdict['pushback']
 	else: hitbox_inst.pushback = 200 + hitbox_inst.damage_base * 7.5
+	if hitboxdict.has('pushback_self'): hitbox_inst.pushback_self = hitboxdict['pushback_self']
+	else: hitbox_inst.pushback_self = hitbox_inst.pushback
 	#Projectile
 	if hitboxdict.has('hitsleft'): hitbox_inst.hitsleft = hitboxdict['hitsleft']
 	if hitboxdict.has('speedX'): hitbox_inst.speedX = hitboxdict['speedX']
@@ -1366,6 +1379,8 @@ func create_grabbox(polygon,duration,path,grabbingstate,grabbedstate):
 	grabbox.duration = duration
 	
 
+func grab_standard(polygon,duration,path):
+	create_grabbox(polygon,duration,path,'grabbing','grabbed')
 
 
 	#shorthands for polygon creation
@@ -1537,10 +1552,12 @@ func get_hit(hitbox):
 			hit_invincibled(hitbox)
 		elif blocking:
 			hitbox.creator.attackstate = 'block'
+			addchain(hitbox)
 			hit_blocked(hitbox)
 		else:
 			if hitbox.creator.attackstate == 'whiff': hitbox.creator.stalingqueue_plus(hitbox.stalingentry) 
 			hitbox.creator.attackstate = 'hit'
+			addchain(hitbox)
 			hit_success(hitbox)
 
 	if hitbox.hitboxtype_interaction == 'projectile':
@@ -1548,10 +1565,14 @@ func get_hit(hitbox):
 			hit_invincibled(hitbox)
 		elif blocking:
 			hitbox.creator.attackstate = 'block'
+			addchain(hitbox)
 			hit_blocked(hitbox)
 		else:
 			hitbox.creator.stalingqueue_plus(hitbox.stalingentry) #ok this func is a bit messy
+			addchain(hitbox)
 			hit_success(hitbox)
+
+func addchain(hitbox): if not hitbox.createdstate in hitbox.creator.attackchain: hitbox.creator.attackchain.append(hitbox.createdstate)
 
 
 func hit_success(hitbox):
@@ -1600,20 +1621,25 @@ func hit_success(hitbox):
 
 
 
-
 func hit_blocked(hitbox):
 	#Pushback
 	if hitbox.hitboxtype == 'strike':
 		if hitbox.creator.position.x < position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==1):
 			velocity.x += hitbox.pushback
+			if hitbox.hitboxtype_interaction == 'strike': hitbox.creator.velocity.x -= hitbox.pushback #attacker pushback
 		if hitbox.creator.position.x > position.x or (hitbox.creator.position.x == position.x and hitbox.creator.direction==-1):
 			velocity.x -= hitbox.pushback
+			if hitbox.hitboxtype_interaction == 'strike': hitbox.creator.velocity.x += hitbox.pushback #attacker pushback
+		
 	if hitbox.hitboxtype == 'projectile':
 		if hitbox.position.x < position.x:
 			velocity.x += hitbox.pushback
+			if hitbox.hitboxtype_interaction == 'strike': hitbox.creator.velocity.x -= hitbox.pushback #attacker pushback
 		else:
 			velocity.x -= hitbox.pushback
-	
+			if hitbox.hitboxtype_interaction == 'strike': hitbox.creator.velocity.x += hitbox.pushback #attacker pushback
+			if hitbox.hitboxtype_interaction == 'strike': hitbox.creator.velocity.x += hitbox.pushback #attacker pushback
+
 	
 	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
 		hitbox.creator.impactstop = int((hitbox.damage_base/30 +3)*hitbox.blockstopmod_self)
@@ -1626,7 +1652,6 @@ func hit_blocked(hitbox):
 	grabinvuln(blockstunframes+7) #prevents unblockables and dumbass mixups
 	state(BLOCKSTUN)
 	update_animation()
-
 
 
 
@@ -1668,6 +1693,10 @@ func apply_staling(dmgvalue,entry):
 			if (x + (9-len(stalingqueue))) == 8 and self.attackstate == 'hit': pass #what the fuck is any of this? 
 			else:dmgmod = dmgmod + stalingtable[x + (9-len(stalingqueue))]
 	return round(dmgvalue - (dmgvalue*dmgmod))
+
+
+	
+
 
 
 		####ATTACKS####
@@ -1995,13 +2024,7 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 
 
 
-#physics process order-
-#set analog values
-#writebuffer()
-#motionqueueprocess()
-#state machine.			  ignored if impactstop > 0
-#update_animations()      ignored if impactstop > 0
-#framechange().      	  timer+=1; if hitstop > 0 then don't increment frame and decrement hitstop
+
 
 
 

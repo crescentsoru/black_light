@@ -10,7 +10,7 @@ func _ready():
 
 func jab_state():
 	if frame == 2: #frame 3 jab
-		create_hitbox(rectangle(64,64),79,30,95,0,9, \
+		create_hitbox(rectangle(64,64),80,30,95,50,9, \
 		{'type':'strike',
 		'path':[Vector2(96,-64)],})
 
@@ -54,10 +54,14 @@ func upb_state():
 		apply_gravity()
 		check_landing()
 	
-	if frame == 8:
-		create_hitbox(rectangle(96,198),79,30,95,80,12, \
+	if frame == 6:
+		create_hitbox(rectangle(98,128),40,100,35,100,1, \
 		{'type':'strike',
-		'path':[Vector2(128,-128)],})
+		'path':[Vector2(98,0)],})
+	if frame == 8:
+		create_hitbox(rectangle(84,220),110,50,125,80,12, \
+		{'type':'strike',
+		'path':[Vector2(128,-102)],})
 	
 	if frame == 12:
 		if velocity.x >= 900: velocity.x = 900

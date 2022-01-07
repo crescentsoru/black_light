@@ -37,7 +37,7 @@ var blockstun_min = 3
 var blockstun_mult = 0.7
 
 var pushback = 700 #only on block
-
+var pushback_self = 50 #only on block for attacker
 
 #projectile specific
 var hitsleft = 1
