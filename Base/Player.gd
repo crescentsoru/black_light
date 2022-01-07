@@ -735,11 +735,13 @@ func crouchexit_state(): #AKA SquatRV
 	if inputheld(down): state(CROUCH)
 	apply_traction2x()
 
-func action_analogconvert(): #returns how hard you're pressing your stick.x from 0 to 80(action_range)
+func analogdistance(): #returns how hard you're pressing your stick.x from 0 to -1
 	if analogstick.x <= 128:
-		return min(action_range, 128-analogstick.x)
+		return min(action_range, 128-analogstick.x) / action_range
 	if analogstick.x > 128:
-		return min(action_range,analogstick.x-128)
+		return min(action_range,analogstick.x-128) / action_range
+
+
 
 func walk_state():
 	if tiltinput(left):
@@ -759,8 +761,8 @@ func walk_state():
 			state(DASH)
 			direction = 1
 	#acceleration
-	if abs(velocity.x) < (walk_max * action_analogconvert()/action_range):
-		velocity.x += min(abs(abs(velocity.x) - (walk_max * action_analogconvert()/action_range)),(walk_accel * action_analogconvert()/action_range)) * direction 
+	if abs(velocity.x) < (walk_max * analogdistance()):
+		velocity.x += min(abs(abs(velocity.x) - (walk_max * analogdistance())),(walk_accel * analogdistance())) * direction 
 	elif abs(velocity.x) > walk_max and not walk_tractionless:
 			apply_traction() #RIP 
 func velocity_wmax(acc,maxx,veldir):#add x velocity with a maximum value and an acceleration.
@@ -793,9 +795,9 @@ func dash_state():
 		if direction==-1 and velocity.x >= dashinitial*-1:
 			velocity.x = velocity_wmax(dashinitial,dashspeed, direction)
 	if frame >=1:
-		if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
+		if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*analogdistance()):
 			if (tiltinput(left) or tiltinput(right)):
-				velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+				velocity.x = velocity_wmax(dashaccel_analog*analogdistance() + dashaccel,dashinitial+ (dashspeed-dashinitial)*analogdistance(),direction)
 			elif frame > 1: apply_traction()
 		else: apply_traction()
 
@@ -830,8 +832,8 @@ func run_state():
 			state(SKID)
 		elif inputheld(right):
 			if abs(velocity.x) <= dashspeed:
-				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
-					velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*analogdistance()):
+					velocity.x = velocity_wmax(dashaccel_analog*analogdistance() + dashaccel,dashinitial+ (dashspeed-dashinitial)*analogdistance(),direction)
 			else:
 				velocity.x = velocity_wmax(runaccel,runspeed,direction) #not work
 		else: #if nothing held
@@ -842,8 +844,8 @@ func run_state():
 			state(SKID)
 		elif inputheld(left):
 			if abs(velocity.x) <= dashspeed:
-				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
-					velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
+				if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*analogdistance()):
+					velocity.x = velocity_wmax(dashaccel_analog*analogdistance() + dashaccel,dashinitial+ (dashspeed-dashinitial)*analogdistance(),direction)
 			else:
 				velocity.x = velocity_wmax(runaccel,runspeed,direction)
 		else:
@@ -1638,7 +1640,7 @@ func hit_blocked(hitbox):
 		else:
 			velocity.x -= hitbox.pushback
 			if hitbox.hitboxtype_interaction == 'strike': hitbox.creator.velocity.x += hitbox.pushback #attacker pushback
-			if hitbox.hitboxtype_interaction == 'strike': hitbox.creator.velocity.x += hitbox.pushback #attacker pushback
+
 
 	
 	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
@@ -1780,11 +1782,11 @@ func aerial_acceleration(drift=1.0,ff=true):
 	
 	if tiltinput(left): #if drifting left
 		if velocity.x >= -1*drift_max: #so that drifting wouldn't cancel out existing run momentum
-			velocity.x = round( max(-1 * drift_max*drift*action_analogconvert()/action_range,velocity.x-driftaccel_analog*drift*action_analogconvert()/action_range - driftaccel*drift))
+			velocity.x = round( max(-1 * drift_max*drift*analogdistance(),velocity.x-driftaccel_analog*drift*analogdistance() - driftaccel*drift))
 		elif frame > 0: air_friction()
 	elif tiltinput(right): #if drifting right
 		if velocity.x <= drift_max:
-			velocity.x = round( min(drift_max*drift*action_analogconvert()/action_range,velocity.x+driftaccel_analog*drift*action_analogconvert()/action_range + driftaccel*drift))
+			velocity.x = round( min(drift_max*drift*analogdistance(),velocity.x+driftaccel_analog*drift*analogdistance() + driftaccel*drift))
 		elif frame > 0: air_friction()
 	elif frame > 0:
 		air_friction()
