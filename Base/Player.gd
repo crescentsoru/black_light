@@ -84,6 +84,11 @@ const TRIAIR = 'triair' #down-forward aerial
 const UNOAIR = 'unoair' #down-backward aerial
 const ZAIR = 'zair'
 
+const NEUTRALGRAB = 'neutralgrab'
+const PIVOTGRAB = 'pivotgrab'
+const DASHGRAB = 'dashgrab'
+
+
 const JAB = 'jab'
 const FTILT = 'ftilt'
 const UTILT = 'utilt'
@@ -92,6 +97,7 @@ const FSMASH = 'fsmash'
 const USMASH = 'usmash'
 const DSMASH = 'dsmash'
 
+
 const NEUTRALB = 'neutralb'
 const SIDEB = 'sideb'
 const UPB = 'upb'
@@ -99,7 +105,7 @@ const DOWNB = 'downb'
 
 	#Movement vars
 var traction = 70
-var skidmodifier = 1.0 #applies a modifier to traction during SKID/BRAKE
+
 
 
 var walk_accel = 85
@@ -169,7 +175,7 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN] #Rooted state. Ground attacks should be this.
+var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN,NEUTRALGRAB,PIVOTGRAB,DASHGRAB] #Rooted state. Ground attacks should be this.
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
 var blockingstates = [BLOCKBUTTON,SHIELD,CROUCH,CROUCHSTART,BLOCKSTUN]
@@ -855,16 +861,16 @@ func run_state():
 func skid_state():
 	platform_drop()
 	if frame >= 1 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
-	if frame >=2: apply_traction(skidmodifier)
+	if frame >=0: apply_traction2x()
 	if frame == 20:
 			state(STAND)
 func brake_state():
 	platform_drop()
 	if inputheld(down) and not (inputheld(right) or inputheld(left)):
 		state(CROUCHSTART)
-	if frame >=2: apply_traction(skidmodifier)
+	if frame >=0: apply_traction()
 	if frame == 20:
-			state(STAND)
+		state(STAND)
 	if inputpressed(left):
 		if direction == -1:
 			velocity.x = velocity_wmax(dashinitial,dashspeed, direction) #get a dashinitial boost when reentering RUN. Oughta be fun
@@ -1261,6 +1267,22 @@ func freefall_state():
 
 
 
+
+
+#grabs
+
+func neutralgrab_state():
+	apply_traction()
+	
+	if frame == 6:
+		grab_standard(rectangle(64,128),3,[Vector2(240,0),],0)
+	
+	if frame == 29:
+		state(STAND)
+		
+
+
+
 	##################
 	##HITBOXES##
 	##################
@@ -1368,11 +1390,13 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 		hitbox_inst.get_node('hitboxsprite').animation = self.state #there is probably a better way to handle this
 	if hitboxdict.has('rage_growth'): #lol
 		pass
-	else: pass
 
-func create_grabbox(polygon,duration,path,grabbingstate,grabbedstate):
+
+
+func create_grabbox(polygon,duration,path,grabbingstate,grabbedstate,groundedness):
 	var grabbox_load = load('res://Base/Grabbox.tscn')
 	var grabbox = grabbox_load.instance()
+	get_parent().add_child(grabbox)
 	grabbox.creator = self
 	grabbox.createdstate = self.state
 	grabbox.position = self.position
@@ -1380,9 +1404,21 @@ func create_grabbox(polygon,duration,path,grabbingstate,grabbedstate):
 	grabbox.get_node('polygon').set_polygon(polygon)
 	grabbox.duration = duration
 	
+	if direction == 1:
+		for point in path: grabbox.path.add_point(point)
+	else: #Flip the path when you look left
+		for point in path: grabbox.path.add_point(Vector2(-point.x,point.y))
+	grabbox.update_path()
+	
+	grabbox.grabbingstate = grabbingstate
+	grabbox.grabbedstate = grabbedstate
+	
+	grabbox.groundedness = groundedness #determines whether the grabbox can grab aerial/grounded opponents
+	
+	
 
-func grab_standard(polygon,duration,path):
-	create_grabbox(polygon,duration,path,'grabbing','grabbed')
+func grab_standard(polygon,duration,path,groundedness):
+	create_grabbox(polygon,duration,path,'grabbing','grabbed',groundedness)
 
 
 	#shorthands for polygon creation
@@ -1759,6 +1795,10 @@ func state_handler():
 	if state_check(UKEMIBACK): ukemiback_state()
 	if state_check(UKEMIFORTH): ukemiforth_state()
 	if state_check(FREEFALL): freefall_state()
+	
+	
+	if state_check(NEUTRALGRAB): neutralgrab_state()
+	
 	
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 

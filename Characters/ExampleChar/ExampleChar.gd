@@ -85,6 +85,8 @@ func attackcode():
 			state(MEMEHITBOX)
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
 			state(UPB)
+		if inputheld(dodge) and inputpressed(attackA):
+			state(NEUTRALGRAB)
 	if state in [DASH,JUMPSQUAT]: #upb 
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
 			state(UPB)
