@@ -69,10 +69,10 @@ func grab_impact(character):
 	
 
 func throwclash(othergrabbox):
-#	if groundedness = 0 or (groundedness == -1 and 
-
-	creator.state('throwclash')
-	othergrabbox.creator.state('throwclash')
+	if groundedness == 0 or (groundedness == -1 and not othergrabbox.creator.grounded) or (groundedness == 1 and othergrabbox.creator.grounded):
+		if othergrabbox.creator.invulns['grab'] == 0:
+			creator.state('throwclash')
+			othergrabbox.creator.state('throwclash')
 
 
 
