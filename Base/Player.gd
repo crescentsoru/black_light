@@ -87,7 +87,9 @@ const ZAIR = 'zair'
 const NEUTRALGRAB = 'neutralgrab'
 const PIVOTGRAB = 'pivotgrab'
 const DASHGRAB = 'dashgrab'
-
+const THROWCLASH = 'throwclash'
+const THROWTECHING = 'throwteching'
+const THROWTECHED = 'throwteched'
 
 const JAB = 'jab'
 const FTILT = 'ftilt'
@@ -175,7 +177,7 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN,NEUTRALGRAB,PIVOTGRAB,DASHGRAB] #Rooted state. Ground attacks should be this.
+var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN,NEUTRALGRAB,PIVOTGRAB,DASHGRAB,THROWCLASH] #Rooted state. Ground attacks should be this.
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
 var blockingstates = [BLOCKBUTTON,SHIELD,CROUCH,CROUCHSTART,BLOCKSTUN]
@@ -614,7 +616,7 @@ func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
 	hit_processing()
 	ukemi_input()
-	if inputpressed(up): print (attackchain)
+	if inputpressed(up): print ('a')
 
 	currenthits = []
 	lasthitbox = []
@@ -716,16 +718,16 @@ func crouch_state(): #AKA SquatWait
 		attackstate = 'whiff'
 		attackchain = []
 	platform_drop()
-	if inputpressed(left):
+	if inputpressed(left) and not inputheld(down):
 		if direction == 1:
 			flip()
 			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), -1)
 			state(TURN)
 		else: state(DASH)
-	if inputpressed(right): #Honestly, because this input is bufferable(and SHOULD BE) I may consider nerfing dashing out of crouch
+	if inputpressed(right) and not inputheld(down): #Honestly, because this input is bufferable(and SHOULD BE) I may consider nerfing dashing out of crouch
 		if direction == -1:
 			flip()
-			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1) #But I might be making dash too good with this line
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1)
 			state(TURN)
 		else: state(DASH)
 	if not tiltinput(down): #makes sure you can hold down without also dropping from a platform
@@ -737,6 +739,20 @@ func crouch_state(): #AKA SquatWait
 func crouchexit_state(): #AKA SquatRV
 	if frame == 10:
 		state(STAND)
+	if inputpressed(left) and not inputheld(down):
+		if direction == 1:
+			flip()
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), -1)
+			state(TURN)
+		else: state(DASH)
+	if inputpressed(right) and not inputheld(down): #Honestly, because this input is bufferable(and SHOULD BE) I may consider nerfing dashing out of crouch
+		if direction == -1:
+			flip()
+			velocity.x = velocity_wmax(dashinitial,abs(velocity.x), 1)
+			state(TURN)
+	
+	
+	
 	if inputpressed(jump): state(JUMPSQUAT)
 	if inputheld(down): state(CROUCH)
 	apply_traction2x()
@@ -963,6 +979,8 @@ func doublejump():
 
 
 func jumpsquat_state():
+	if frame == 0:
+		grabinvuln(jumpsquat+7)
 	if frame == jumpsquat:
 		velocity.y = 0 #needs to be done under the move_and_collide system, doesn't do anything in move_and_slide so its ok
 		#forward/neutral/backward jumps
@@ -1088,8 +1106,8 @@ func airdodge_state():
 	if frame == airdodgestartup: 
 		fullinvuln(airdodgeduration)
 		
-	if frame == 100: state(AIR)
-	#invuln
+	if frame == 90: state(AIR)
+
 
 func waveland_state():
 	apply_traction()
@@ -1148,8 +1166,6 @@ func hitstun_state():
 		else:
 			velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20 #the 20 is arbitrary
 			velocity.y = sin(deg2rad(hitstunangle*-1))*hitstunknockback*20
-	if frame == 1:
-		print (collisions)
 
 	if frame >= 1: #does gravity get applied on frame == 1 or frame == 2?
 		if grounded:
@@ -1269,14 +1285,24 @@ func freefall_state():
 
 
 
-#grabs
+#grab stuff
+
+func throwclash_state():
+	apply_tractionspec(40)
+	if frame == 0:
+		fullinvuln(29)
+		velocity.x = direction * -1000
+	if frame == 30:
+		state(STAND)
+
 
 func neutralgrab_state():
 	apply_traction()
 	
 	if frame == 6:
-		grab_standard(rectangle(64,128),3,[Vector2(240,0),],0)
-	
+		grab_standard(rectangle(64,64),3,[Vector2(220,-32),],-1)
+		grab_standard(rectangle(64,128),3,[Vector2(220,0),],1)
+
 	if frame == 29:
 		state(STAND)
 		
@@ -1488,8 +1514,8 @@ func sdi(normal):
 		move_and_collide(Vector2(normal.y*70,0))
 		var ray_standing = space_state.intersect_ray(self.global_position+ecb_down(), Vector2(0,0),[self],collision_mask) #for getting the floor you're on
 		var ray_y = space_state.intersect_ray(self.global_position+ecb_down(), Vector2(0,normal.x*-70),[self],collision_mask)
-	#	print ("STANDING: " + str(ray_standing) + "  " + str(global.gametime))
-	#	print ("RAY_Y:" + str(ray_y) + "  " + str(global.gametime) )
+	#	rint ("STANDING: " + str(ray_standing) + "  " + str(global.gametime))
+	#	rint ("RAY_Y:" + str(ray_y) + "  " + str(global.gametime) )
 	else: #Air SDI
 		move_and_collide(Vector2(normal.y*70,normal.x*-70)) #70 is arbitrary
 #https://www.reddit.com/r/SSBM/comments/6k7goj/new_sdi_exception_unforbidden_di_and_conditional/		
@@ -1796,6 +1822,7 @@ func state_handler():
 	if state_check(UKEMIFORTH): ukemiforth_state()
 	if state_check(FREEFALL): freefall_state()
 	
+	if state_check(THROWCLASH): throwclash_state()
 	
 	if state_check(NEUTRALGRAB): neutralgrab_state()
 	

@@ -101,7 +101,7 @@ func hitbox_collide():
 					impact(y.get_parent())
 					handled_characters.append(y.get_parent())
 			if not (x.creator in handled_characters):
-				if x.priority == 0 and self.priority == 0:
+				if x.hitboxpriority == 0 and self.hitboxpriority == 0:
 					clash(x)
 		if x.name == 'Hurtbox' and x.get_parent() != creator:
 			if not (x.get_parent() in handled_characters):
