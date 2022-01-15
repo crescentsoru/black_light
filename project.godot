@@ -268,22 +268,22 @@ p2_downtaunt={
 "events": [  ]
 }
 p3_up={
-"deadzone": 0.5,
+"deadzone": 0.0,
 "events": [ Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":1,"axis":1,"axis_value":-1.0,"script":null)
  ]
 }
 p3_down={
-"deadzone": 0.5,
+"deadzone": 0.0,
 "events": [ Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":1,"axis":1,"axis_value":1.0,"script":null)
  ]
 }
 p3_left={
-"deadzone": 0.5,
+"deadzone": 0.0,
 "events": [ Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":1,"axis":0,"axis_value":-1.0,"script":null)
  ]
 }
 p3_right={
-"deadzone": 0.5,
+"deadzone": 0.0,
 "events": [ Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":1,"axis":0,"axis_value":1.0,"script":null)
  ]
 }
