@@ -350,7 +350,7 @@ var buffer = [
 ]
 var pressbuffer = 4
 var releasebuffer = 4
-var smashattacksensivity = 3 
+
 
 #After inputs come into the engine, EVERY input should be checked by using the data in the buffer variable,
 #or functions/vars that get their data on inputs from buffer, like motionqueue. 
@@ -1227,8 +1227,7 @@ func ukemiss_state(): #AKA DownBound
 	apply_tractionspec(50)
 
 func ukemiwait_state():
-	
-	
+
 	if frame >= 0:
 		if inputheld(left):
 			state(UKEMIBACK)
