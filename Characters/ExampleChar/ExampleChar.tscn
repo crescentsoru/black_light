@@ -1660,7 +1660,6 @@ frames = ExtResource( 2 )
 animation = "throwclash"
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
-visible = false
 position = Vector2( 0, 18 )
 
 [node name="pECB" parent="." instance=ExtResource( 4 )]

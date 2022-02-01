@@ -47,10 +47,10 @@ func grabbox_collide():
 				if y.name == 'Hurtbox' and y.get_parent() == x.creator:
 					throwclash(x) #the grabbox gets clashed, not the creator 
 					handled_characters.append(y.get_parent())
+					print ('grabbox+hurtbox clashes')
 			if not (x.creator in handled_characters):
 				print ('grabbox only clash')
 				throwclash(x)
-				pass #throw clash? This happens when only grabboxes collide w no hurtbox collision, needs testing
 		if x.name == 'Hurtbox' and x.get_parent() != creator: #Change to grabbable hurtbox later 
 			if not (x.get_parent() in handled_characters):
 				if not x.get_parent().state in ['ukemiss','grabbed','grabbing'] or (x.get_parent().invulns['grab'] <= 0):
@@ -66,7 +66,20 @@ func grabbox_collide():
 
 func grab_impact(character):
 	print ('grab impact')
-	
+
+	if groundedness == 0 or (groundedness == -1 and not character.grounded) or (groundedness == 1 and character.grounded):
+		if character.invulns['grab'] == 0: #if the grab is essentially successful:
+			if creator.state == 'grabbed' or creator.state == grabbedstate: #if the creator has just been grabbed but the grabbox wasn't destroyed, then two chars grabbed each other at the same time
+				creator.state('throwclash')
+				character.state('throwclash')
+				print ('grab impact CLASH!!!!') #Untested
+			elif creator.state == 'hitstun': #no grab armor for you fuck you
+				pass #pretty sure the fact that hitboxes are processed earlier should make this impossible to happen
+				print ('but fuck you anyways')
+			else: #actual grab
+				pass
+
+
 
 func throwclash(othergrabbox):
 	if groundedness == 0 or (groundedness == -1 and not othergrabbox.creator.grounded) or (groundedness == 1 and othergrabbox.creator.grounded):
