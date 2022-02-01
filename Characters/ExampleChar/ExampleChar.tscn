@@ -805,7 +805,7 @@ tracks/1/keys = {
 "times": PoolRealArray( 0 ),
 "transitions": PoolRealArray( 1 ),
 "update": 1,
-"values": [ Vector2( 0, 0 ) ]
+"values": [ Vector2( 118, 20 ) ]
 }
 tracks/2/type = "value"
 tracks/2/path = NodePath("AnimationPlayer:playback_speed")
@@ -1091,7 +1091,7 @@ tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/keys = {
-"times": PoolRealArray( 0, 0.05, 0.0833333, 0.4, 0.45 ),
+"times": PoolRealArray( 0, 0.05, 0.085, 0.4, 0.45 ),
 "transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
 "update": 1,
 "values": [ Vector2( 45, -5 ), Vector2( 108, 10 ), Vector2( 118, 20 ), Vector2( 108, 10 ), Vector2( 45, -5 ) ]
@@ -1658,6 +1658,7 @@ modulate = Color( 1, 1, 1, 0.854902 )
 scale = Vector2( 0.992736, 1 )
 frames = ExtResource( 2 )
 animation = "throwclash"
+offset = Vector2( 118, 20 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 position = Vector2( 0, 18 )

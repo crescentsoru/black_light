@@ -12,6 +12,7 @@ var state = 'stand'
 var state_previous = '' #for logic like "cant buffer this during x state"
 var state_called = [] #to fix function ordering memes
 var frame = 0
+var framesleft = 0 #blockstun frames or grab mash frames
 var velocity = Vector2(0,0)
 var direction = -1 #   -1 is left; 1 is right
 var impactstop = 0 #hitstop and blockstop. Also known as hitlag. 
@@ -63,6 +64,8 @@ const HITSTUNGROUNDED = 'hitstungrounded'
 const ATGHITSTUN = 'atghitstun'  #this is the 4f air-to-ground transition that ASDI down makes use of, which I made into a separate state.
 const TUMBLE = 'tumble'
 
+
+
 const UKEMISS = 'ukemiss' #ukemi refers to ground teching. Given a different name in code to differentiate from throw teching
 const UKEMIATTACK = 'ukemiattack'
 const UKEMIWAIT = 'ukemiwait'
@@ -84,12 +87,15 @@ const TRIAIR = 'triair' #down-forward aerial
 const UNOAIR = 'unoair' #down-backward aerial
 const ZAIR = 'zair'
 
+const THROWCLASH = 'throwclash'
+const GRABBED = 'grabbed'
+const GRABBING = 'grabbing'
+const THROWTECHING = 'throwteching'
+const THROWTECHED = 'throwteched'
 const NEUTRALGRAB = 'neutralgrab'
 const PIVOTGRAB = 'pivotgrab'
 const DASHGRAB = 'dashgrab'
-const THROWCLASH = 'throwclash'
-const THROWTECHING = 'throwteching'
-const THROWTECHED = 'throwteched'
+
 
 const JAB = 'jab'
 const FTILT = 'ftilt'
@@ -177,7 +183,7 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN,NEUTRALGRAB,PIVOTGRAB,DASHGRAB,THROWCLASH] #Rooted state. Ground attacks should be this.
+var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN,NEUTRALGRAB,PIVOTGRAB,DASHGRAB,THROWCLASH,GRABBED,GRABBING] #Rooted state. Ground attacks should be this.
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
 var blockingstates = [BLOCKBUTTON,SHIELD,CROUCH,CROUCHSTART,BLOCKSTUN]
@@ -188,13 +194,16 @@ var blockingstates = [BLOCKBUTTON,SHIELD,CROUCH,CROUCHSTART,BLOCKSTUN]
 var weight = 100
 
 var blocking = true
-var blockstunframes = 0
+
+
 var guardhealth = 1000 #Shield/block health
 var guardhealth_max = 1000
 var guardhealth_passive = 1 #amount you recover passively when not blocking
-var extrablockstun = 0 #Don't use
+var extrablockstun = 0 #Don't use 
 var attackchain = [] #list of moves that were used in the current cancel chain. Refreshes to 0 when you're in a neutral state. 
 
+var interactingcharacter = [] #the character you're grabbing or being grabbed by 
+var graboffset = Vector2(240,0) #the position of a grabbed character relative to you the grabber 
 
 var hitstunknockback = 0.0 #used on startup in hitstun to save the end frame of hitstun
 var hitstunmod = 0.4 #do not
@@ -1118,7 +1127,7 @@ func waveland_state():
 	#Pressure
 
 func blockstun_state():
-	if frame >= blockstunframes:
+	if frame >= framesleft:
 		if grounded: state(STAND)
 		else: state(AIR)
 	
@@ -1294,13 +1303,43 @@ func throwclash_state():
 	if frame == 30:
 		state(STAND)
 
+func grabbed_state():
+	if frame == 0:
+		refresh_air_options()
+
+	if frame >= framesleft and interactingcharacter.state == GRABBING:
+		state(STAND) #untested change to grabrelease
+
+	velocity = interactingcharacter.velocity #I am very surprised this works at all
+	apply_gravity()
+
+	
+
+func grabbing_state():
+	if frame == 0:
+		refresh_air_options()
+		
+	
+	if frame >= interactingcharacter.framesleft:
+		state(STAND) #untested change to grabrelease
+	
+	
+	apply_gravity()
+	apply_traction2x()
+
+
+func grabrelease():
+	pass
+
+
+
 
 func neutralgrab_state():
 	apply_traction()
 	
 	if frame == 6:
-		grab_standard(rectangle(64,64),3,[Vector2(220,-32),],-1)
-		grab_standard(rectangle(64,128),3,[Vector2(220,0),],1)
+		grab_standard(rectangle(64,64),2,[Vector2(220,-32),],-1)
+		grab_standard(rectangle(64,128),2,[Vector2(220,0),],1)
 
 	if frame == 29:
 		state(STAND)
@@ -1418,7 +1457,7 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 
 
 
-func create_grabbox(polygon,duration,path,grabbingstate,grabbedstate,groundedness):
+func create_grabbox(polygon,duration,path,grabbingstate,grabbedstate,groundedness,posoffset):
 	var grabbox_load = load('res://Base/Grabbox.tscn')
 	var grabbox = grabbox_load.instance()
 	get_parent().add_child(grabbox)
@@ -1428,6 +1467,7 @@ func create_grabbox(polygon,duration,path,grabbingstate,grabbedstate,groundednes
 	grabbox.direction = self.direction
 	grabbox.get_node('polygon').set_polygon(polygon)
 	grabbox.duration = duration
+	grabbox.grabbedoffset = posoffset
 	
 	if direction == 1:
 		for point in path: grabbox.path.add_point(point)
@@ -1443,7 +1483,7 @@ func create_grabbox(polygon,duration,path,grabbingstate,grabbedstate,groundednes
 	
 
 func grab_standard(polygon,duration,path,groundedness):
-	create_grabbox(polygon,duration,path,'grabbing','grabbed',groundedness)
+	create_grabbox(polygon,duration,path,'grabbing','grabbed',groundedness,graboffset)
 
 
 	#shorthands for polygon creation
@@ -1709,10 +1749,10 @@ func hit_blocked(hitbox):
 	impactstop = int((hitbox.damage_base/30 + 3)*hitbox.blockstopmod)
 
 
-	blockstunframes = int((hitbox.damage_base / 10 * hitbox.blockstun_mult) + hitbox.blockstun_min)
-	guardhealth -= blockstunframes
+	framesleft = int((hitbox.damage_base / 10 * hitbox.blockstun_mult) + hitbox.blockstun_min)
+	guardhealth -= framesleft
 	
-	grabinvuln(blockstunframes+7) #prevents unblockables and dumbass mixups
+	grabinvuln(framesleft+7) #prevents unblockables and dumbass mixups
 	state(BLOCKSTUN)
 	update_animation()
 
@@ -1822,6 +1862,8 @@ func state_handler():
 	if state_check(FREEFALL): freefall_state()
 	
 	if state_check(THROWCLASH): throwclash_state()
+	if state_check(GRABBED): grabbed_state()
+	if state_check(GRABBING): grabbing_state()
 	
 	if state_check(NEUTRALGRAB): neutralgrab_state()
 	

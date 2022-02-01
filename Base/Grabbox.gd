@@ -13,6 +13,9 @@ onready var path = Path2D.new().get_curve()
 var grabbingstate = '' #attacker
 var grabbedstate = '' #defender 
 var groundedness = 0 #0= grabs both aerial and grounded, -1= grabs aerial characters only, 1= grounded chars only 
+var hasgrabbed = false #prevents grabbing multiple characters
+var grabbedoffset = Vector2(0,0)
+
 
 func _ready():
 	process_priority = 15 #After hitboxes, but before players
@@ -66,18 +69,33 @@ func grabbox_collide():
 
 func grab_impact(character):
 	print ('grab impact')
+	if not hasgrabbed:
+		if groundedness == 0 or (groundedness == -1 and not character.grounded) or (groundedness == 1 and character.grounded):
+			if character.invulns['grab'] == 0: #if the grab is essentially successful:
+				if creator.state == 'grabbed' or creator.state == grabbedstate: #if the creator has just been grabbed but the grabbox wasn't destroyed, then two chars grabbed each other at the same time
+					creator.state('throwclash')
+					character.state('throwclash')
+					print ('grab impact CLASH!!!!') 
+				elif creator.state == 'hitstun': #no grab armor for you fuck you
+					pass #pretty sure the fact that hitboxes are processed earlier should make this impossible to happen
+					print ('but fuck you anyways')
+				else: #actual grab
+					grab_success(character)
 
-	if groundedness == 0 or (groundedness == -1 and not character.grounded) or (groundedness == 1 and character.grounded):
-		if character.invulns['grab'] == 0: #if the grab is essentially successful:
-			if creator.state == 'grabbed' or creator.state == grabbedstate: #if the creator has just been grabbed but the grabbox wasn't destroyed, then two chars grabbed each other at the same time
-				creator.state('throwclash')
-				character.state('throwclash')
-				print ('grab impact CLASH!!!!') #Untested
-			elif creator.state == 'hitstun': #no grab armor for you fuck you
-				pass #pretty sure the fact that hitboxes are processed earlier should make this impossible to happen
-				print ('but fuck you anyways')
-			else: #actual grab
-				pass
+func grab_success(character):
+	#grabbed
+	character.interactingcharacter = creator
+	character.state(grabbedstate)
+	character.framesleft = 60
+	if character.direction == creator.direction: character.flip()
+	character.velocity = Vector2(0,0)
+	character.position = creator.position + creator.direction * grabbedoffset
+	#grabbing
+	creator.interactingcharacter = character
+	creator.state(grabbingstate)
+
+	hasgrabbed = true
+
 
 
 
