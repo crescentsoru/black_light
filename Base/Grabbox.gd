@@ -50,9 +50,8 @@ func grabbox_collide():
 				if y.name == 'Hurtbox' and y.get_parent() == x.creator:
 					throwclash(x) #the grabbox gets clashed, not the creator 
 					handled_characters.append(y.get_parent())
-					print ('grabbox+hurtbox clashes')
 			if not (x.creator in handled_characters):
-				print ('grabbox only clash')
+
 				throwclash(x)
 		if x.name == 'Hurtbox' and x.get_parent() != creator: #Change to grabbable hurtbox later 
 			if not (x.get_parent() in handled_characters):
@@ -68,7 +67,6 @@ func grabbox_collide():
 
 
 func grab_impact(character):
-	print ('grab impact')
 	if not hasgrabbed:
 		if groundedness == 0 or (groundedness == -1 and not character.grounded) or (groundedness == 1 and character.grounded):
 			if character.invulns['grab'] == 0: #if the grab is essentially successful:

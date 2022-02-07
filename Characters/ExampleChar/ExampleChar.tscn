@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=2]
+[gd_scene load_steps=46 format=2]
 
 [ext_resource path="res://Base/Hurtbox.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Graphics2/Player_spriteframes.tres" type="SpriteFrames" id=2]
@@ -806,6 +806,48 @@ tracks/1/keys = {
 "transitions": PoolRealArray( 1 ),
 "update": 1,
 "values": [ Vector2( 118, 20 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.25 ]
+}
+
+[sub_resource type="Animation" id=41]
+resource_name = "grabreleaseground"
+length = 0.283334
+loop = true
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( -0.017 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Sprite:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ Vector2( 0, 0 ) ]
 }
 tracks/2/type = "value"
 tracks/2/path = NodePath("AnimationPlayer:playback_speed")
@@ -1657,8 +1699,7 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 scale = Vector2( 0.992736, 1 )
 frames = ExtResource( 2 )
-animation = "throwclash"
-offset = Vector2( 118, 20 )
+animation = "grabreleaseground"
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 position = Vector2( 0, 18 )
@@ -1695,6 +1736,7 @@ anims/goright = SubResource( 14 )
 anims/gospecial = SubResource( 15 )
 anims/grabbed = SubResource( 37 )
 anims/grabbing = SubResource( 38 )
+anims/grabreleaseground = SubResource( 41 )
 anims/hitstun = SubResource( 26 )
 anims/hitstungrounded = SubResource( 27 )
 anims/jab = SubResource( 24 )

@@ -96,6 +96,13 @@ const NEUTRALGRAB = 'neutralgrab'
 const PIVOTGRAB = 'pivotgrab'
 const DASHGRAB = 'dashgrab'
 
+const GRABRELEASEGROUND = 'grabreleaseground'
+
+const UTHROW = 'uthrow'
+const DTHROW = 'dthrow'
+const BTHROW = 'bthrow'
+const FTHROW = 'fthrow'
+const PUMMEL = 'pummel'
 
 const JAB = 'jab'
 const FTILT = 'ftilt'
@@ -183,7 +190,7 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN,NEUTRALGRAB,PIVOTGRAB,DASHGRAB,THROWCLASH,GRABBED,GRABBING] #Rooted state. Ground attacks should be this.
+var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN,NEUTRALGRAB,PIVOTGRAB,DASHGRAB,THROWCLASH,GRABBED,GRABBING,GRABRELEASEGROUND] #Rooted state. Ground attacks should be this.
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
 var blockingstates = [BLOCKBUTTON,SHIELD,CROUCH,CROUCHSTART,BLOCKSTUN]
@@ -1304,34 +1311,43 @@ func throwclash_state():
 		state(STAND)
 
 func grabbed_state():
+	velocity.x = interactingcharacter.velocity.x #I am very surprised this works at all. Needs to be at this order or else grab release won't work 
+	if !grounded: print ('FUCK!!!!')
 	if frame == 0:
 		refresh_air_options()
+		velocity.y = 0
 
+	if not interactingcharacter.state in [DTHROW,UTHROW,BTHROW,FTHROW,PUMMEL,GRABBING] and frame > 0:
+		state(GRABRELEASEGROUND)
 	if frame >= framesleft and interactingcharacter.state == GRABBING:
-		state(STAND) #untested change to grabrelease
+		state(GRABRELEASEGROUND)
 
-	velocity = interactingcharacter.velocity #I am very surprised this works at all
-	apply_gravity()
 
-	
 
 func grabbing_state():
 	if frame == 0:
 		refresh_air_options()
 		
 	
+	
 	if frame >= interactingcharacter.framesleft:
-		state(STAND) #untested change to grabrelease
+		state(GRABRELEASEGROUND)
 	
 	
 	apply_gravity()
 	apply_traction2x()
 
 
-func grabrelease():
-	pass
-
-
+func grabreleaseground_state():
+	if frame == 0:
+		velocity.x += direction * -1400
+		
+		fullinvuln(30)
+	
+	if frame == 30:
+		state(STAND)
+	apply_tractionspec(60)
+	apply_gravity()
 
 
 func neutralgrab_state():
@@ -1344,6 +1360,21 @@ func neutralgrab_state():
 	if frame == 29:
 		state(STAND)
 		
+
+func uthrow_state(): pass  #please replace this in character scripts
+
+
+func dthrow_state(): #please replace
+	if frame == 30:
+		pass
+
+func bthrow_state(): #pls replace
+	if frame == 50:
+		state(STAND)
+
+func fthrow_state(): #pl re
+	pass
+
 
 
 
@@ -1867,6 +1898,9 @@ func state_handler():
 	
 	if state_check(NEUTRALGRAB): neutralgrab_state()
 	
+	if state_check(GRABRELEASEGROUND): grabreleaseground_state()
+	
+	if state_check(DTHROW): dthrow_state()
 	
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
@@ -1992,7 +2026,7 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 	attackcode()
 	if maincharacter: get_parent().get_parent().update_debug_display(self,"p" + str(playerindex)+'_debug')
 	if state in rootedstates:
-		velocity.y = fall_accel #makes it so that you don't fall with full fall speed when you slide off after a rooted state.  Not a problem in move_and_slide()
+		if grounded: velocity.y = fall_accel #makes it so that you don't fall with full fall speed when you slide off after a rooted state.  Not a problem in move_and_slide()
 		rooted = true #^^^Not doing this at all will fuck the collision needed to make rooted states work in the first place.
 	if state in slidestates:
 		apply_gravity() #this is still necessary so that rooted states on f0 don't halt velocity
