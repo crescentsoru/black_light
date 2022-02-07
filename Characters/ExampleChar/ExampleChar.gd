@@ -22,7 +22,7 @@ func memehitbox_state():
 
 	rooted = true
 	if frame == 0: invulns['strike'] = 5
-	if frame == 8:
+	if frame == 10:
 		create_hitbox(rectangle(128,64),120,10,100,290,9000, \
 		{'type':'projectile', 'hitstopmod':1.0,
 		'path':[Vector2(96,0)],
@@ -30,7 +30,7 @@ func memehitbox_state():
 		})
 	apply_traction2x()
 	velocity.y = fall_accel
-	if frame == 32:
+	if frame == 28:
 		state(STAND)
 
 func upb_state():

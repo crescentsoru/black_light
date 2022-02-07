@@ -55,7 +55,7 @@ func grabbox_collide():
 				throwclash(x)
 		if x.name == 'Hurtbox' and x.get_parent() != creator: #Change to grabbable hurtbox later 
 			if not (x.get_parent() in handled_characters):
-				if not x.get_parent().state in ['ukemiss','grabbed','grabbing'] or (x.get_parent().invulns['grab'] <= 0):
+				if (not x.get_parent().state in ['ukemiss','ukemiwait','grabbed','grabbing']) or (x.get_parent().invulns['grab'] <= 0):
 					grab_impact(x.get_parent())
 	
 	

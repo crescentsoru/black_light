@@ -190,7 +190,7 @@ var landinglag = 4 #changed all the time in states that can land.
 
 
 	#State definitions
-var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN,NEUTRALGRAB,PIVOTGRAB,DASHGRAB,THROWCLASH,GRABBED,GRABBING,GRABRELEASEGROUND] #Rooted state. Ground attacks should be this.
+var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLOCKSTUN,NEUTRALGRAB,PIVOTGRAB,DASHGRAB,THROWCLASH,GRABBED,GRABBING,GRABRELEASEGROUND,UTHROW,DTHROW,BTHROW,FTHROW] #Rooted state. Ground attacks should be this.
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
 var blockingstates = [BLOCKBUTTON,SHIELD,CROUCH,CROUCHSTART,BLOCKSTUN]
@@ -210,7 +210,7 @@ var extrablockstun = 0 #Don't use
 var attackchain = [] #list of moves that were used in the current cancel chain. Refreshes to 0 when you're in a neutral state. 
 
 var interactingcharacter = [] #the character you're grabbing or being grabbed by 
-var graboffset = Vector2(240,0) #the position of a grabbed character relative to you the grabber 
+var graboffset = Vector2(180,0) #the position of a grabbed character relative to you the grabber 
 
 var hitstunknockback = 0.0 #used on startup in hitstun to save the end frame of hitstun
 var hitstunmod = 0.4 #do not
@@ -1150,7 +1150,8 @@ func hitstungrounded_state():
 		var perpendicular_distance = angle_as_vector.dot(stick_prev_normalized) #shoutouts to Numacow
 		hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
 			#ASDI
-		if analogstick_prev != Vector2(128,128):
+		if analogstick_prev != Vector2(128,128) and framesleft != 0:
+			
 			asdi = Vector2(stick_prev_normalized.y*1,stick_prev_normalized.x*-1)
 
 		velocity.x = cos(deg2rad(hitstunangle))*hitstunknockback*20
@@ -1172,7 +1173,7 @@ func hitstun_state():
 		var perpendicular_distance = angle_as_vector.dot(stick_prev_normalized) #shoutouts to Numacow
 		hitstunangle = hitstunangle + abs(perpendicular_distance)*perpendicular_distance*-18 
 			#ASDI
-		if analogstick_prev != Vector2(128,128):
+		if analogstick_prev != Vector2(128,128) and framesleft != 0: #framesleft is basically for throws, if no SDI frames then cant ASDI either
 			asdi = Vector2(stick_prev_normalized.y*1,stick_prev_normalized.x*-1) #multiplied by 35 in the asdi_move func
 
  
@@ -1333,6 +1334,9 @@ func grabbing_state():
 	if frame >= interactingcharacter.framesleft:
 		state(GRABRELEASEGROUND)
 	
+	if frame > 0:
+		if inputpressed(down):
+			state(DTHROW)
 	
 	apply_gravity()
 	apply_traction2x()
@@ -1365,8 +1369,17 @@ func uthrow_state(): pass  #please replace this in character scripts
 
 
 func dthrow_state(): #please replace
+	
+	
+	if frame == 7:
+		create_hitbox(rectangle(320,320),90,80,70,85,1, \
+		{'type':'strike','hitstopmod':0,
+		'path':[Vector2(96,-64)],})
+
 	if frame == 30:
-		pass
+		state(STAND)
+	apply_traction2x()
+
 
 func bthrow_state(): #pls replace
 	if frame == 50:
@@ -1738,6 +1751,7 @@ func hit_success(hitbox):
 	if hitbox.hitboxtype_interaction == 'strike' and hitbox.creator.state != HITSTUN: #state check means trades will have offender hitstop
 		hitbox.creator.impactstop = int((hitbox.damage/30 +3)*hitbox.hitstopmod_self)
 	impactstop = int((hitbox.damage/30 + 3)*hitbox.hitstopmod)
+	framesleft = impactstop #for throws, if there's no SDI then you can't ASDI
 
 	if (hitbox.angle >= 180 or hitbox.angle == 0):
 		if grounded:
@@ -1751,8 +1765,6 @@ func hit_success(hitbox):
 		grounded = false
 		state(HITSTUN)
 	update_animation() #otherwise their first hitstop animation frame will be the state they were in before hitstun
-
-
 
 
 func hit_blocked(hitbox):
@@ -1798,7 +1810,6 @@ func hit_invincibled(hitbox):
 
 func invuln_processing():
 	for x in invulns:
-
 		if invulns[x] > 0:
 			invulns[x]-=1
 func fullinvuln(number):
@@ -1809,7 +1820,6 @@ func fullinvuln(number):
 func strikeinvuln(number): if invulns['strike'] < number: invulns['strike'] = number
 func projectileinvuln(number): if invulns['projectile'] < number: invulns['projectile'] = number
 func grabinvuln(number): if invulns['grab'] < number: invulns['grab'] = number
-
 
 
 func stalingqueue_plus(movename):
@@ -1829,7 +1839,6 @@ func apply_staling(dmgvalue,entry):
 	return round(dmgvalue - (dmgvalue*dmgmod))
 
 
-	
 
 
 
@@ -1845,13 +1854,11 @@ func groundnormal_ok():
 	else:
 		return false
 
-
 func airattack_ok():
 	if state in [AIR,TUMBLE] or (state == FAIRDASH and frame >= fairdash_startup) or (state == BAIRDASH and frame >= bairdash_startup):
 		return true
 	else:
 		return false
-
 
 
 
@@ -1899,17 +1906,21 @@ func state_handler():
 	if state_check(NEUTRALGRAB): neutralgrab_state()
 	
 	if state_check(GRABRELEASEGROUND): grabreleaseground_state()
-	
+	if state_check(UTHROW): uthrow_state()
 	if state_check(DTHROW): dthrow_state()
+	if state_check(BTHROW): bthrow_state()
+	if state_check(FTHROW): fthrow_state()
 	
 func char_state_handler(): #Replace this in character script to have character specific states
 	pass 
 func attackcode():
 #This is replaced in character script and contains state+input checks for attacks.
 #The reason checks for attacks are outside of state_handler() is for the sake of modular design-
-#it's much harder to create custom attack behavior if there's a bunch of default attack behavior baked into the default movement states in Player.gd,
+#it's much harder to create custom attack behavior if there's a bunch of default attack behavior
+#baked into the default movement states in Player.gd,
 #and you have to replace the entire state function to overwrite it.
-#Simply putting these checks in the character script's _process functions adds a frame of lag to any action within it, so attackcode() was put in actionablelogic().
+#Simply putting these checks in the character script's _process functions adds a frame of lag to any action within it, 
+#so attackcode() was put in actionablelogic().
 	pass
 
 
@@ -1950,13 +1961,6 @@ func aerial_acceleration(drift=1.0,ff=true):
 			air_friction()
 	if inputheld(down) and frame > 0: disable_platform() #frame>0 makes wavedashing on platforms not annoying, you'd need to hold 5 before JUMPSQUAT otherwise
 
-
-#	if frame >=1:
-#		if abs(velocity.x) <= (dashinitial+(dashspeed-dashinitial)*action_analogconvert()/action_range):
-#			if  (tiltinput(left) or tiltinput(right)):
-#				velocity.x = velocity_wmax(dashaccel_analog*action_analogconvert()/action_range + dashaccel,dashinitial+ (dashspeed-dashinitial)*action_analogconvert()/action_range,direction)
-#			elif frame > 1: apply_traction()
-#		else: apply_traction()
 
 
 
