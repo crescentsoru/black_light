@@ -930,7 +930,7 @@ func turn_state():
 			state(DASH)
 		else:
 			state(STAND)
-	if frame > 1: #I dunno what to do here exactly, I do not want to recreate the slow turn from Smash
+	if frame > 1: #I dunno what to do here exactly, I do not want to recreate the slow turn state
 		apply_traction()
 	if frame == 15: #random number idc
 		state(STAND)
@@ -1322,8 +1322,16 @@ func grabbed_state():
 		state(GRABRELEASEGROUND)
 	if frame >= framesleft and interactingcharacter.state == GRABBING:
 		state(GRABRELEASEGROUND)
+	if mashinput(): framesleft-=6 
 
 
+
+func mashinput(): #probably too simplistic, can't wait to see how it goes wrong 
+	if inputjustpressed(up) or inputjustpressed(down) or inputjustpressed(left) \
+	or inputjustpressed(right) or inputjustpressed(attackA) or inputjustpressed(attackB)\
+	or inputjustpressed(attackC) or inputjustpressed(attackD) or inputjustpressed(attackE)\
+	or inputjustpressed(attackF) or inputjustpressed(dodge) or inputjustpressed(grab):
+		return true
 
 func grabbing_state():
 	if frame == 0:

@@ -15,6 +15,7 @@ func jab_state():
 		'path':[Vector2(96,-64)],})
 
 	if frame == 17:
+		grabinvuln(500)
 		state(STAND)
 	apply_traction2x()
 
