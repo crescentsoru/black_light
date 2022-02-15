@@ -55,8 +55,7 @@ func grabbox_collide():
 				throwclash(x)
 		if x.name == 'Hurtbox' and x.get_parent() != creator: #Change to grabbable hurtbox later 
 			if not (x.get_parent() in handled_characters):
-				if (not x.get_parent().state in ['ukemiss','ukemiwait','grabbed','grabbing']) or (x.get_parent().invulns['grab'] <= 0):
-					grab_impact(x.get_parent())
+				grab_impact(x.get_parent())
 	
 	
 	handled_characters = []
@@ -69,11 +68,10 @@ func grabbox_collide():
 func grab_impact(character):
 	if not hasgrabbed:
 		if groundedness == 0 or (groundedness == -1 and not character.grounded) or (groundedness == 1 and character.grounded):
-			if character.invulns['grab'] == 0: #if the grab is essentially successful:
+			if character.invulns['grab'] == 0 and (not character.state in ['ukemiss','ukemiwait','grabbed','grabbing']): #if the grab is essentially successful:
 				if creator.state == 'grabbed' or creator.state == grabbedstate: #if the creator has just been grabbed but the grabbox wasn't destroyed, then two chars grabbed each other at the same time
 					creator.state('throwclash')
 					character.state('throwclash')
-					print ('grab impact CLASH!!!!') 
 				elif creator.state == 'hitstun': #no grab armor for you fuck you
 					pass #pretty sure the fact that hitboxes are processed earlier should make this impossible to happen
 					print ('but fuck you anyways')
@@ -84,7 +82,7 @@ func grab_success(character):
 	#grabbed
 	character.interactingcharacter = creator
 	character.state(grabbedstate)
-	character.framesleft = 60
+	character.framesleft = 76 + round((character.percentage* 1.6) /10 ) #melee formula, no comeback mechanic
 	if character.direction == creator.direction: character.flip()
 	character.velocity = Vector2(0,0)
 	character.position = creator.position + creator.direction * grabbedoffset
