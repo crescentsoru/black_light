@@ -200,7 +200,7 @@ var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLO
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
 var blockingstates = [BLOCKBUTTON,SHIELD,CROUCH,CROUCHSTART,BLOCKSTUN]
-
+var ledgegrabstates = [AIR,UPB]
 
 
 	#Pressure vars
@@ -239,6 +239,11 @@ var ukemineutral_invuln = 20
 var ukemiroll_end = 40
 var ukemiroll_invuln = 20
 
+
+#ledge
+var ledgedisable = 0 #frames you can't grab the ledge for.
+var currentledge = [] #the one and only ledge you are attached to
+var ledgegrab_ok = false #if true, can grab ledge. Only works if ledgedisable timer is 0 
 
 
 
@@ -1878,6 +1883,10 @@ func airattack_ok():
 
 
 
+
+
+
+
 	##################
 	##HANDLERS##
 	##################
@@ -2033,7 +2042,6 @@ func check_landing():
 		refresh_air_options()
 
 
-
 func actionablelogic(delta): #a function I made to make ordering stuff that doesn't happen during impactstop easier
 	#direction updates. Sprite happens at the end
 
@@ -2067,8 +2075,14 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 			if guardhealth+guardhealth_passive >= guardhealth_max: guardhealth = guardhealth_max #untested
 			else: guardhealth += guardhealth_passive
 	
-
-
+	
+	
+	
+	
+	
+	
+	
+	#put this last pls
 	state_called = []
 
 func ecb_up(): #returns the scene position of the top point of your pECB.
@@ -2128,8 +2142,21 @@ func collision_handler(delta): #For platform/floor/wall collision.
 		in_platform = false
 	else:
 		in_platform = true
+	
+	###LEDGE###
+	
+	if ledgedisable == 0:
+		if (state in [AIR]) or ledgegrab_ok:
+			if false: #collision
+				pass
+	
+	
+	if ledgedisable > 0:
+		ledgedisable-=1
+	
 	rooted = false
 	collisions = []
+	ledgegrab_ok = false
 	if is_on_floor() or false: #remnants of me trying to make move_and_collide work. It still works *sort of* but I realized it's not necessary
 		grounded = true #use grounded anyways please it's shorter than is_on_floor()
 	else: grounded = false

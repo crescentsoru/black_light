@@ -100,5 +100,9 @@ blastzonetype = "top"
 position = Vector2( 9017.29, 7339.79 )
 scale = Vector2( 1, 128 )
 
-[node name="Ledgebox" parent="Stage" instance=ExtResource( 6 )]
-position = Vector2( 3431.58, 5167.97 )
+[node name="Ledge" parent="Stage" instance=ExtResource( 6 )]
+position = Vector2( 3430, 5170 )
+
+[node name="Ledge2" parent="Stage" instance=ExtResource( 6 )]
+position = Vector2( 6580, 5170 )
+direction = -1
