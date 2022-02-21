@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Base/Ledge.gd" type="Script" id=1]
+
+[node name="Ledge" type="Area2D"]
+modulate = Color( 0.0313726, 1, 0, 1 )
+script = ExtResource( 1 )
+
+[node name="polygon" type="CollisionPolygon2D" parent="."]
+polygon = PoolVector2Array( 64, -64, -64, -64, -64, 64, 64, 64 )

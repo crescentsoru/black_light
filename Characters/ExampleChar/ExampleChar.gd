@@ -19,7 +19,7 @@ func jab_state():
 		state(STAND)
 	apply_traction2x()
 
-func memehitbox_state():
+func neutralb_state():
 
 	rooted = true
 	if frame == 0: invulns['strike'] = 5
@@ -100,7 +100,7 @@ func attackcode():
 
 func char_state_handler():
 	if state_check(JAB): jab_state()
-	if state_check(MEMEHITBOX): memehitbox_state()
+	if state_check(MEMEHITBOX): neutralb_state()
 	if state_check(UPB): upb_state()
 
 

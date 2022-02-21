@@ -65,7 +65,7 @@ func grabbox_collide():
 
 
 
-func grab_impact(character):
+func grab_impact(character): 
 	if not hasgrabbed:
 		if groundedness == 0 or (groundedness == -1 and not character.grounded) or (groundedness == 1 and character.grounded):
 			if character.invulns['grab'] == 0 and (not character.state in ['ukemiss','ukemiwait','grabbed','grabbing']): #if the grab is essentially successful:

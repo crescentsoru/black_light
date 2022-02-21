@@ -118,6 +118,12 @@ const SIDEB = 'sideb'
 const UPB = 'upb'
 const DOWNB = 'downb'
 
+const NEUTRALC = 'neutralc'
+const SIDEC = 'sidec'
+const UPC = 'upc'
+const DOWNC = 'downc'
+
+
 	#Movement vars
 var traction = 70
 
@@ -1861,6 +1867,8 @@ func groundnormal_ok():
 		return true
 	else:
 		return false
+
+
 
 func airattack_ok():
 	if state in [AIR,TUMBLE] or (state == FAIRDASH and frame >= fairdash_startup) or (state == BAIRDASH and frame >= bairdash_startup):
