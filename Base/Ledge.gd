@@ -10,9 +10,24 @@ var releasepos = Vector2(0,0) #the position you're in if you release ledge by pr
 var grabpos = Vector2(0,0) #the position you're snapped to when you grab ledge. Should be same as releasepos but go buckwild I guess
 
 
+var collisions = []
+
+
+
 func _ready():
+	process_priority = 31 #I don't FUCKING know
 	connect( "area_entered", self, "on_area_enter")
 	connect( "area_exited", self, "on_area_exit")
+	connect( "body_entered", self, "on_body_enter")
+	connect( "body_exited", self, "on_body_exit")
+
+
+
+func on_body_enter(body):
+	pass
+
+func on_body_exit(body):
+	pass
 
 
 func _physics_process(delta):

@@ -2116,6 +2116,8 @@ func collision_handler(delta): #For platform/floor/wall collision.
 	for x in get_slide_count(): #necessary for rooted states
 		if not (get_slide_collision(x).collider in collisions):
 			collisions.append(get_slide_collision(x).collider)
+	
+
 
 	$pECB.current_ecbcheck() #lets you die, done before pECB update so it's essentially the same as checking current frame collision 
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
@@ -2155,6 +2157,7 @@ func collision_handler(delta): #For platform/floor/wall collision.
 		ledgedisable-=1
 	
 	rooted = false
+	if inputheld(up): print (collisions)
 	collisions = []
 	ledgegrab_ok = false
 	if is_on_floor() or false: #remnants of me trying to make move_and_collide work. It still works *sort of* but I realized it's not necessary
