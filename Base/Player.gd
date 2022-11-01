@@ -241,9 +241,9 @@ var ukemiroll_invuln = 20
 
 
 #ledge
-var ledgedisable = 0 #frames you can't grab the ledge for.
+var ledgedisable := 0 #frames you can't grab the ledge for.
 var currentledge = [] #the one and only ledge you are attached to
-var ledgegrab_ok = false #if true, can grab ledge. Only works if ledgedisable timer is 0 
+var ledgegrab_ok := false #if true, can grab ledge. Only works if ledgedisable timer is 0 
 
 
 
