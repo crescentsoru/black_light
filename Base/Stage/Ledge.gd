@@ -24,9 +24,17 @@ func _ready():
 
 
 func on_body_enter(body):
-	print (body.name)
+	print (body.name + " ")
+	
 	if body.get_node_or_null('Ledgegrab'): #this is how the ledge checks if the kinematicbody2d it collided with is a player or not
-		pass
+		if body.ledgegrab_ok:
+
+			if body.ledgedisable == 0 and body.grounded == false:
+				if !body.inputheld(body.down):
+					print ("valid ledgegrab")
+				else: print ("down held")
+				
+		
 
 
 func on_body_exit(body):

@@ -243,7 +243,7 @@ var ukemiroll_invuln = 20
 #ledge
 var ledgedisable := 0 #frames you can't grab the ledge for.
 var currentledge = [] #the one and only ledge you are attached to
-var ledgegrab_ok := false #if true, can grab ledge. Only works if ledgedisable timer is 0 
+var ledgegrab_ok := true #if true, can grab ledge. Only works if ledgedisable timer is 0 
 
 
 
@@ -951,6 +951,7 @@ func air_state():
 		attackstate = 'whiff'
 		attackchain = []
 	aerial_acceleration()
+	ledgegrab_ok = true
 	if inputpressed(jump) and airjumps < airjump_max:
 		doublejump()
 	if inputpressed(dodge,pressbuffer,"",false):
@@ -1108,6 +1109,7 @@ func airdodge_state():
 		airdodges+=1
 		velocity = Vector2(0,0) #reset velocity before applying airdodge 
 		send_airdodge()
+		ledgedisable = 40
 	if frame==1:
 		if velocity == Vector2(0,0): #if the first frame was a neutral airdodge,
 			send_airdodge() #then the player is allowed to correct it if it was a mistake and input a different angle
@@ -1133,7 +1135,7 @@ func airdodge_state():
 	if frame == airdodgestartup: 
 		fullinvuln(airdodgeduration)
 		
-	if frame == 90: state(AIR)
+	if frame == 80: state(AIR)
 
 
 func waveland_state():
@@ -1860,12 +1862,13 @@ func apply_staling(dmgvalue,entry):
 
 
 
-
+########################
 		####ATTACKS####
-		#####
+########################
 
 
-
+func breverse(): #fine to run every frame of move
+	pass
 
 func groundnormal_ok():
 	if state in [STAND,CROUCHSTART,CROUCH,CROUCHEXIT,CRAWL,WALK,DASHEND,BRAKE,SKID,RUN]:
@@ -2044,7 +2047,7 @@ func check_landing():
 
 func actionablelogic(delta): #a function I made to make ordering stuff that doesn't happen during impactstop easier
 	#direction updates. Sprite happens at the end
-
+	ledgegrab_ok = false
 	$ECB.scale.x = direction
 	$Hurtbox.scale.x = direction
 	$pECB.scale.x = direction
@@ -2157,9 +2160,9 @@ func collision_handler(delta): #For platform/floor/wall collision.
 		ledgedisable-=1
 	
 	rooted = false
-	if inputheld(up): print (collisions)
+#	if inputheld(up): print (collisions)
 	collisions = []
-	ledgegrab_ok = false
+
 	if is_on_floor() or false: #remnants of me trying to make move_and_collide work. It still works *sort of* but I realized it's not necessary
 		grounded = true #use grounded anyways please it's shorter than is_on_floor()
 	else: grounded = false
@@ -2176,7 +2179,7 @@ func prune_disabledplats(collisionlist): #removes platforms from a collision lis
 
 
 func _ready():
-	process_priority = 99 #Hopefully makes character code be executed later than hitbox code 
+	process_priority = 99 #Makes character code get executed later than hitbox code 
 	replayprep()
 	$pECB.position = $ECB.position
 	$pECB.scale = $ECB.scale

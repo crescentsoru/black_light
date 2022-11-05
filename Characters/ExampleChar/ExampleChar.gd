@@ -70,8 +70,10 @@ func upb_state():
 	
 	if frame >= 26 and frame <= 42:
 		air_friction()
-
-
+		
+	
+	if frame > 19: ledgegrab_ok = true
+	
 	if frame == 42:
 		landinglag = 15
 	if frame == 48:
