@@ -564,6 +564,7 @@ func inputjustreleased(inp): #button released this frame, no buffer
 func replayprep(): #called on _ready to make your character controllable or not
 	if global.replaying == true and global.fullreplay.has('p_data'): #Will still crash if it has garbage data, but why would it? 
 		controllable = false
+		currentreplay = global.fullreplay['p_data'][playerindex-1][4]
 		if playerindex == 1: currentreplay = global.fullreplay['p_data'][0][4]
 		if playerindex == 2: currentreplay = global.fullreplay['p_data'][1][4]
 		if playerindex == 3: currentreplay = global.fullreplay['p_data'][2][4]
