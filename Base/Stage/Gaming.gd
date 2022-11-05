@@ -38,13 +38,15 @@ func init_player(port):
 
 func initialize_players():
 	var playercount = []
-	for x in [global.player_data[1],global.player_data[2]]:
+	for x in [global.player_data[1],global.player_data[2]]: # change later
 		if x[0] != '':
 			playercount.append(x) #not useful rn, len(playercount) will be useful when deciding start positions with different amount of players
 	init_player(1)
 	init_player(2)
 	init_player(3)
-
+	init_player(4)
+	init_player(5)
+	
 
 	if global.p4_data[0] != '':
 
