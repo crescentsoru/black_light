@@ -21,6 +21,10 @@ var impactstop = 0 #hitstop and blockstop. Also known as hitlag.
 var stocks = 99
 var percentage = 0 #Technically it's permillage since it goes down to the decimals
 
+		#Important references
+var GamingNode = global.GamingNode #the base node
+
+
 
 		#Gameplay
 
@@ -629,7 +633,7 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 		state_handler()
 		char_state_handler()
 		attackcode()
-	if maincharacter: get_parent().get_parent().update_debug_display(self,"p" + str(playerindex)+'_debug')
+	update_debug_display()
 
 
 
@@ -647,7 +651,7 @@ func persistentlogic(): #contains code that is ran during impactstop.
 
 	currenthits = []
 	lasthitbox = []
-	if maincharacter: get_parent().get_parent().update_debug_display(self,"p" + str(playerindex)+'_debug')
+	update_debug_display()
 
 
 
@@ -680,6 +684,11 @@ func refresh_air_options():
 
 
 
+
+func update_debug_display():
+	if maincharacter: GamingNode.update_debug_display(self,"p" + str(playerindex)+'_debug')
+
+
 func debug():
 #function for testing, please do not use this for legit game logic
 	#replay
@@ -693,9 +702,8 @@ func debug():
 		global.replaying = false
 		global.resetgame() #wipes the replay file
 	if Input.is_action_just_pressed("d_play"):
-		if playerindex == 1: global.p1_data[4] = currentreplay
-		if playerindex == 2: global.p2_data[4] = currentreplay
-		if playerindex == 3: global.p3_data[4] = currentreplay
+		global.player_data[playerindex][4] = currentreplay
+
 
 		global.replaying = true
 		global.compilereplay()
@@ -2055,7 +2063,7 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 	state_handler()
 	char_state_handler()
 	attackcode()
-	if maincharacter: get_parent().get_parent().update_debug_display(self,"p" + str(playerindex)+'_debug')
+	update_debug_display()
 	if state in rootedstates:
 		if grounded: velocity.y = fall_accel #makes it so that you don't fall with full fall speed when you slide off after a rooted state.  Not a problem in move_and_slide()
 		rooted = true #^^^Not doing this at all will fuck the collision needed to make rooted states work in the first place.

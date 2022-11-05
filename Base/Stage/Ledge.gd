@@ -33,8 +33,8 @@ func on_body_enter(body):
 				if !body.inputheld(body.down):
 					print ("valid ledgegrab")
 				else: print ("down held")
-				
-		
+
+
 
 
 func on_body_exit(body):

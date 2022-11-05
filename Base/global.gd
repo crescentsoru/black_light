@@ -4,12 +4,15 @@ extends Node
 
 var gamename = 'Blacklight'
 var gameversion = 'alpha v0.2 Second Contact'
-
-
+var versionstate = "In-Progress"
+var debug = true 
 
 
 func _ready():
 	pass
+
+
+
 
 
 
@@ -35,14 +38,25 @@ var gameend = 99999999 #the frametime when the replay ends.
 
 #Stage
 #This should probably be in stage but I haven't made a stage builder yet so its fine
-var spawn_1st = Vector2(4110,4900) #1st =/= p1. If there's 2 players and someone plugs into port 3 they should go into spawn_2nd for the sake of a neutral start.
-var spawn_2nd = Vector2(6100,4900)#2nd =/= p2
-var spawn_3rd = Vector2(5000,4900) #left center
-var spawn_4th = Vector2(5500,4900) #right center
-var spawn_5th = Vector2(5250,4900) #dead center
+
+var GamingNode = []
+
+
+var spawn_1st := Vector2(4110,4900) #1st =/= p1. If there's 2 players and someone plugs into port 3 they should go into spawn_2nd for the sake of a neutral start.
+var spawn_2nd := Vector2(6100,4900)#2nd =/= p2
+var spawn_3rd := Vector2(5000,4900) #left center
+var spawn_4th := Vector2(5500,4900) #right center
+var spawn_5th := Vector2(5250,4900) #dead center
+
+
+var spawns = [Vector2(4110,4900), Vector2(6100,4900), Vector2(5000,4900), Vector2(5500,4900), Vector2(5250,4900)]
 
 #Character
-var p1_data = [
+
+
+
+var player_data = {
+					1 : [
 	'ExampleChar', #[0]Character codename. Loads them from Characters/. Also lets the init funcs know the port is empty if it's == ''. 
 	0, #[1]Character alt/skin
 	'', #[2]Mode. For stuff like picking the first Porkyman with Porkyman Trainist or the Xeno 2 girls. Character scripts interact w this in _ready
@@ -51,6 +65,56 @@ var p1_data = [
 	],#[3]An array for controls
 	{}, #[4]replay
 	]
+	,
+					2 : [
+	'ExampleChar',
+	0, 
+	'',
+	['p2_up','p2_down','p2_left','p2_right','p2_jump','p2_attackA','p2_attackB','p2_attackC','p2_attackD','p2_attackE','p2_attackF', 
+	'p2_dodge','p2_grab','p2_cstickdown','p2_cstickup','p2_cstickleft','p2_cstickright','p2_uptaunt','p2_sidetaunt','p2_downtaunt',
+	],
+	{}, 
+	]
+	,
+					3: [
+	'ExampleChar',
+	0, 
+	'',
+	['p3_up','p3_down','p3_left','p3_right','p3_jump','p3_attackA','p3_attackB','p3_attackC','p3_attackD','p3_attackE','p3_attackF',
+	'p3_dodge','p3_grab','p3_cstickdown','p3_cstickup','p3_cstickleft','p3_cstickright','p3_uptaunt','p3_sidetaunt','p3_downtaunt',
+	],
+	{}, 
+	]
+	,
+					4 : [
+	'',
+	0, 
+	'',
+	['p4_up','p4_down','p4_left','p4_right','p4_jump','p4_attackA','p4_attackB','p4_attackC','p4_attackD','p4_attackE','p4_attackF', 
+	'p4_dodge','p4_grab','p4_cstickdown','p4_cstickup','p4_cstickleft','p4_cstickright','p4_uptaunt','p4_sidetaunt','p4_downtaunt',
+	],
+	{}, 
+	]
+	,
+					5 : [
+	'',
+	0, 
+	'',
+	['p5_up','p5_down','p5_left','p5_right','p5_jump','p5_attackA','p5_attackB','p5_attackC','p5_attackD','p5_attackE','p5_attackF', 
+	'p5_dodge','p5_grab','p5_cstickdown','p5_cstickup','p5_cstickleft','p5_cstickright','p5_uptaunt','p5_sidetaunt','p5_downtaunt',
+	],
+	{}, 
+	]
+	,
+					6 : [] #do later
+					,7 : []
+					,8 : []
+	
+	
+		}
+
+
+
 
 var p2_data = [
 	'ExampleChar',
@@ -129,7 +193,7 @@ func compilereplay(): #This is probably ran multiple times hope it doesn't shit 
 	fullreplay = {
 		'gameinfo' : [gamename,gameversion], #gameinfo contains info like the game name and version.
 		'matchinfo' : [stagename,gamemode,RNGseed,stockcount,thetimer,friendlyfire,teams],
-		'p_data' : [p1_data,p2_data,p3_data], #initialization vars, inputs
+		'p_data' : [player_data[1],player_data[2],player_data[3],player_data[4],player_data[5],player_data[6],player_data[7],player_data[8]], #initialization vars, inputs
 		'end' : gameend,
 		}
 

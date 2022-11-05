@@ -8,51 +8,44 @@ extends Node2D
 #A stage builder would be created in this same game for implementation 2.
 #I can handle either one, as I've already made a level builder/loader for Project Tension, though a grid-based one.
 #The bigger challenge there would actually be creating good UI/UX for the stage builder, but, the effort would be absolutely worth it.
-#which one is better for project architecture?I don't fucking know, which is why you shouldn't take this file seriously yet
+#which one is better for project architecture? I don't fucking know, which is why you shouldn't take this file seriously yet
 
 #Note that the actual stage and characters are part of the Stage node. This script is attached to the Gaming node which is their parent.
 #This is necessary to make sure pausing isn't completely annoying to deal with.
 
 #Called when the node enters the scene tree for the first time.
 func _ready():
+	global.GamingNode = self
 	initialize_players()
 
 
+func init_player(port):
+	if global.player_data[port][0] != '':
+		var data = global.player_data[port]
+		var portnode_load = load("res://Base/Port.tscn")
+		var portnode_instance = portnode_load.instance()
+		get_node("Stage").call_deferred('add_child',portnode_instance)
+		var character_load = load('res://Characters/' + global.player_data[port][0] + "/" + global.player_data[port][0] + ".tscn")
+		var character_instance = character_load.instance()
+		portnode_instance.call_deferred('add_child',character_instance) #I forgot why call_deferred was good I'm just copying stuff
+		character_instance.position = global.spawns[port-1] + self.position 
+		character_instance.spawnpoint = character_instance.position
+		character_instance.playerindex = port
+		character_instance.initialize_buttons(global.player_data[port][3])
+		character_instance.stocks = global.stockcount
 
 
 
 func initialize_players():
 	var playercount = []
-	for x in [global.p1_data,global.p2_data]:
+	for x in [global.player_data[1],global.player_data[2]]:
 		if x[0] != '':
 			playercount.append(x) #not useful rn, len(playercount) will be useful when deciding start positions with different amount of players
-	if global.p1_data[0] != '':
-		var p1_load = load('res://Characters/' + global.p1_data[0] + "/" + global.p1_data[0] + ".tscn")
-		var p1_instance = p1_load.instance()
-		get_node("Stage").call_deferred('add_child',p1_instance) #I forgot why call_deferred was good I'm just copying stuff
-		p1_instance.position = global.spawn_1st + self.position 
-		p1_instance.spawnpoint = p1_instance.position
-		p1_instance.playerindex = 1
-		p1_instance.initialize_buttons(global.p1_data[3])
-		p1_instance.stocks = global.stockcount
-	if global.p2_data[0] != '':
-		var p2_load = load('res://Characters/' + global.p2_data[0] + "/" + global.p2_data[0] + ".tscn")
-		var p2_instance = p2_load.instance()
-		get_node("Stage").call_deferred('add_child',p2_instance)
-		p2_instance.position = global.spawn_2nd + self.position
-		p2_instance.spawnpoint = p2_instance.position
-		p2_instance.playerindex = 2
-		p2_instance.initialize_buttons(global.p2_data[3])
-		p2_instance.stocks = global.stockcount
-	if global.p3_data[0] != '':
-		var p3_load = load('res://Characters/' + global.p3_data[0] + "/" + global.p3_data[0] + ".tscn")
-		var p3_instance = p3_load.instance()
-		get_node("Stage").call_deferred('add_child',p3_instance)
-		p3_instance.position = global.spawn_3rd + self.position
-		p3_instance.spawnpoint = p3_instance.position
-		p3_instance.playerindex = 3
-		p3_instance.initialize_buttons(global.p3_data[3])
-		p3_instance.stocks = global.stockcount
+	init_player(1)
+	init_player(2)
+	init_player(3)
+
+
 	if global.p4_data[0] != '':
 
 		var p4_load = load('res://Characters/' + global.p4_data[0] + "/" + global.p4_data[0] + ".tscn")
