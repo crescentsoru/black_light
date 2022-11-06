@@ -33,7 +33,7 @@ func init_player(port):
 		character_instance.playerindex = port
 		character_instance.initialize_buttons(global.player_data[port][3])
 		character_instance.stocks = global.stockcount
-
+		$Stage/Camera.targets.append(character_instance)
 
 
 func initialize_players():
@@ -46,7 +46,6 @@ func initialize_players():
 	init_player(3)
 	init_player(4)
 	init_player(5)
-	
 
 	if global.p4_data[0] != '':
 

@@ -1073,7 +1073,7 @@ func airdashstart(): #just a shorthand
 	velocity.y = 0
 	velocity.x = 0 #kinda problematic but not resetting vel.x means it feels bad to use airdashes in normal movement outside of getting hit with a bunch of knockback
 	#hopefully the fact that up-b's won't be usable if you exhaust all air options even if you get hit will compensate for airdash's ability to cancel velocity
-func airoptions_exhausted(): #Will be useful later to disallow recovery moves if both airdash and double jump have been used in a given jump arc.
+func airoptions_exhausted(): #Disallows recovery moves if both airdash and double jump have been used in a given jump arc.
 #Allowing people to double jump, airdash AND up-B will trivialize recovering which will make edgeguards much more difficult or impossible.
 #Using this function, you can disallow recovery moves like Up-B if both airdash and airjump have been used in the current jump arc.
 	if mergeairoptions:
@@ -1528,7 +1528,7 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	#Rotate strike hitboxes when on slopes
 	if hitbox_inst.hitboxtype == 'strike':
 		hitbox_inst.rotation = rotation
-		
+	
 	if hitboxdict.has('path'):
 		if direction == 1:
 			for point in hitboxdict['path']:
@@ -2170,7 +2170,7 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 	
 	
 	
-	
+
 	
 	
 	
@@ -2257,7 +2257,7 @@ func collision_handler(delta): #For platform/floor/wall collision.
 		grounded = true #use grounded anyways please it's shorter than is_on_floor()
 	else:
 		grounded = false
-		rotation = 0
+		if not (state==AIR and frame == 0): rotation = 0
 
 
 func prune_disabledplats(collisionlist): #removes platforms from a collision list if they're disabled
