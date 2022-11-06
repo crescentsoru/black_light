@@ -14,7 +14,7 @@ var state_called = [] #to fix function ordering memes
 var frame = 0
 var framesleft = 0 #blockstun frames or grab mash frames
 var velocity = Vector2(0,0)
-var direction = -1 #   -1 is left; 1 is right
+var direction = -1 #-1 is left; 1 is right
 var impactstop = 0 #hitstop and blockstop. Also known as hitlag. 
 
 
@@ -23,6 +23,8 @@ var percentage = 0 #Technically it's permillage since it goes down to the decima
 
 		#Important references
 var GamingNode = global.GamingNode #the base node
+var Port = get_parent()
+var FileSystemFolder := ""
 
 
 
@@ -488,6 +490,10 @@ func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a
 			for x in currentreplay['analog']:
 				if x[0] == global.gametime:
 					analogstick = Vector2(x[1],x[2])
+
+
+
+
 func base_inputheld(inp):
 	if controllable:
 		if inp != "": #this line prevents massive lag in interpreter (and possibly exports) when a button isn't set. 
@@ -2124,7 +2130,9 @@ func apply_gravity(): #this is called in ground states as well to prevent bugs r
 		velocity.y = fall_max
 	if velocity.y > fastfall_speed and fastfall:
 		velocity.y = fastfall_speed
-
+	if grounded and rotation != 0:
+		print ("grounded and rotation not 0")
+		Vector2(0,fall_accel)
 
 
 func check_landing():
@@ -2132,6 +2140,27 @@ func check_landing():
 	if grounded and frame > 0:
 		state(LAND)
 		refresh_air_options()
+
+
+
+############
+		#SOUND
+############
+
+
+var sounds = []
+
+func load_GameplayAudio():
+	print (FileSystemFolder)
+	var GameplayAudio_dir = Directory.new()
+	if GameplayAudio_dir.open(FileSystemFolder + "GameplayAudio") == OK:
+		print ("GameplayAudio exists")
+		
+	else:
+		print("GameplayAudio does not exist. Character will not play sounds. Please move all audio to a folder called GameplayAudio placed in character folder root.")
+
+func playsfx(soundname):
+	pass
 
 
 func actionablelogic(delta): #a function I made to make ordering stuff that doesn't happen during impactstop easier
@@ -2271,8 +2300,9 @@ func prune_disabledplats(collisionlist): #removes platforms from a collision lis
 
 
 func _ready():
-	process_priority = 99 #Makes character code get executed later than hitbox code 
+	process_priority = 99 #Makes character code get executed later than hitbox code
 	replayprep()
+	load_GameplayAudio()
 	$pECB.position = $ECB.position
 	$pECB.scale = $ECB.scale
 	#should make pECB copy the collision of ECB at startup as well

@@ -71,7 +71,7 @@ collision_layer = 2
 collision_mask = 0
 
 [node name="Floor3" parent="Stage" instance=ExtResource( 3 )]
-position = Vector2( 6536, 5104 )
+position = Vector2( 6546, 5101 )
 rotation = -0.261799
 collision_layer = 2
 collision_mask = 0

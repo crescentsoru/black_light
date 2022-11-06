@@ -21,10 +21,14 @@ func _ready():
 
 func init_player(port):
 	if global.player_data[port][0] != '':
+		#Load Port
 		var data = global.player_data[port]
 		var portnode_load = load("res://Base/Port.tscn")
 		var portnode_instance = portnode_load.instance()
 		get_node("Stage").call_deferred('add_child',portnode_instance)
+		portnode_instance.stocks = global.stockcount
+		
+		#Load Character
 		var character_load = load('res://Characters/' + global.player_data[port][0] + "/" + global.player_data[port][0] + ".tscn")
 		var character_instance = character_load.instance()
 		portnode_instance.call_deferred('add_child',character_instance) #I forgot why call_deferred was good I'm just copying stuff
@@ -32,7 +36,8 @@ func init_player(port):
 		character_instance.spawnpoint = character_instance.position
 		character_instance.playerindex = port
 		character_instance.initialize_buttons(global.player_data[port][3])
-		character_instance.stocks = global.stockcount
+		character_instance.stocks = global.stockcount #remove later
+		character_instance.FileSystemFolder = 'res://Characters/' + global.player_data[port][0] + "/"
 		$Stage/Camera.targets.append(character_instance)
 
 
