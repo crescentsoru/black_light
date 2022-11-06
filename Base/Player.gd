@@ -493,7 +493,6 @@ func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a
 
 
 
-
 func base_inputheld(inp):
 	if controllable:
 		if inp != "": #this line prevents massive lag in interpreter (and possibly exports) when a button isn't set. 
@@ -524,6 +523,20 @@ func base_inputheld(inp):
 				for n in currentreplay[x]:
 					if n[1] > global.gametime and n[0] <= global.gametime:
 						return true
+
+func cstick_processing(): #Placeholder until I create analog c-stick
+	if inputpressed(cstickup):
+		motionqueue = "8"
+		buffer[5][2] = 1 #press A
+	if inputpressed(cstickdown):
+		motionqueue = "2"
+		buffer[5][2] = 1 #press A
+	if inputpressed(cstickleft):
+		motionqueue = "4" 
+		buffer[5][2] = 1 #press A
+	if inputpressed(cstickright):
+		motionqueue = "6" 
+		buffer[5][2] = 1 #press A
 func writebuffer():
 	for x in buffer:
 		x[2]+=1
@@ -2315,6 +2328,8 @@ func _physics_process(delta):
 	writebuffer()
 #motionqueue update
 	motionqueueprocess()
+#placeholder cstick update
+	cstick_processing()
 	#insert cstick code here. if a cstick input is held, completely wipe motionqueue and append the cstick input. Then, press the button in the buffer
 #if blockstop/hitstop > 0: ignore game logic, otherwise decrement hitstop
 
