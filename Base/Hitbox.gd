@@ -50,10 +50,12 @@ func _ready(): #happens BEFORE initialization in Player.gd apparently
 	process_priority = 5 #Don't change this. Makes hitbox physics_process code be processed earlier than character code, eliminating a frame of lag. 
 	connect( "area_entered", self, "on_area_enter")
 	connect( "area_exited", self, "on_area_exit")
-func update_path():
+	
+func update_path(): #This is where the initial position of a hitbox is set, if you were confused 
 	if path.get_point_count() > 0:
 		var length_percentage = path.get_baked_length()*(float(frame)/duration)
-		position = creator.position + (path.interpolate_baked(length_percentage))
+		position = creator.position + (path.interpolate_baked(length_percentage).rotated(rotation))
+		
 
 
 

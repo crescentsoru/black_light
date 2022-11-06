@@ -1498,8 +1498,7 @@ func fthrow_state(): #pl re
 func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	var hitbox_load = load('res://Base/Hitbox.tscn')
 	var hitbox_inst = hitbox_load.instance()
-	get_parent().add_child(hitbox_inst)
-	hitbox_inst.position = self.position
+	get_parent().add_child(hitbox_inst) #Why does this work w the port system wtf
 	hitbox_inst.creator = self
 	hitbox_inst.createdstate = state
 	hitbox_inst.direction = direction
@@ -1526,6 +1525,10 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	else:
 		hitbox_inst.hitboxtype = 'strike'
 		hitbox_inst.hitboxtype_interaction = 'strike'
+	#Rotate strike hitboxes when on slopes
+	if hitbox_inst.hitboxtype == 'strike':
+		hitbox_inst.rotation = rotation
+		
 	if hitboxdict.has('path'):
 		if direction == 1:
 			for point in hitboxdict['path']:
@@ -1543,7 +1546,6 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	if hitboxdict.has('decline_scale'):
 		pass
 	else: pass
-
 	if hitboxdict.has('group'):
 		hitbox_inst.group = hitboxdict['group'] #you better know what you're doing. It's best to involve gametime in the definition 
 	else:
@@ -2231,9 +2233,12 @@ func collision_handler(delta): #For platform/floor/wall collision.
 				if not in_platform and velocity.y >= 0 and self.position.y < x.position.y:
 					pecbgrounded = true
 					enable_platform()
+					rotation = x.rotation # I can't believe slopes are this easy
 		if x.name.substr(0,5) == 'Floor':
 			pecbgrounded = true
 			disable_platform() #Colliding with the floor in any way will disable platforms. Is this even ok? Haven't found issues so far
+			rotation = x.rotation # I can't believe slopes are this easy
+			
 	if $pECB.collisions == []:
 		pecbgrounded = false
 		in_platform = false
@@ -2241,13 +2246,6 @@ func collision_handler(delta): #For platform/floor/wall collision.
 		in_platform = true
 	
 	###LEDGE###
-	
-	if ledgedisable == 0:
-		if (state in [AIR]) or ledgegrab_ok:
-			if false: #collision
-				pass
-	
-	
 	if ledgedisable > 0:
 		ledgedisable-=1
 	
@@ -2257,7 +2255,9 @@ func collision_handler(delta): #For platform/floor/wall collision.
 
 	if is_on_floor() or false: #remnants of me trying to make move_and_collide work. It still works *sort of* but I realized it's not necessary
 		grounded = true #use grounded anyways please it's shorter than is_on_floor()
-	else: grounded = false
+	else:
+		grounded = false
+		rotation = 0
 
 
 func prune_disabledplats(collisionlist): #removes platforms from a collision list if they're disabled
