@@ -1889,4 +1889,4 @@ anims/waveland = SubResource( 23 )
 
 [node name="Ledgegrab" parent="." instance=ExtResource( 5 )]
 position = Vector2( 0, -64 )
-scale = Vector2( 0.7, 2.05659 )
+scale = Vector2( 0.7, 1.5 )

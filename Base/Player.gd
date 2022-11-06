@@ -235,25 +235,26 @@ var invulns = { #There will later be a system with three different hurtboxes eac
 	'strike':0,
 	'projectile':0,
 	'grab':0,}
-var invulntype = 'intangible'
+var invulntype = 'intangible' #intangible. invincible
 
 var attackstate = 'whiff' #used for cancels on hit/block, fixing the melee multihit staling bug
 var killed = false #for Puff lol
 var stalingqueue = []
 
 #ukemi = ground tech. Please do not change these values, there's a reason a certain game made ground tech frame data universal
-var ukemineutral_end = 26
-var ukemineutral_invuln = 20
-var ukemiroll_end = 40
-var ukemiroll_invuln = 20
+var ukemineutral_end := 26
+var ukemineutral_invuln := 20
+var ukemiroll_end := 40
+var ukemiroll_invuln := 20
 
 
 #ledge
-var ledgegrabs = 0 #Times you grabbed the ledge without landing. When you grab the ledge with 5 ledgegrabs, you don't get invuln.
+var ledgegrabs := 0 #Times you grabbed the ledge without landing. When you grab the ledge with 5 ledgegrabs, you don't get invuln.
 var ledgedisable := 0 #frames you can't grab the ledge for.
-var currentledge = [] #the one and only ledge you are attached to
+var currentledge := [] #the one and only ledge you are attached to
 var ledgegrab_ok := true #if true, can grab ledge. Only works if ledgedisable timer is 0 
-var ledgestandup_offset = Vector2(50,0) #How far the character travels forward when LEDGESTANDUP is done. 
+var ledgestandup_offset := Vector2(50,0) #How far the character travels forward when LEDGESTANDUP is done. 
+var ledge_invuln := 0 #The game uses invulns dict for invulnerability. This is used to check if invulnerability should be removed.
 
 
 	#etc
@@ -684,6 +685,10 @@ func refresh_air_options():
 	fastfall = false
 	recoverymomentum_current = recoverymomentum_default
 	walljump_count = 0
+	if ledge_invuln > 0 and ledge_invuln == invulns["strike"]: #removes ledge invuln when landing
+		ledge_invuln = 0
+		resetinvuln() #sets all invulns to 0
+
 
 
 func refresh_air_options_limited():
@@ -1333,7 +1338,9 @@ func freefall_state():
 func ledgegrab_state():
 	ledge_validity_check()
 	if frame == 0:
-		if ledgegrabs <= 5: fullinvuln(37)
+		if ledgegrabs <= 5:
+			fullinvuln(37)
+			ledge_invuln = 37
 		velocity.x = 0
 		velocity.y = 0
 		refresh_air_options_limited()
@@ -1905,10 +1912,16 @@ func invuln_processing():
 	for x in invulns:
 		if invulns[x] > 0:
 			invulns[x]-=1
+	if ledge_invuln > 0: ledge_invuln -= 1
 func fullinvuln(number):
 	if invulns['strike'] < number: invulns['strike'] = number
 	if invulns['projectile'] < number: invulns['projectile'] = number
 	if invulns['grab'] < number: invulns['grab'] = number
+
+func resetinvuln():
+	invulns['strike'] = 0
+	invulns['projectile'] = 0
+	invulns['grab'] = 0
 
 func strikeinvuln(number): if invulns['strike'] < number: invulns['strike'] = number
 func projectileinvuln(number): if invulns['projectile'] < number: invulns['projectile'] = number
