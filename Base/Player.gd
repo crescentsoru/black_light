@@ -1974,9 +1974,10 @@ func apply_staling(dmgvalue,entry):
 
 
 func breverse(): #fine to run every frame of move
-	if (direction == 1 and inputheld(left)) or (direction == -1 and inputheld(right)):
-		flip()
-		velocity.x * -1
+	if frame == 7:
+		if (direction == 1 and inputheld(left)) or (direction == -1 and inputheld(right)):
+			flip()
+			velocity.x * -1
 	pass
 
 func groundnormal_ok():

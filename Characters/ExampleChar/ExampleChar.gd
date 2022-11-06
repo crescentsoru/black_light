@@ -20,10 +20,9 @@ func jab_state():
 	apply_traction2x()
 
 func neutralb_state():
-
+	breverse()
 	rooted = true
 	if frame == 0: invulns['strike'] = 5
-	if frame == 7: breverse()
 	if frame == 10:
 		create_hitbox(rectangle(128,64),120,10,100,290,9000, \
 		{'type':'projectile', 'hitstopmod':1.0,
@@ -36,6 +35,7 @@ func neutralb_state():
 		state(STAND)
 
 func upb_state():
+	breverse()
 	if frame == 0:
 		velocity.x = velocity.x / 2
 		velocity.y = 0
@@ -60,7 +60,6 @@ func upb_state():
 		create_hitbox(rectangle(98,128),40,100,35,100,1, \
 		{'type':'strike',
 		'path':[Vector2(98,0)],})
-	if frame == 7: breverse()
 	if frame == 8:
 		create_hitbox(rectangle(84,220),110,50,125,80,12, \
 		{'type':'strike',
