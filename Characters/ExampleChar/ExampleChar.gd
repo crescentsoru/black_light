@@ -20,7 +20,7 @@ func jab_state():
 	apply_traction2x()
 
 func neutralb_state():
-
+	breverse()
 	rooted = true
 	if frame == 0: invulns['strike'] = 5
 	if frame == 10:
@@ -35,6 +35,7 @@ func neutralb_state():
 		state(STAND)
 
 func upb_state():
+	breverse()
 	if frame == 0:
 		velocity.x = velocity.x / 2
 		velocity.y = 0
