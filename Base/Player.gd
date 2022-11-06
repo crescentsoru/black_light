@@ -44,45 +44,49 @@ const RUN = 'run'
 const TURN = 'turn'
 const SKID = 'skid'
 const BRAKE = 'brake'
-const LAND = 'land'
-const JUMPSQUAT = 'jumpsquat'
-const SHORTHOP = 'shorthop'
-const FULLHOP = 'fullhop'
+const LAND := 'land'
+const JUMPSQUAT := 'jumpsquat'
+const SHORTHOP := 'shorthop'
+const FULLHOP := 'fullhop'
 
 	#Air movement
-const AIR = 'air'
-const FAIRDASH = 'fairdash'
-const BAIRDASH = 'bairdash'
-const AIRDODGE = 'airdodge'
-const WAVELAND = 'waveland'
-const FREEFALL = 'freefall'
-const WALLJUMP = 'walljump'
+const AIR := 'air'
+const FAIRDASH := 'fairdash'
+const BAIRDASH := 'bairdash'
+const AIRDODGE := 'airdodge'
+const WAVELAND := 'waveland'
+const FREEFALL := 'freefall'
+const WALLJUMP := 'walljump'
 	#Pressure
-const SHIELD = 'shield'
-const SHIELDRELEASE = 'shieldrelease'
-const SHIELDBREAK = 'shieldbreak'
-const BLOCKBUTTON = 'blockbutton'
-const BLOCKSTUN = 'blockstun'
-const HITSTUN = 'hitstun'
-const HITSTUNGROUNDED = 'hitstungrounded'
-const ATGHITSTUN = 'atghitstun'  #this is the 4f air-to-ground transition that ASDI down makes use of, which I made into a separate state.
-const TUMBLE = 'tumble'
+const SHIELD := 'shield'
+const SHIELDRELEASE := 'shieldrelease'
+const SHIELDBREAK := 'shieldbreak'
+const BLOCKBUTTON := 'blockbutton'
+const BLOCKSTUN := 'blockstun'
+const HITSTUN := 'hitstun'
+const HITSTUNGROUNDED := 'hitstungrounded'
+const ATGHITSTUN := 'atghitstun'  #this is the 4f air-to-ground transition that ASDI down makes use of, which I made into a separate state.
+const TUMBLE := 'tumble'
 
 
 
-const UKEMISS = 'ukemiss' #ukemi refers to ground teching. Given a different name in code to differentiate from throw teching
-const UKEMIATTACK = 'ukemiattack'
-const UKEMIWAIT = 'ukemiwait'
-const UKEMINEUTRAL = 'ukemineutral'
-const UKEMIBACK = 'ukemiback'
-const UKEMIFORTH = 'ukemiforth'
-const HARDKNOCKDOWN = 'hardknockdown'
-const SPECIALFALL = 'specialfall'
+const UKEMISS := 'ukemiss' #ukemi refers to ground teching. Given a different name in code to differentiate from throw teching
+const UKEMIATTACK := 'ukemiattack'
+const UKEMIWAIT := 'ukemiwait'
+const UKEMINEUTRAL := 'ukemineutral'
+const UKEMIBACK := 'ukemiback'
+const UKEMIFORTH := 'ukemiforth'
+const HARDKNOCKDOWN := 'hardknockdown'
+const SPECIALFALL := 'specialfall'
+	#Ledge
+const LEDGEGRAB := 'ledgegrab' #AKA CliffCatch
+const LEDGEWAIT := 'ledgewait' #AKA CliffWait
+const LEDGE_GETUP := 'ledge_getup'
 
 	#Base attacks
-const NAIR = 'nair'
-const FAIR = 'fair'
-const UAIR = 'uair'
+const NAIR := 'nair'
+const FAIR := 'fair'
+const UAIR := 'uair'
 const BAIR =  'bair'
 const DAIR =  'dair'
 const NOVAIR = 'novair' #up-forward aerial
@@ -219,7 +223,7 @@ var guardhealth_passive = 1 #amount you recover passively when not blocking
 var extrablockstun = 0 #Don't use 
 var attackchain = [] #list of moves that were used in the current cancel chain. Refreshes to 0 when you're in a neutral state. 
 
-var interactingcharacter = [] #the character you're grabbing or being grabbed by 
+var interactingcharacter = [] #the character you're grabbing or being grabbed by. Also ledge
 var graboffset = Vector2(180,0) #the position of a grabbed character relative to you the grabber 
 
 var hitstunknockback = 0.0 #used on startup in hitstun to save the end frame of hitstun
@@ -245,6 +249,7 @@ var ukemiroll_invuln = 20
 
 
 #ledge
+var ledgegrabs = 0 #Times you grabbed the ledge without landing. When you grab the ledge with 5 ledgegrabs, you don't get invuln.
 var ledgedisable := 0 #frames you can't grab the ledge for.
 var currentledge = [] #the one and only ledge you are attached to
 var ledgegrab_ok := true #if true, can grab ledge. Only works if ledgedisable timer is 0 
@@ -679,10 +684,19 @@ func refresh_air_options():
 	airjumps = 0
 	airdashes = 0
 	airdodges = 0
+	ledgegrabs = 0
 	fastfall = false
 	recoverymomentum_current = recoverymomentum_default
 	walljump_count = 0
 
+func refresh_air_options_limited():
+	#Same as refresh_air_options(), but used for the ledge.
+	#Excluded moves like marth side b getting their momentum refreshed, ledgegrabs.
+	airjumps = 0
+	airdashes = 0
+	airdodges = 0
+	fastfall = false
+	walljump_count = 0
 
 
 
@@ -1314,14 +1328,56 @@ func ukemiforth_state():
 		state(STAND)
 
 func freefall_state():
+	ledgegrab_ok = true
 	apply_gravity()
 	check_landing()
 	aerial_acceleration()
 
+func ledgegrab_state():
+	ledge_validity_check()
+	if frame == 0:
+		if ledgegrabs <= 5: fullinvuln(37)
+		velocity.x = 0
+		velocity.y = 0
+		refresh_air_options_limited()
+	
+	if frame == 7:
+		state(LEDGEWAIT)
+
+func ledgewait_state():
+	ledge_validity_check()
+	#Ledge release
+	if (inputpressed(left) and interactingcharacter.direction == 1) or (inputpressed(right) and interactingcharacter.direction == -1):
+		ledgerelease()
+	elif inputpressed(down): ledgerelease()
+	
 
 
 
 
+
+
+func ledge_validity_check(): #Just in case something fucks up
+	if interactingcharacter == null:
+		state(AIR)
+		ledgedisable = 29
+		print("Ledge validity check fail!!! Report this to the authorities")
+	else:
+		if interactingcharacter.occupying == null:
+			state(AIR)
+			ledgedisable = 29
+			print("Ledge validity check fail!!! Report this to the authorities")
+
+func ledgerelease():
+	ledgedisable = 29 #check actual value, put in ledge release states
+	free_ledge()
+	state(AIR)
+	
+
+func free_ledge():
+	interactingcharacter.occupying = null
+	interactingcharacter = null
+	
 
 #grab stuff
 
@@ -1935,6 +1991,8 @@ func state_handler():
 	if state_check(UKEMIBACK): ukemiback_state()
 	if state_check(UKEMIFORTH): ukemiforth_state()
 	if state_check(FREEFALL): freefall_state()
+	if state_check(LEDGEGRAB): ledgegrab_state()
+	if state_check(LEDGEWAIT): ledgewait_state()
 	
 	if state_check(THROWCLASH): throwclash_state()
 	if state_check(GRABBED): grabbed_state()

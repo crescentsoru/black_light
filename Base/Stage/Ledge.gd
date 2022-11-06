@@ -1,7 +1,8 @@
 extends Area2D
 
 
-var occupying = [] #the character holding the ledge
+
+var occupying = null #the character holding the ledge
 var occupyframes = 0 #if 0, anyone can grab
 
 export var direction = 1 #-1 and 1 same as characters. 
@@ -23,24 +24,52 @@ func _ready():
 
 
 
-func on_body_enter(body):
-	print (body.name + " ")
-	
-	if body.get_node_or_null('Ledgegrab'): #this is how the ledge checks if the kinematicbody2d it collided with is a player or not
-		if body.ledgegrab_ok:
+#func on_body_enter(body):
+#	if body.get_node_or_null('Ledgegrab'): #this is how the ledge checks if the kinematicbody2d it collided with is a player or not
+#		collisions.append(body)
 
-			if body.ledgedisable == 0 and body.grounded == false:
-				if !body.inputheld(body.down):
+#func on_body_exit(body):
+#	if body in collisions: collisions.erase(body)
+
+func on_area_enter(area):
+	if area.name == 'Ledgegrab':
+		collisions.append(area.get_parent())
+func on_area_exit(area):
+	if area.name == 'Ledgegrab':
+		if area.get_parent() in collisions: collisions.erase(area.get_parent())
+
+func ledge_collision():
+	for character in collisions:
+		if character.ledgegrab_ok:
+			if character.ledgedisable == 0 and character.grounded == false:
+				if !character.inputheld(character.down):
 					print ("valid ledgegrab")
-				else: print ("down held")
+					grab_ledge(character)
+					break #instead of this, there should be a system that chooses which character is to
+					# grab the ledge based on distance and amount of ledgegrabs w/o landing
 
 
 
+func grab_ledge(character):
+	occupying = character
+	character.interactingcharacter = self
+	character.state('ledgegrab')
+	character.position = position + grabpos
+	character.direction = direction
+	
 
-func on_body_exit(body):
+
+
+func choose_character():
 	pass
+
+
+
+
+
+
 
 
 func _physics_process(delta):
-	pass
-
+	if occupying == null: ledge_collision()
+	if occupyframes > 0: occupyframes -=1
