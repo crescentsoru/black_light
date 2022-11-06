@@ -1357,7 +1357,7 @@ func ledgewait_state():
 
 
 
-func ledge_validity_check(): #Just in case something fucks up
+func ledge_validity_check(): #Test function, keep it just in case something fucks up
 	if interactingcharacter == null:
 		state(AIR)
 		ledgedisable = 29
@@ -1370,14 +1370,10 @@ func ledge_validity_check(): #Just in case something fucks up
 
 func ledgerelease():
 	ledgedisable = 29 #check actual value, put in ledge release states
-	free_ledge()
 	state(AIR)
-	
 
-func free_ledge():
-	interactingcharacter.occupying = null
-	interactingcharacter = null
-	
+
+
 
 #grab stuff
 

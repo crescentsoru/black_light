@@ -101,8 +101,9 @@ position = Vector2( 9017.29, 7339.79 )
 scale = Vector2( 1, 128 )
 
 [node name="Ledge" parent="Stage" instance=ExtResource( 6 )]
-position = Vector2( 3430, 5170 )
+position = Vector2( 3473, 5169 )
 
 [node name="Ledge2" parent="Stage" instance=ExtResource( 6 )]
-position = Vector2( 6580, 5170 )
+position = Vector2( 6547, 5162 )
+scale = Vector2( -1, 1 )
 direction = -1

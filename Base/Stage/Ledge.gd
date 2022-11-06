@@ -39,16 +39,25 @@ func on_area_exit(area):
 		if area.get_parent() in collisions: collisions.erase(area.get_parent())
 
 func ledge_collision():
+	var valid_chars = []
 	for character in collisions:
 		if character.ledgegrab_ok:
 			if character.ledgedisable == 0 and character.grounded == false:
 				if !character.inputheld(character.down):
-					print ("valid ledgegrab")
-					grab_ledge(character)
-					break #instead of this, there should be a system that chooses which character is to
-					# grab the ledge based on distance and amount of ledgegrabs w/o landing
-
-
+					valid_chars.append(character)
+					
+	var best_char = null #obj reference
+	var best_distance = 9999999999999
+	if len(valid_chars) > 0:
+		print ("valid_chars= " + str(valid_chars))
+		for x in valid_chars:
+			var distance = x.position.distance_to(position)
+			print (distance)
+			if distance < best_distance:
+				best_distance = distance
+				best_char = x
+	if best_char != null: grab_ledge(best_char)
+	if best_distance != 9999999999999: print ("Best distance= " + str(best_distance))
 
 func grab_ledge(character):
 	occupying = character
@@ -67,9 +76,17 @@ func choose_character():
 
 
 
+func unoccupy():
+	occupying.interactingcharacter = null
+	occupying = null
 
-
+const LEDGESTATES = ['ledgegrab','ledgewait']
 
 func _physics_process(delta):
-	if occupying == null: ledge_collision()
+	if occupying == null:
+		ledge_collision()
+	else:
+		if not (occupying.state in LEDGESTATES):
+			unoccupy()
 	if occupyframes > 0: occupyframes -=1
+	
