@@ -1,0 +1,35 @@
+[remap]
+
+importer="texture"
+type="StreamTexture"
+path="res://.import/ledgestandup4.png-5231b0e1c8a1fa25fb08a9e7a2dfbe8b.stex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://Graphics2/ledgestandup4.png"
+dest_files=[ "res://.import/ledgestandup4.png-5231b0e1c8a1fa25fb08a9e7a2dfbe8b.stex" ]
+
+[params]
+
+compress/mode=0
+compress/lossy_quality=0.7
+compress/hdr_mode=0
+compress/bptc_ldr=0
+compress/normal_map=0
+flags/repeat=0
+flags/filter=true
+flags/mipmaps=false
+flags/anisotropic=false
+flags/srgb=2
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/HDR_as_SRGB=false
+process/invert_color=false
+process/normal_map_invert_y=false
+stream=false
+size_limit=0
+detect_3d=true
+svg/scale=1.0
