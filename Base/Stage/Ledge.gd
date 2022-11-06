@@ -6,9 +6,8 @@ var occupying = null #the character holding the ledge
 var occupyframes = 0 #if 0, anyone can grab
 
 export var direction = 1 #-1 and 1 same as characters. 
-var floorpos = Vector2(0,0) #the position the character uses for stuff like getup, getup attack. All pos vars are relative to ledgebox position
-var releasepos = Vector2(0,0) #the position you're in if you release ledge by pressing back.
-var grabpos = Vector2(0,0) #the position you're snapped to when you grab ledge. Should be same as releasepos but go buckwild I guess
+export var floorpos = Vector2(16,0) #the position the character uses for stuff like getup, getup attack. All pos vars are relative to ledgebox position
+export var grabpos = Vector2(-70,0) #the position you're snapped to when you grab ledge. Should be same as releasepos but go buckwild I guess
 
 
 var collisions = []

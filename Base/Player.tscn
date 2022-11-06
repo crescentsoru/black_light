@@ -1,9 +1,10 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://Graphics2/Player_spriteframes.tres" type="SpriteFrames" id=1]
 [ext_resource path="res://Base/Player.gd" type="Script" id=2]
 [ext_resource path="res://Base/Hurtbox.tscn" type="PackedScene" id=3]
 [ext_resource path="res://Base/pECB.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Base/Ledgegrab.tscn" type="PackedScene" id=5]
 
 [sub_resource type="Animation" id=1]
 resource_name = "goattack"
@@ -267,7 +268,6 @@ frames = ExtResource( 1 )
 animation = "stand"
 
 [node name="Hurtbox" parent="." instance=ExtResource( 3 )]
-visible = false
 modulate = Color( 0.423529, 0.196078, 0.341176, 1 )
 
 [node name="ECB" type="CollisionPolygon2D" parent="."]
@@ -284,3 +284,6 @@ anims/gorelease = SubResource( 3 )
 anims/goright = SubResource( 4 )
 anims/gospecial = SubResource( 5 )
 anims/stand = SubResource( 6 )
+
+[node name="Ledgegrab" parent="." instance=ExtResource( 5 )]
+position = Vector2( 7, -116 )

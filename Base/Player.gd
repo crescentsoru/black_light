@@ -81,7 +81,7 @@ const SPECIALFALL := 'specialfall'
 	#Ledge
 const LEDGEGRAB := 'ledgegrab' #AKA CliffCatch
 const LEDGEWAIT := 'ledgewait' #AKA CliffWait
-const LEDGE_GETUP := 'ledge_getup'
+const LEDGESTANDUP := 'ledgestandup'
 
 	#Base attacks
 const NAIR := 'nair'
@@ -162,7 +162,7 @@ var fall_max = 1900
 var fastfall_speed = 2375
 var airfriction = 3 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
 
-var jumpsquat = 3
+var jumpsquat = 4
 var shorthopspeed = 1600
 var fullhopspeed = 2900
 var airjumpspeed = 2700 #this is velocity.y not drifting
@@ -208,7 +208,7 @@ var rootedstates = [SHIELD,SHIELDBREAK,JAB,UKEMINEUTRAL,UKEMIBACK,UKEMIFORTH,BLO
 var slidestates = [JUMPSQUAT,STAND,CROUCH,CROUCHSTART,CROUCHEXIT,WALK,DASH,RUN,LAND,ATGHITSTUN,TURN,SKID,DASHEND,BRAKE,WAVELAND,UKEMISS,UKEMIWAIT,UKEMIATTACK] #Usually ground movement, will slide off when not grounded.
 var landingstates = [AIR,FAIRDASH,BAIRDASH,NAIR,UAIR,DAIR,BAIR,FAIR,UNOAIR,TRIAIR,SEVAIR,NOVAIR] #States that will enter LAND when you land on the ground.
 var blockingstates = [BLOCKBUTTON,SHIELD,CROUCH,CROUCHSTART,BLOCKSTUN]
-var ledgegrabstates = [AIR,UPB]
+
 
 
 	#Pressure vars
@@ -253,7 +253,7 @@ var ledgegrabs = 0 #Times you grabbed the ledge without landing. When you grab t
 var ledgedisable := 0 #frames you can't grab the ledge for.
 var currentledge = [] #the one and only ledge you are attached to
 var ledgegrab_ok := true #if true, can grab ledge. Only works if ledgedisable timer is 0 
-
+var ledgestandup_offset = Vector2(50,0) #How far the character travels forward when LEDGESTANDUP is done. 
 
 
 	#etc
@@ -645,10 +645,6 @@ func state(newstate,newframe=0): #records the current state in state_previous, c
 
 
 
-
-
-
-
 func persistentlogic(): #contains code that is ran during impactstop.
 #This includes tech buffering/lockout, SDI and getting hit. 
 	hit_processing()
@@ -689,9 +685,10 @@ func refresh_air_options():
 	recoverymomentum_current = recoverymomentum_default
 	walljump_count = 0
 
+
 func refresh_air_options_limited():
 	#Same as refresh_air_options(), but used for the ledge.
-	#Excluded moves like marth side b getting their momentum refreshed, ledgegrabs.
+	#Excluded moves like Mars side b getting their momentum refreshed, ledgegrabs.
 	airjumps = 0
 	airdashes = 0
 	airdodges = 0
@@ -1347,10 +1344,24 @@ func ledgegrab_state():
 func ledgewait_state():
 	ledge_validity_check()
 	#Ledge release
-	if (inputpressed(left) and interactingcharacter.direction == 1) or (inputpressed(right) and interactingcharacter.direction == -1):
+	if inputpressed(jump):
+		ledgerelease()
+	elif (inputpressed(left) and interactingcharacter.direction == 1) or (inputpressed(right) and interactingcharacter.direction == -1):
 		ledgerelease()
 	elif inputpressed(down): ledgerelease()
-	
+	elif inputpressed(dodge):
+		position = interactingcharacter.position + (interactingcharacter.floorpos + Vector2(0,ecb_height()* -1) + ledgestandup_offset) * Vector2(direction,1) 
+		move_and_collide(Vector2(0,1500)) #hack to make SURE you're on the ground. This absolutely will
+		#fuck up with platforms that are very close to the ground, but hey the same thing can be said for Smash games
+		state(LEDGESTANDUP)
+
+func ledgestandup_state():
+	if frame == 0:
+		fullinvuln(60)
+	if frame == 60:
+		grounded = true
+		velocity.y = fall_accel
+		state(STAND)
 
 
 
@@ -1989,7 +2000,7 @@ func state_handler():
 	if state_check(FREEFALL): freefall_state()
 	if state_check(LEDGEGRAB): ledgegrab_state()
 	if state_check(LEDGEWAIT): ledgewait_state()
-	
+	if state_check(LEDGESTANDUP): ledgestandup_state()
 	if state_check(THROWCLASH): throwclash_state()
 	if state_check(GRABBED): grabbed_state()
 	if state_check(GRABBING): grabbing_state()
@@ -2151,6 +2162,8 @@ func actionablelogic(delta): #a function I made to make ordering stuff that does
 	#put this last pls
 	state_called = []
 
+
+
 func ecb_up(): #returns the scene position of the top point of your pECB.
 	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[0]
 func ecb_down(): #returns the scene position of the lower point of your pECB. 
@@ -2159,6 +2172,9 @@ func ecb_left(): #left point. Note that this is right-facing, so the left point 
 	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[1]
 func ecb_right(): #right point. same directional concern as ecb_left()
 	return position + $pECB.position + $pECB.get_node('pECB_collision').polygon[3]
+
+func ecb_height():
+	return ecb_down().y - ecb_up().y
 
 func platform_drop(): #ran in state machine, disables platforms if 1/3 is pressed in numpad notation
 	#should be put at the start of any state function

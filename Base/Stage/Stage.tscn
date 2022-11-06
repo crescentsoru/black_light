@@ -101,7 +101,7 @@ position = Vector2( 9017.29, 7339.79 )
 scale = Vector2( 1, 128 )
 
 [node name="Ledge" parent="Stage" instance=ExtResource( 6 )]
-position = Vector2( 3473, 5169 )
+position = Vector2( 3477, 5169 )
 
 [node name="Ledge2" parent="Stage" instance=ExtResource( 6 )]
 position = Vector2( 6547, 5162 )
