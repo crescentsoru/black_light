@@ -24,13 +24,6 @@ func _ready():
 
 
 
-#func on_body_enter(body):
-#	if body.get_node_or_null('Ledgegrab'): #this is how the ledge checks if the kinematicbody2d it collided with is a player or not
-#		collisions.append(body)
-
-#func on_body_exit(body):
-#	if body in collisions: collisions.erase(body)
-
 func on_area_enter(area):
 	if area.name == 'Ledgegrab':
 		collisions.append(area.get_parent())
@@ -57,7 +50,7 @@ func ledge_collision():
 				best_distance = distance
 				best_char = x
 	if best_char != null: grab_ledge(best_char)
-	if best_distance != 9999999999999: print ("Best distance= " + str(best_distance))
+
 
 func grab_ledge(character):
 	occupying = character
