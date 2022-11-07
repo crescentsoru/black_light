@@ -1236,6 +1236,7 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id=45]
 resource_name = "ledgestandup"
+step = 0.017
 tracks/0/type = "value"
 tracks/0/path = NodePath("Sprite:frame")
 tracks/0/interp = 1
@@ -1243,10 +1244,10 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray(  ),
-"transitions": PoolRealArray(  ),
+"times": PoolRealArray( 0, 0.017, 0.034, 0.051, 0.068, 0.085 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
 "update": 1,
-"values": [  ]
+"values": [ 0, 1, 2, 3, 4, 5 ]
 }
 tracks/1/type = "value"
 tracks/1/path = NodePath("Sprite:offset")
@@ -1255,10 +1256,10 @@ tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/keys = {
-"times": PoolRealArray(  ),
-"transitions": PoolRealArray(  ),
+"times": PoolRealArray( 0, 0.017, 0.034, 0.051, 0.068, 0.085 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
 "update": 0,
-"values": [  ]
+"values": [ Vector2( -200, 300 ), Vector2( -200, 200 ), Vector2( -200, 150 ), Vector2( -150, 100 ), Vector2( -100, 50 ), Vector2( -50, 0 ) ]
 }
 tracks/2/type = "value"
 tracks/2/path = NodePath("AnimationPlayer:playback_speed")
@@ -1267,10 +1268,10 @@ tracks/2/loop_wrap = true
 tracks/2/imported = false
 tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray(  ),
-"transitions": PoolRealArray(  ),
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
 "update": 0,
-"values": [  ]
+"values": [ 0.25 ]
 }
 
 [sub_resource type="Animation" id=44]
@@ -1987,8 +1988,8 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 scale = Vector2( 0.992736, 1 )
 frames = ExtResource( 2 )
-animation = "bigprojectile"
-offset = Vector2( 0, 50 )
+animation = "ledgestandup"
+offset = Vector2( -200, 300 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 position = Vector2( 0, 18 )
