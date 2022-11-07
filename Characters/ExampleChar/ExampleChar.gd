@@ -74,10 +74,7 @@ func upb_state():
 		velocity.y -= 500
 	if frame == 4:
 		velocity.y -= 290
-		if inputheld(left) and direction == -1 and velocity.x > -1200:
-			velocity.x = -1200
-		if inputheld(right) and direction == 1 and velocity.x < 1200:
-			velocity.x = 1200
+
 	if frame >= 5:
 		apply_gravity()
 		check_landing()
@@ -87,6 +84,10 @@ func upb_state():
 		{'type':'strike',
 		'path':[Vector2(98,0)],})
 	if frame == 8:
+		if inputheld(left) and direction == -1 and velocity.x > -1200:
+			velocity.x = -1200
+		if inputheld(right) and direction == 1 and velocity.x < 1200:
+			velocity.x = 1200
 		create_hitbox(rectangle(84,220),110,50,125,80,12, \
 		{'type':'strike',
 		'path':[Vector2(128,-102)],})
@@ -114,20 +115,19 @@ func attackcode():
 		if motionqueue[-1] == "5" and inputpressed(attackB):
 			state(MEMEHITBOX)
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
-			if motionqueue[-1] == '7': flip()
+			if currentmotion[-1] == '7' : flip() #destroy this stupid shit later 
 			state(UPB)
 		if inputheld(dodge) and inputpressed(attackA):
 			state(NEUTRALGRAB)
 	if state in [DASH,JUMPSQUAT]: #upb 
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
-			if motionqueue[-1] == '7':
-				flip()
+			if currentmotion[-1] == '7': flip()
 			state(UPB)
 		if inputheld(dodge) and inputpressed(attackA):
 			state(NEUTRALGRAB)
 	if airattack_ok():
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
-			if motionqueue[-1] == '7': flip()
+			if currentmotion[-1] == '7': flip()
 			state(UPB)
 		if motionqueue[-1] == "5" and inputpressed(attackA):
 			state(NAIR)

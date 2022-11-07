@@ -594,7 +594,8 @@ func replayprep(): #called on _ready to make your character controllable or not
 		if playerindex == 2: currentreplay = global.fullreplay['p_data'][1][4]
 		if playerindex == 3: currentreplay = global.fullreplay['p_data'][2][4]
 
-var motionqueue = "5"
+var motionqueue := "5"
+var currentmotion := "5" #same thing as motionqueue but side corrected 
 var motiontimer = 8
 func tiltinput(inp): #returns true if you have an analog input beyond analog_tilt on the control stick, which is 24 by default.
 	if inp == up: 
@@ -629,10 +630,36 @@ func motionqueueprocess():
 	elif tiltinput(up):
 		motionappend("8")
 	else: motionappend("5")
+	
+	#current motion
+	if direction == 1:
+		currentmotion = motionqueue
+	else:
+		currentmotion = currentmotionprocess(motionqueue) 
 func motionappend(number):
 	if motionqueue[-1] != number:
 		motionqueue = motionqueue + number
 		motiontimer = 8
+
+func currentmotionprocess(originalmotion): #motionqueue corrected for side
+	var result = ""
+	#This mirrors your motionqueue
+	for x in len(originalmotion):
+		if originalmotion[x] == "1":
+			result = result + "3"
+		elif originalmotion[x] == "3":
+			result = result + "1"
+		elif originalmotion[x] == "4":
+			result = result + "6"
+		elif originalmotion[x] == "6":
+			result = result + "4"
+		elif originalmotion[x] == "7":
+			result = result + "9"
+		elif originalmotion[x] == "9":
+			result = result + "7"
+		else:
+			result = result + originalmotion[x]
+	return result
 
 var animexception = [] #this will be useful later for the AIR state 
 func state_exception(state_array):
@@ -2172,7 +2199,7 @@ func load_GameplayAudio():
 	var GameplayAudio_dir = Directory.new()
 	if GameplayAudio_dir.open(FileSystemFolder + "GameplayAudio") == OK:
 		print ("GameplayAudio exists")
-		
+
 	else:
 		print("GameplayAudio does not exist. Character will not play sounds. Please move all audio to a folder called GameplayAudio placed in character folder root.")
 

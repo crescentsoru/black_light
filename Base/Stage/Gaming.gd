@@ -52,16 +52,7 @@ func initialize_players():
 	init_player(4)
 	init_player(5)
 
-	if global.p4_data[0] != '':
 
-		var p4_load = load('res://Characters/' + global.p4_data[0] + "/" + global.p4_data[0] + ".tscn")
-		var p4_instance = p4_load.instance()
-		get_node("Stage").call_deferred('add_child',p4_instance)
-		p4_instance.position = global.spawn_4th + self.position
-		p4_instance.spawnpoint = p4_instance.position
-		p4_instance.playerindex = 4
-		p4_instance.initialize_buttons(global.p4_data[3])
-		p4_instance.stocks = global.stockcount
 
 var pause_default = false
 var ispause = false
@@ -72,7 +63,7 @@ var pausehold = 0 #increments every frame forward is held, if it's 30 then go re
 
 func update_debug_display(caller,textobj='p1_debug'):
 	$UI_persistent.get_node(textobj).text = "gametime= " + str(global.gametime) \
-	 + "\nvelocity= " + str(caller.velocity) + "\nmotionqueue= " + caller.motionqueue \
+	 + "\nvelocity= " + str(caller.velocity) + "\nmotionqueue= " + caller.currentmotion \
 	 + "\nstate= " + str(caller.state) + "\nframe= " + str(caller.frame) + " imp= " + str(caller.impactstop) + "\nanalog= " + str(caller.analogstick) \
 	+ "\n" + str(caller.stocks) + " stocks  " + str(caller.percentage/float(10)) + "%  " \
 	+ "\nattackstate = " + caller.attackstate \
