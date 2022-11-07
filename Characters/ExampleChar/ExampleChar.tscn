@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=2]
+[gd_scene load_steps=56 format=2]
 
 [ext_resource path="res://Base/Hurtbox.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Graphics2/Player_spriteframes.tres" type="SpriteFrames" id=2]
@@ -495,6 +495,46 @@ tracks/2/keys = {
 "values": [ Vector2( -32, -5 ) ]
 }
 
+[sub_resource type="Animation" id=50]
+resource_name = "dsmash"
+step = 0.017
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.017, 0.034, 0.051, 0.068 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2, 3, 4 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Sprite:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.017, 0.034, 0.051, 0.068 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ Vector2( 31, 55 ), Vector2( 65, 55 ), Vector2( 65, 55 ), Vector2( 65, 55 ), Vector2( 31, 55 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.25 ]
+}
+
 [sub_resource type="Animation" id=42]
 resource_name = "dthrow"
 length = 0.583334
@@ -523,6 +563,45 @@ tracks/1/keys = {
 "transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
 "update": 1,
 "values": [ Vector2( 0, 0 ), Vector2( 0, 0 ), Vector2( 0, 0 ), Vector2( 0, 0 ), Vector2( 0, 0 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 1.0 ]
+}
+
+[sub_resource type="Animation" id=49]
+resource_name = "dtilt"
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 0 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Sprite:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 31, 55 ) ]
 }
 tracks/2/type = "value"
 tracks/2/path = NodePath("AnimationPlayer:playback_speed")
@@ -1988,8 +2067,8 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 scale = Vector2( 0.992736, 1 )
 frames = ExtResource( 2 )
-animation = "ledgestandup"
-offset = Vector2( -200, 300 )
+animation = "dsmash"
+offset = Vector2( 31, 55 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 position = Vector2( 0, 18 )
@@ -2016,7 +2095,9 @@ anims/crouchexit = SubResource( 6 )
 anims/crouchstart = SubResource( 7 )
 anims/dash = SubResource( 8 )
 anims/dashend = SubResource( 9 )
+anims/dsmash = SubResource( 50 )
 anims/dthrow = SubResource( 42 )
+anims/dtilt = SubResource( 49 )
 anims/fair = SubResource( 46 )
 anims/fairdash = SubResource( 10 )
 anims/freefall = SubResource( 36 )
