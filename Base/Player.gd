@@ -2192,7 +2192,8 @@ func check_landing():
 ############
 
 
-var sounds = []
+var charactersounds = []
+var universalsounds = []
 
 func load_GameplayAudio():
 	print (FileSystemFolder)
@@ -2212,15 +2213,13 @@ func load_GameplayAudio():
 		for x in files:
 			var filepath = FileSystemFolder + "GameplayAudio/" + x
 			if (filepath.right(len(filepath)-4)) == ".wav": #Only loads file if it's a wav, maybe later add ogg 
-				sounds.append([x,load(filepath)]) #needs to be a list w a name so I can reference it in playsfx()
-		print ()
-		print (name + str(sounds))
+				charactersounds.append([x,load(filepath)]) #needs to be a list w a name so I can reference it in playsfx()
 		
 	else:
 		print("GameplayAudio folder does not exist. Character will not play unique sounds. Please move audio to a folder called GameplayAudio placed in character folder root.")
 
 func playsfx(soundname):
-	for x in sounds:
+	for x in charactersounds:
 		if x[0] == soundname:
 			var audiostream_load = load("res://Base/Audio/CharacterSound.tscn")
 			var audiostream = audiostream_load.instance()

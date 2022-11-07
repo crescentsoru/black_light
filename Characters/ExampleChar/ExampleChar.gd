@@ -38,7 +38,7 @@ func nair_state():
 	if frame == 0: landinglag = hardland
 	if frame == 3: landinglag = 8
 	if frame == 3: 
-		create_hitbox(rectangle(80,64),70,70,120,98,3, \
+		create_hitbox(rectangle(80,64),70,60,140,98,3, \
 		{'type':'strike',
 		'path':[Vector2(150,0)],})
 	if frame == 18:
