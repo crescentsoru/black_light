@@ -1,0 +1,15 @@
+[gd_scene format=2]
+
+[node name="Individual_button" type="Control"]
+margin_right = 119.0
+margin_bottom = 71.0
+
+[node name="Button" type="Button" parent="."]
+margin_right = 87.0
+margin_bottom = 60.0
+
+[node name="Label" type="Label" parent="."]
+margin_left = 8.0
+margin_top = 6.0
+margin_right = 74.0
+margin_bottom = 53.0

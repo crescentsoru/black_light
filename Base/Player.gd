@@ -774,7 +774,7 @@ func debug():
 	if Input.is_action_just_pressed("d_a"):
 		move_and_collide(Vector2(0,5000))
 	if Input.is_action_just_released("d_b"):
-		get_tree().change_scene("res://Menus/Button_remap.tscn")
+		get_tree().change_scene("res://Menus/Button_config.tscn")
 
 
 

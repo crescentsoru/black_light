@@ -13,7 +13,8 @@ func _ready():
 
 
 
-
+	#Config stuff I don't understand
+var p1_device = {'device':0,'axisx':0,'axisy':0,'keyboard':false,'joypad':true}
 
 
 	#Match initialization

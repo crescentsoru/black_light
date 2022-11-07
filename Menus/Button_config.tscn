@@ -1,0 +1,266 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://Menus/Button_config.gd" type="Script" id=1]
+[ext_resource path="res://Menus/idefk.gd" type="Script" id=3]
+[ext_resource path="res://Menus/Individual_button.tscn" type="PackedScene" id=4]
+
+[node name="Button_config" type="Node2D"]
+script = ExtResource( 1 )
+
+[node name="Node" type="Control" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+script = ExtResource( 3 )
+
+[node name="contextual_help" type="Label" parent="Node"]
+margin_left = 51.0
+margin_top = 27.0
+margin_right = 308.0
+margin_bottom = 73.0
+rect_scale = Vector2( 2, 2 )
+text = "Hello!
+"
+
+[node name="bindings" type="Control" parent="Node"]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="p1_up" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 45.0
+margin_top = 132.0
+margin_right = 127.0
+margin_bottom = 187.0
+
+[node name="p1_down" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 45.0
+margin_top = 224.0
+margin_right = 129.0
+margin_bottom = 250.0
+
+[node name="p1_left" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 45.0
+margin_top = 323.0
+margin_right = 123.0
+margin_bottom = 372.0
+
+[node name="p1_right" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 45.0
+margin_top = 420.0
+margin_bottom = 476.0
+
+[node name="p1_jump" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 45.0
+margin_top = 513.0
+margin_bottom = 569.0
+
+[node name="p1_attackA" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 199.0
+margin_top = 134.0
+margin_right = 273.0
+margin_bottom = 190.0
+
+[node name="p1_attackB" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 198.0
+margin_top = 224.0
+margin_right = 272.0
+margin_bottom = 280.0
+
+[node name="p1_attackC" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 198.0
+margin_top = 324.0
+margin_right = 272.0
+margin_bottom = 380.0
+
+[node name="p1_dodge" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 198.0
+margin_top = 427.0
+margin_right = 272.0
+margin_bottom = 483.0
+
+[node name="p1_grab" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 198.0
+margin_top = 516.0
+margin_right = 272.0
+margin_bottom = 572.0
+
+[node name="p1_cstickup" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 355.0
+margin_top = 136.0
+margin_right = 429.0
+margin_bottom = 192.0
+
+[node name="p1_cstickdown" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 354.0
+margin_top = 227.0
+margin_right = 428.0
+margin_bottom = 283.0
+
+[node name="p1_cstickleft" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 357.0
+margin_top = 327.0
+margin_right = 431.0
+margin_bottom = 383.0
+
+[node name="p1_cstickright" parent="Node/bindings" instance=ExtResource( 4 )]
+margin_left = 357.0
+margin_top = 431.0
+margin_right = 431.0
+margin_bottom = 487.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 44.0
+margin_top = 100.0
+margin_right = 135.0
+margin_bottom = 126.0
+text = "up
+"
+
+[node name="RichTextLabel7" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 203.0
+margin_top = 95.0
+margin_right = 291.0
+margin_bottom = 136.0
+text = "attackA
+
+"
+
+[node name="RichTextLabel11" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 355.0
+margin_top = 92.0
+margin_right = 443.0
+margin_bottom = 133.0
+text = "cstickup
+"
+
+[node name="RichTextLabel12" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 355.0
+margin_top = 201.0
+margin_right = 443.0
+margin_bottom = 242.0
+text = "cstickdown"
+
+[node name="RichTextLabel13" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 360.0
+margin_top = 289.0
+margin_right = 448.0
+margin_bottom = 330.0
+text = "cstickleft"
+
+[node name="RichTextLabel14" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 357.0
+margin_top = 393.0
+margin_right = 445.0
+margin_bottom = 434.0
+text = "cstickright
+"
+
+[node name="RichTextLabel8" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 203.0
+margin_top = 197.0
+margin_right = 291.0
+margin_bottom = 238.0
+text = "attackB
+"
+
+[node name="RichTextLabel9" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 200.0
+margin_top = 291.0
+margin_right = 288.0
+margin_bottom = 332.0
+text = "attackC
+
+"
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 44.0
+margin_top = 194.0
+margin_right = 151.0
+margin_bottom = 233.0
+text = "down
+
+"
+
+[node name="RichTextLabel3" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 44.0
+margin_top = 291.0
+margin_right = 151.0
+margin_bottom = 330.0
+text = "left
+
+"
+
+[node name="RichTextLabel4" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 44.0
+margin_top = 388.0
+margin_right = 151.0
+margin_bottom = 427.0
+text = "right
+"
+
+[node name="RichTextLabel5" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 44.0
+margin_top = 482.0
+margin_right = 151.0
+margin_bottom = 521.0
+text = "jump
+"
+
+[node name="RichTextLabel6" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 197.0
+margin_top = 395.0
+margin_right = 304.0
+margin_bottom = 434.0
+text = "dodge
+
+"
+
+[node name="RichTextLabel10" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 197.0
+margin_top = 492.0
+margin_right = 304.0
+margin_bottom = 531.0
+text = "grab
+
+"
+
+[node name="GoBack" type="Button" parent="."]
+margin_left = 1158.0
+margin_top = 12.0
+margin_right = 1268.0
+margin_bottom = 75.0
+text = "Go back"
+
+[node name="Player1" type="Button" parent="."]
+margin_left = 706.0
+margin_top = 79.0
+margin_right = 816.0
+margin_bottom = 142.0
+text = "Player 1"
+
+[node name="Player2" type="Button" parent="."]
+margin_left = 706.0
+margin_top = 161.0
+margin_right = 816.0
+margin_bottom = 224.0
+text = "Player 2"
+
+[node name="Player3" type="Button" parent="."]
+margin_left = 706.0
+margin_top = 245.0
+margin_right = 816.0
+margin_bottom = 308.0
+text = "Player 3"
