@@ -1328,7 +1328,7 @@ func ukemiss_state(): #AKA DownBound
 	apply_tractionspec(50)
 
 func ukemiwait_state():
-
+	apply_traction()
 	if frame >= 0:
 		if inputheld(left):
 			state(UKEMIBACK)
@@ -1350,29 +1350,33 @@ func ukemiwait_state():
 
 
 func ukemiattack_state():
+	apply_traction2x()
 	if frame == 25: #i'll work on this later 
 		state(STAND)
 
 func ukemineutral_state():
+	apply_traction2x()
 	if frame == 0:
 		fullinvuln(ukemineutral_invuln)
 	if frame == ukemineutral_end:
 		state(STAND)
 
 func ukemiback_state():
+	apply_traction2x()
+	move_and_collide(Vector2(-1000/60*direction,0)) #Yes i have no clue what im doing 
 	if frame == 0:
 		fullinvuln(ukemiroll_invuln)
-		velocity.x -= 1000
 	if frame == ukemiroll_end:
-		velocity.x += 1000
 		state(STAND)
 
 func ukemiforth_state():
+	apply_traction2x()
+	move_and_collide(Vector2(1000/60*direction,0)) 
 	if frame == 0:
 		fullinvuln(ukemiroll_invuln)
-		velocity.x += 1000
+
+
 	if frame == ukemiroll_end:
-		velocity.x -= 1000
 		state(STAND)
 
 func freefall_state():
