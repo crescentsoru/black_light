@@ -1,4 +1,4 @@
-[gd_scene load_steps=50 format=2]
+[gd_scene load_steps=53 format=2]
 
 [ext_resource path="res://Base/Hurtbox.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Graphics2/Player_spriteframes.tres" type="SpriteFrames" id=2]
@@ -493,6 +493,46 @@ tracks/2/keys = {
 "transitions": PoolRealArray( 1 ),
 "update": 0,
 "values": [ 1.0 ]
+}
+
+[sub_resource type="Animation" id=46]
+resource_name = "fair"
+step = 0.017
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.017 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ 0, 2 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Sprite:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.017 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ Vector2( 30, 0 ), Vector2( 100, 0 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.25 ]
 }
 
 [sub_resource type="Animation" id=10]
@@ -1152,6 +1192,45 @@ tracks/2/keys = {
 "values": [ 0.25 ]
 }
 
+[sub_resource type="Animation" id=45]
+resource_name = "ledgestandup"
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray(  ),
+"transitions": PoolRealArray(  ),
+"update": 1,
+"values": [  ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Sprite:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray(  ),
+"transitions": PoolRealArray(  ),
+"update": 0,
+"values": [  ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray(  ),
+"transitions": PoolRealArray(  ),
+"update": 0,
+"values": [  ]
+}
+
 [sub_resource type="Animation" id=44]
 resource_name = "ledgewait"
 length = 0.283334
@@ -1222,6 +1301,46 @@ tracks/1/keys = {
 "transitions": PoolRealArray( 1 ),
 "update": 1,
 "values": [ Vector2( 0, 50 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.25 ]
+}
+
+[sub_resource type="Animation" id=47]
+resource_name = "nair"
+step = 0.017
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.017, 0.034 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Sprite:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.034 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ Vector2( 30, 0 ), Vector2( 80, 0 ) ]
 }
 tracks/2/type = "value"
 tracks/2/path = NodePath("AnimationPlayer:playback_speed")
@@ -1826,8 +1945,9 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 scale = Vector2( 0.992736, 1 )
 frames = ExtResource( 2 )
-animation = "ledgewait"
-offset = Vector2( -15, 10 )
+animation = "nair"
+frame = 2
+offset = Vector2( 80, 0 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 position = Vector2( 0, 18 )
@@ -1854,6 +1974,7 @@ anims/crouchstart = SubResource( 7 )
 anims/dash = SubResource( 8 )
 anims/dashend = SubResource( 9 )
 anims/dthrow = SubResource( 42 )
+anims/fair = SubResource( 46 )
 anims/fairdash = SubResource( 10 )
 anims/freefall = SubResource( 36 )
 anims/goattack = SubResource( 11 )
@@ -1870,8 +1991,10 @@ anims/jab = SubResource( 24 )
 anims/jumpsquat = SubResource( 16 )
 anims/land = SubResource( 17 )
 anims/ledgegrab = SubResource( 43 )
+anims/ledgestandup = SubResource( 45 )
 anims/ledgewait = SubResource( 44 )
 anims/memehitbox = SubResource( 25 )
+anims/nair = SubResource( 47 )
 anims/neutralgrab = SubResource( 39 )
 anims/run = SubResource( 18 )
 anims/skid = SubResource( 19 )

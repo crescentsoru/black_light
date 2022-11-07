@@ -9,6 +9,7 @@ func _ready():
 
 
 func jab_state():
+	apply_gravity()
 	if frame == 2: #frame 3 jab
 		create_hitbox(rectangle(64,64),80,30,95,50,9, \
 		{'type':'strike',
@@ -18,6 +19,24 @@ func jab_state():
 		grabinvuln(500)
 		state(STAND)
 	apply_traction2x()
+	
+func fair_state():
+	apply_gravity()
+	if frame == 4: #never looked into smash framedata in my life so idk what a standard fair is
+		create_hitbox(rectangle(200,64),200,50,125,50,16, \
+		{'type':'strike',
+		'path':[Vector2(120,64)],})
+	if frame == 20:
+		state(AIR)
+
+func nair_state():
+	apply_gravity()
+	if frame == 3: #likewise idk about nairs either
+		create_hitbox(rectangle(80,64),100,20,70,50,9, \
+		{'type':'strike',
+		'path':[Vector2(150,0)],})
+	if frame == 17:
+		state(AIR)
 
 func neutralb_state():
 	breverse()
@@ -99,12 +118,17 @@ func attackcode():
 	if airattack_ok():
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
 			state(UPB)
-
+		if motionqueue[-1] == "5" and inputpressed(attackA):
+			state(NAIR)
+		if ((direction == 1 and motionqueue[-1] == "6") or (direction == -1 and motionqueue[-1] == "4")) and inputpressed(attackA): #help this sucks alot
+			state(FAIR)
 
 func char_state_handler():
 	if state_check(JAB): jab_state()
 	if state_check(MEMEHITBOX): neutralb_state()
 	if state_check(UPB): upb_state()
+	if state_check(FAIR): fair_state()
+	if state_check(NAIR): nair_state()
 
 
 func _physics_process(delta):
