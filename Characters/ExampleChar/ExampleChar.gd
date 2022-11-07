@@ -4,6 +4,27 @@ const MEMEHITBOX = 'memehitbox'
 const BIGPROJECTILE = 'bigprojectile'
 
 
+#Cancel legends
+#0= State you're switching to
+#1= The first frame you can cancel from. Not adding a last frame restriction for this character, do what you want with your chars
+#2= Input. TO DO: add shorthands for stuff like upb so it checks all diagonals. Also s at the start for smash attacks instead of [3]
+#3= Smash attack. If false, tilt input is ok, if true, smash input necessary
+
+
+
+const gatlings = {
+	JAB : [[MEMEHITBOX,9,"5B",false],[BIGPROJECTILE,9,"236B",false],[UPB,1,"8B",false],[UPB,1,"7B",false],[UPB,1,"9B",false]]
+	
+	
+	
+	
+	
+	
+	
+}
+
+
+
 func _ready():
 	#Stats
 	pass
@@ -66,6 +87,8 @@ func neutralb_state():
 func bigprojectile_state():
 	breverse()
 	rooted = true
+	apply_traction()
+	apply_gravity()
 	if frame == 20:
 		create_hitbox(rectangle(128,64),140,70,90,50,9000, \
 		{'type':'projectile', 'hitstopmod':1.0,
@@ -152,6 +175,22 @@ func attackcode():
 			state(NAIR)
 		if ((direction == 1 and motionqueue[-1] == "6") or (direction == -1 and motionqueue[-1] == "4")) and inputpressed(attackA): #help this sucks alot
 			state(FAIR)
+	
+	
+	
+	
+	
+	
+	
+	check_gatlings() #Always always always have this last in the function 
+
+func check_gatlings():
+	for curstate in gatlings:
+		if state == curstate:
+			for x in gatlings[curstate]:
+				if frame == 0: print (x)
+
+
 
 func char_state_handler():
 	if state_check(JAB): jab_state()
