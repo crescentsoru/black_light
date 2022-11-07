@@ -135,6 +135,14 @@ margin_bottom = 133.0
 text = "cstickup
 "
 
+[node name="RichTextLabel15" type="RichTextLabel" parent="Node"]
+anchor_bottom = 0.2
+margin_left = 686.0
+margin_top = 41.0
+margin_right = 885.0
+margin_bottom = 82.0
+text = "Switch configged player "
+
 [node name="RichTextLabel12" type="RichTextLabel" parent="Node"]
 anchor_bottom = 0.2
 margin_left = 355.0
