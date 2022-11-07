@@ -2025,7 +2025,12 @@ func airattack_ok():
 	else:
 		return false
 
-
+func check_motion(motion): #basic thing till I replace it w better thing 
+	if len(currentmotion) < len(motion):
+		return false #prevents crash
+	if currentmotion.right(len(currentmotion)-len(motion)) == motion:
+		return true
+	else: return false
 
 
 

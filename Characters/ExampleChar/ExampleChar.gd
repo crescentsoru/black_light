@@ -52,17 +52,30 @@ func nair_state():
 func neutralb_state():
 	breverse()
 	rooted = true
-	if frame == 0: invulns['strike'] = 5
-	if frame == 10:
+	if frame == 8:
 		create_hitbox(rectangle(128,64),120,10,100,290,9000, \
 		{'type':'projectile', 'hitstopmod':1.0,
 		'path':[Vector2(96,0)],
 		'speedX':1750, 'speedY':0, 'sprite':'red',
-		})
+		}) #These are literally just Falco dair stats
 	apply_traction2x()
 	velocity.y = fall_accel
-	if frame == 28:
+	if frame == 32:
 		state(STAND)
+
+func bigprojectile_state():
+	breverse()
+	rooted = true
+	if frame == 20:
+		create_hitbox(rectangle(128,64),140,70,90,50,9000, \
+		{'type':'projectile', 'hitstopmod':1.0,
+		'path':[Vector2(96,0)],
+		'speedX':4000, 'speedY':0, 'sprite':'red',
+		})
+	if frame == 29: state(STAND)
+
+
+
 
 func upb_state():
 	breverse()
@@ -116,7 +129,9 @@ func attackcode():
 	if groundnormal_ok():
 		if motionqueue[-1] == "5" and inputpressed(attackA):
 			state(JAB)
-		if motionqueue[-1] == "5" and inputpressed(attackB):
+		if (check_motion("236") or check_motion("2365")) and inputpressed(attackB): #placeholder
+			state(BIGPROJECTILE)
+		elif motionqueue[-1] == "5" and inputpressed(attackB):
 			state(MEMEHITBOX)
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
 			if currentmotion[-1] == '7' : flip() #destroy this stupid shit later 
@@ -141,10 +156,11 @@ func attackcode():
 func char_state_handler():
 	if state_check(JAB): jab_state()
 	if state_check(MEMEHITBOX): neutralb_state()
+	if state_check(BIGPROJECTILE): bigprojectile_state()
 	if state_check(UPB): upb_state()
 	if state_check(FAIR): fair_state()
 	if state_check(NAIR): nair_state()
-
+	
 
 func _physics_process(delta):
 	pass
