@@ -1236,6 +1236,7 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id=45]
 resource_name = "ledgestandup"
+length = 1.02
 step = 0.017
 tracks/0/type = "value"
 tracks/0/path = NodePath("Sprite:frame")
@@ -1244,10 +1245,10 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.017, 0.034, 0.051, 0.068, 0.085 ),
-"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
+"times": PoolRealArray( 0, 0.0169999, 0.0509996, 0.0679995, 0.0849993, 0.169999, 0.203998, 0.220998 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1 ),
 "update": 1,
-"values": [ 0, 1, 2, 3, 4, 5 ]
+"values": [ 0, 1, 2, 3, 4, 5, 6, 7 ]
 }
 tracks/1/type = "value"
 tracks/1/path = NodePath("Sprite:offset")
@@ -1256,10 +1257,10 @@ tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/keys = {
-"times": PoolRealArray( 0, 0.017, 0.034, 0.051, 0.068, 0.085 ),
-"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
+"times": PoolRealArray( 0, 0.0169999, 0.0509996, 0.0679995, 0.0849993, 0.169999, 0.203998, 0.220998 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1 ),
 "update": 0,
-"values": [ Vector2( -200, 300 ), Vector2( -200, 200 ), Vector2( -200, 150 ), Vector2( -150, 100 ), Vector2( -100, 50 ), Vector2( -50, 0 ) ]
+"values": [ Vector2( -200, 300 ), Vector2( -200, 200 ), Vector2( -200, 150 ), Vector2( -150, 100 ), Vector2( -100, 50 ), Vector2( -50, 0 ), Vector2( -20, 0 ), Vector2( 0, 0 ) ]
 }
 tracks/2/type = "value"
 tracks/2/path = NodePath("AnimationPlayer:playback_speed")
