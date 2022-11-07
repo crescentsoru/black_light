@@ -2199,12 +2199,36 @@ func load_GameplayAudio():
 	var GameplayAudio_dir = Directory.new()
 	if GameplayAudio_dir.open(FileSystemFolder + "GameplayAudio") == OK:
 		print ("GameplayAudio exists")
-
+		##Stolen from https://godotengine.org/qa/5175/how-to-get-all-the-files-inside-a-folder
+		var files = []
+		GameplayAudio_dir.list_dir_begin()
+		while true:
+			var file = GameplayAudio_dir.get_next()
+			if file == "": break
+			elif not file.begins_with("."):
+				files.append(file)
+		GameplayAudio_dir.list_dir_end()
+		##
+		for x in files:
+			var filepath = FileSystemFolder + "GameplayAudio/" + x
+			if (filepath.right(len(filepath)-4)) == ".wav": #Only loads file if it's a wav, maybe later add ogg 
+				sounds.append([x,load(filepath)]) #needs to be a list w a name so I can reference it in playsfx()
+		print ()
+		print (name + str(sounds))
+		
 	else:
-		print("GameplayAudio does not exist. Character will not play sounds. Please move all audio to a folder called GameplayAudio placed in character folder root.")
+		print("GameplayAudio folder does not exist. Character will not play unique sounds. Please move audio to a folder called GameplayAudio placed in character folder root.")
 
 func playsfx(soundname):
-	pass
+	for x in sounds:
+		if x[0] == soundname:
+			var audiostream_load = load("res://Base/Audio/CharacterSound.tscn")
+			var audiostream = audiostream_load.instance()
+			add_child(audiostream)
+			audiostream.stream = x[1]
+			audiostream.play()
+		else:
+			print ("Sound " + soundname + " missing.")
 
 
 func actionablelogic(delta): #a function I made to make ordering stuff that doesn't happen during impactstop easier

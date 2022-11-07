@@ -10,5 +10,4 @@ func _ready():
 
 func _process(delta):
 	if !playing:
-		print ("not playing")
-		#queue_free()
+		queue_free()
