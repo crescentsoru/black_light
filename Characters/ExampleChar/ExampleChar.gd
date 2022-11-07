@@ -1,6 +1,7 @@
 extends 'res://Base/Player.gd'
 
 const MEMEHITBOX = 'memehitbox'
+const BIGPROJECTILE = 'bigprojectile'
 
 
 func _ready():
@@ -14,19 +15,21 @@ func jab_state():
 		create_hitbox(rectangle(64,64),80,30,95,50,9, \
 		{'type':'strike',
 		'path':[Vector2(96,-64)],})
-
 	if frame == 17:
 		grabinvuln(500)
 		state(STAND)
 	apply_traction2x()
-	
+
+
+
+
 func fair_state():
 	aerial_acceleration()
 	if frame == 0: landinglag = hardland
 	if frame == 6:
 		playsfx("swoosh.wav")
 		landinglag = 11
-		create_hitbox(rectangle(200,64),160,50,115,40,16, \
+		create_hitbox(rectangle(200,64),160,45,115,40,16, \
 		{'type':'strike',
 		'path':[Vector2(120,64)],})
 	if frame == 24: landinglag = hardland

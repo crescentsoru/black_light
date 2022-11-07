@@ -55,7 +55,7 @@ func grab_ledge(character):
 	occupying = character
 	character.interactingcharacter = self
 	character.state('ledgegrab')
-	character.position = position + grabpos
+	character.position = position + (grabpos*direction)
 	character.direction = direction
 	
 
