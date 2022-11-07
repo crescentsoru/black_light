@@ -21,21 +21,28 @@ func jab_state():
 	apply_traction2x()
 	
 func fair_state():
-	apply_gravity()
-	if frame == 4: #never looked into smash framedata in my life so idk what a standard fair is
-		create_hitbox(rectangle(200,64),200,50,125,50,16, \
+	aerial_acceleration()
+	if frame == 0: landinglag = hardland
+	if frame == 4: 
+		landinglag = 11
+		create_hitbox(rectangle(200,64),160,50,115,40,16, \
 		{'type':'strike',
 		'path':[Vector2(120,64)],})
-	if frame == 20:
+	if frame == 24: landinglag = hardland
+	if frame == 30:
 		state(AIR)
 
 func nair_state():
-	apply_gravity()
-	if frame == 3: #likewise idk about nairs either
-		create_hitbox(rectangle(80,64),100,20,70,50,9, \
+	aerial_acceleration()
+	if frame == 0: landinglag = hardland
+	if frame == 3: landinglag = 8
+	if frame == 3: 
+		create_hitbox(rectangle(80,64),70,70,120,98,3, \
 		{'type':'strike',
 		'path':[Vector2(150,0)],})
-	if frame == 17:
+	if frame == 18:
+		landinglag = hardland
+	if frame == 23:
 		state(AIR)
 
 func neutralb_state():
@@ -67,9 +74,9 @@ func upb_state():
 		velocity.y -= 500
 	if frame == 4:
 		velocity.y -= 290
-		if inputheld(left) and velocity.x > -1200:
+		if inputheld(left) and direction == -1 and velocity.x > -1200:
 			velocity.x = -1200
-		if inputheld(right) and velocity.x < 1200:
+		if inputheld(right) and direction == 1 and velocity.x < 1200:
 			velocity.x = 1200
 	if frame >= 5:
 		apply_gravity()
@@ -95,7 +102,7 @@ func upb_state():
 	if frame > 5: ledgegrab_ok = true
 	
 	if frame == 42:
-		landinglag = 15
+		landinglag = 10
 	if frame == 48:
 		state(FREEFALL)
 
@@ -107,16 +114,20 @@ func attackcode():
 		if motionqueue[-1] == "5" and inputpressed(attackB):
 			state(MEMEHITBOX)
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
+			if motionqueue[-1] == '7': flip()
 			state(UPB)
 		if inputheld(dodge) and inputpressed(attackA):
 			state(NEUTRALGRAB)
 	if state in [DASH,JUMPSQUAT]: #upb 
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
+			if motionqueue[-1] == '7':
+				flip()
 			state(UPB)
 		if inputheld(dodge) and inputpressed(attackA):
 			state(NEUTRALGRAB)
 	if airattack_ok():
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
+			if motionqueue[-1] == '7': flip()
 			state(UPB)
 		if motionqueue[-1] == "5" and inputpressed(attackA):
 			state(NAIR)

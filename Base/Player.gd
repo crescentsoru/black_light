@@ -158,7 +158,7 @@ var runaccel = 0
 
 var driftaccel = 100 #Base drift acceleration
 var driftaccel_analog = 200 #Additional drift accel
-var drift_max = 1100
+var drift_max = 1050
 var fall_accel = 120
 var fall_max = 1900
 var fastfall_speed = 2375
