@@ -3,8 +3,8 @@ extends Node
 	#Video game specific
 
 var gamename = 'Blacklight'
-var gameversion = 'alpha v0.2 Second Contact'
-var versionstate = "In-Progress"
+var gameversion = 'alpha v0.3 Lunar Eclipse'
+var versionstate = "Up to date"
 var debug = true 
 
 
