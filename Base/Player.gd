@@ -14,7 +14,7 @@ var state_called = [] #to fix function ordering memes
 var frame = 0
 var framesleft = 0 #blockstun frames or grab mash frames
 var velocity = Vector2(0,0)
-var direction = -1 #-1 is left; 1 is right
+var direction = 1 #-1 is left; 1 is right
 var impactstop = 0 #hitstop and blockstop. Also known as hitlag. 
 
 

@@ -108,10 +108,11 @@ func neutralb_state():
 		{'type':'projectile', 'hitstopmod':1.0,
 		'path':[Vector2(96,0)],
 		'speedX':1750, 'speedY':0, 'sprite':'red',
+		'blockstun_mult':0.4
 		}) #These are literally just Falco dair stats
 	apply_traction2x()
 	velocity.y = fall_accel
-	if frame == 32:
+	if frame == 38:
 		state(STAND)
 
 func bigprojectile_state():
