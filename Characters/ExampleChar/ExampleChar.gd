@@ -249,7 +249,6 @@ func gatling_check(inputstring):
 		if button == "A" and inputpressed(attackA): return true
 		if button == "B" and inputpressed(attackB): return true
 		if button == "C" and inputpressed(attackC): return true
-		print (button + "     why not work??? "  + motion)
 	
 func char_state_handler():
 	if state_check(JAB): jab_state()

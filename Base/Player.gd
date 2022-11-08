@@ -2223,7 +2223,6 @@ func apply_gravity(): #this is called in ground states as well to prevent bugs r
 	if velocity.y > fastfall_speed and fastfall:
 		velocity.y = fastfall_speed
 	if grounded and rotation != 0:
-		print ("grounded and rotation not 0")
 		Vector2(0,fall_accel)
 
 
@@ -2394,7 +2393,6 @@ func collision_handler(delta): #For platform/floor/wall collision.
 		ledgedisable-=1
 	
 	rooted = false
-#	if inputheld(up): print (collisions)
 	collisions = []
 
 	if is_on_floor() or false: #remnants of me trying to make move_and_collide work. It still works *sort of* but I realized it's not necessary
