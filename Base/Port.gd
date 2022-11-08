@@ -364,6 +364,15 @@ func motionappend(number):
 		motiontimer = 8
 
 
+			#####
+			#ACTUAL CODE
+			#####
+
+func forward():
+	pass
+
+func backward():
+	pass
 
 
 
@@ -373,7 +382,7 @@ func motionappend(number):
 			########################################
 
 var state_previous := "REFERENCE"
-
+var character = null
 
 
 func _ready():

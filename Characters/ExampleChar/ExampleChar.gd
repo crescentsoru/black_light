@@ -41,7 +41,27 @@ func jab_state():
 		state(STAND)
 	apply_traction2x()
 
-
+func dtilt_state():
+	apply_gravity()
+	if frame == 3: #essentially a crouching 4f jab
+		create_hitbox(rectangle(64,64),80,30,95,50,10, \
+		{'type':'strike',
+		'path':[Vector2(96,64)],})
+	if frame == 15:
+		grabinvuln(500)
+		state(CROUCH)
+	apply_traction2x()
+	
+func dsmash_state(): #dont smoke gas station weed
+	apply_gravity()
+	if frame == 4	:
+		create_hitbox(rectangle(200,64),300,50,95,50,6, \
+		{'type':'strike',
+		'path':[Vector2(96,120)],})
+	if frame == 15:
+		grabinvuln(500)
+		state(CROUCH)
+	apply_traction2x()
 
 
 func fair_state():
@@ -54,7 +74,7 @@ func fair_state():
 		{'type':'strike',
 		'path':[Vector2(120,64)],})
 	if frame == 24: landinglag = hardland
-	if frame == 32:
+	if frame == 40:
 		state(AIR)
 
 func nair_state():
@@ -161,6 +181,11 @@ func attackcode():
 			state(UPB)
 		if inputheld(dodge) and inputpressed(attackA):
 			state(NEUTRALGRAB)
+		if currentmotion[-1] in ['1','2','3'] and inputpressed(attackA):
+			if inputheld(down,smashattacksensitivity):
+				state(DSMASH)
+			else:
+				state(DTILT)
 	if state in [DASH,JUMPSQUAT]: #upb 
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
 			if currentmotion[-1] == '7': flip()
@@ -199,6 +224,8 @@ func char_state_handler():
 	if state_check(UPB): upb_state()
 	if state_check(FAIR): fair_state()
 	if state_check(NAIR): nair_state()
+	if state_check(DTILT): dtilt_state()
+	if state_check(DSMASH): dsmash_state()
 	
 
 func _physics_process(delta):

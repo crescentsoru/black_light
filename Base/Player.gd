@@ -667,6 +667,25 @@ func state_exception(state_array):
 		if state == each_state:
 			return false
 	return true
+
+#dont forget to move this to Port
+func forward():
+	if direction == 1:
+		return right
+	else:
+		return left
+	
+
+func backward():
+	if direction == 1:
+		return left
+	else:
+		return right
+
+
+
+
+
 func update_animation(): #default animation handler. 
 	if $Sprite.animation != state:
 		if state_exception(animexception):
@@ -1401,16 +1420,18 @@ func ledgegrab_state():
 func ledgewait_state():
 	ledge_validity_check()
 	#Ledge release
-	if inputpressed(jump):
+	
+	if inputpressed(jump) and not inputheld(forward()):
 		ledgerelease()
-	elif (inputpressed(left) and interactingcharacter.direction == 1) or (inputpressed(right) and interactingcharacter.direction == -1):
+	elif inputpressed(backward()):
 		ledgerelease()
 	elif inputpressed(down): ledgerelease()
-	elif inputpressed(dodge):
+	elif inputpressed(dodge) or inputpressed(forward()):
 		position = interactingcharacter.position + (interactingcharacter.floorpos + Vector2(0,ecb_height()* -1) + ledgestandup_offset) * Vector2(direction,1) 
 		move_and_collide(Vector2(0,1500)) #hack to make SURE you're on the ground. This absolutely will
 		#fuck up with platforms that are very close to the ground, but hey the same thing can be said for Smash games
 		state(LEDGESTANDUP)
+
 
 func ledgestandup_state():
 	if frame == 0:
