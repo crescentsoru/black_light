@@ -505,10 +505,10 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.017, 0.034, 0.051, 0.068 ),
-"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"times": PoolRealArray( 0, 0.0169999, 0.0339997, 0.0849993, 0.101999, 0.118999 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
 "update": 1,
-"values": [ 0, 1, 2, 3, 4 ]
+"values": [ 0, 3, 1, 2, 3, 0 ]
 }
 tracks/1/type = "value"
 tracks/1/path = NodePath("Sprite:offset")
@@ -517,10 +517,10 @@ tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/keys = {
-"times": PoolRealArray( 0, 0.017, 0.034, 0.051, 0.068 ),
-"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"times": PoolRealArray( 0, 0.0169999, 0.0339997, 0.0849993, 0.101999, 0.118999 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
 "update": 0,
-"values": [ Vector2( 31, 55 ), Vector2( 65, 55 ), Vector2( 65, 55 ), Vector2( 65, 55 ), Vector2( 31, 55 ) ]
+"values": [ Vector2( 31, 75 ), Vector2( 65, 75 ), Vector2( 65, 75 ), Vector2( 65, 75 ), Vector2( 65, 75 ), Vector2( 31, 75 ) ]
 }
 tracks/2/type = "value"
 tracks/2/path = NodePath("AnimationPlayer:playback_speed")
@@ -2068,8 +2068,9 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 scale = Vector2( 0.992736, 1 )
 frames = ExtResource( 2 )
-animation = "ledgestandup"
-frame = 7
+animation = "dsmash"
+frame = 3
+offset = Vector2( 65, 55 )
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 position = Vector2( 0, 18 )

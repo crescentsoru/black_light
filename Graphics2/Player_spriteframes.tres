@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=87 format=2]
+[gd_resource type="SpriteFrames" load_steps=86 format=2]
 
 [ext_resource path="res://Graphics2/skid (1).png" type="Texture" id=1]
 [ext_resource path="res://Graphics2/skid (2).png" type="Texture" id=2]
@@ -83,7 +83,6 @@
 [ext_resource path="res://Graphics2/sprite_440-3.png" type="Texture" id=81]
 [ext_resource path="res://Graphics2/sprite_440-4.png" type="Texture" id=82]
 [ext_resource path="res://Graphics2/sprite_440-5.png" type="Texture" id=83]
-[ext_resource path="res://Graphics2/sprite_440-6.png" type="Texture" id=84]
 [ext_resource path="res://Graphics2/sprite_440-2.png" type="Texture" id=85]
 [ext_resource path="res://Graphics2/sprite_400-1.png" type="Texture" id=86]
 
@@ -149,7 +148,7 @@ animations = [ {
 "name": "dashend",
 "speed": 0.0
 }, {
-"frames": [ ExtResource( 85 ), ExtResource( 81 ), ExtResource( 82 ), ExtResource( 83 ), ExtResource( 84 ) ],
+"frames": [ ExtResource( 85 ), ExtResource( 81 ), ExtResource( 82 ), ExtResource( 83 ) ],
 "loop": false,
 "name": "dsmash",
 "speed": 0.0

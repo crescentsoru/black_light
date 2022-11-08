@@ -5,16 +5,25 @@ const BIGPROJECTILE = 'bigprojectile'
 
 
 #Cancel legends
-#0= State you're switching to
-#1= The first frame you can cancel from. Not adding a last frame restriction for this character, do what you want with your chars
-#2= Input. TO DO: add shorthands for stuff like upb so it checks all diagonals. Also s at the start for smash attacks instead of [3]
-#3= Smash attack. If false, tilt input is ok, if true, smash input necessary
+#[0]= State you're switching to
+#[1]= The first frame you can cancel from. Not adding a last frame restriction for this character, do what you want with your chars
+#[2]= Input. TO DO: add shorthands for stuff like upb so it checks all diagonals. Also s at the start for smash attacks instead of [3]
+#[3]= Smash attack. If false, tilt input is ok, if true, smash input necessary
 
 
 
 const gatlings = {
-	JAB : [[MEMEHITBOX,9,"5B",false],[BIGPROJECTILE,9,"236B",false],[UPB,1,"8B",false],[UPB,1,"7B",false],[UPB,1,"9B",false]]
-	
+	JAB :[
+	[MEMEHITBOX,6,"5B"],[BIGPROJECTILE,6,"236B"],[UPB,1,"8B"],[UPB,1,"7B"],[UPB,1,"9B"],
+	[DSMASH,2,"s2A"],[DTILT,3,"2A"],[JAB,3,"5A"], #for now DSMASH should be processed first, I'll later implemented a tilt-only input
+	],
+	DTILT : [
+		[MEMEHITBOX,9,"5B"],[BIGPROJECTILE,9,"236B"],[UPB,1,"8B"],[UPB,1,"7B"],[UPB,1,"9B"],
+		[DSMASH,2,"s2A"],[DTILT,3,"2A"],[JAB,3,"5A"],
+	],
+	DSMASH :[
+		[MEMEHITBOX,9,"5B"],[BIGPROJECTILE,9,"236B"],[UPB,1,"8B"],[UPB,1,"7B"],[UPB,1,"9B"],
+	],
 	
 	
 	
@@ -33,7 +42,7 @@ func _ready():
 func jab_state():
 	apply_gravity()
 	if frame == 2: #frame 3 jab
-		create_hitbox(rectangle(64,64),80,30,95,50,9, \
+		create_hitbox(rectangle(80,90),80,30,95,50,9, \
 		{'type':'strike',
 		'path':[Vector2(96,-64)],})
 	if frame == 17:
@@ -44,7 +53,7 @@ func jab_state():
 func dtilt_state():
 	apply_gravity()
 	if frame == 3: #essentially a crouching 4f jab
-		create_hitbox(rectangle(64,64),80,30,95,50,10, \
+		create_hitbox(rectangle(90,80),80,30,95,50,10, \
 		{'type':'strike',
 		'path':[Vector2(96,64)],})
 	if frame == 15:
@@ -54,13 +63,12 @@ func dtilt_state():
 	
 func dsmash_state(): #dont smoke gas station weed
 	apply_gravity()
-	if frame == 4	:
-		create_hitbox(rectangle(200,64),140,90,120,70,6, \
+	if frame == 4:
+		create_hitbox(rectangle(200,64),135,70,120,70,6, \
 		{'type':'strike',
 		'path':[Vector2(96,120)],})
-	if frame == 15:
-		grabinvuln(500)
-		state(CROUCH)
+	if frame == 25:
+		state(STAND)
 	apply_traction2x()
 
 
@@ -75,6 +83,7 @@ func fair_state():
 		'path':[Vector2(120,64)],})
 	if frame == 24: landinglag = hardland
 	if frame == 40:
+		ledgedisable = 15
 		state(AIR)
 
 func nair_state():
@@ -88,6 +97,7 @@ func nair_state():
 	if frame == 18:
 		landinglag = hardland
 	if frame == 23:
+		ledgedisable = 10
 		state(AIR)
 
 func neutralb_state():
@@ -172,7 +182,7 @@ func attackcode():
 	if groundnormal_ok():
 		if motionqueue[-1] == "5" and inputpressed(attackA):
 			state(JAB)
-		if (check_motion("236") or check_motion("2365")) and inputpressed(attackB): #placeholder
+		if (check_motion_basic("236") or check_motion_basic("2365")) and inputpressed(attackB): #placeholder
 			state(BIGPROJECTILE)
 		elif motionqueue[-1] == "5" and inputpressed(attackB):
 			state(MEMEHITBOX)
@@ -210,13 +220,36 @@ func attackcode():
 	check_gatlings() #Always always always have this last in the function 
 
 func check_gatlings():
-	for curstate in gatlings:
-		if state == curstate:
-			for x in gatlings[curstate]:
-				if frame == 0: print (x)
+	if attackstate != "whiff":
+		for curstate in gatlings:
+			if state == curstate:
+				for cancel in gatlings[curstate]:
+					if true == true:
+						if frame >= cancel[1]: #if the frame is correct
+							if gatling_check(cancel[2]): state(cancel[0])
 
-
-
+func gatling_check(inputstring):
+	var motion = inputstring.left(len(inputstring)-1)
+	var button = inputstring[-1]
+	var smashinput = false
+	if inputstring[0] == "s": #if s is at the start, it's a smash input 
+		motion = motion.right(1)
+		smashinput = true 
+	if check_motion_basic(motion) or check_motion_basic(motion + "5"):
+		if smashinput == true:
+			if motion[-1] in ['1','2','3']:
+				if not inputheld(down,smashattacksensitivity): return false
+			elif motion[-1] in ['7','8','9']:
+				if not inputheld(up, smashattacksensitivity):return false
+			elif motion[-1] in ['6']: #untested
+				if not inputheld(forward(),smashattacksensitivity): return false
+			elif motion[-1] in ['4']: #untested
+				if not inputheld(backward(),smashattacksensitivity): return false
+		if button == "A" and inputpressed(attackA): return true
+		if button == "B" and inputpressed(attackB): return true
+		if button == "C" and inputpressed(attackC): return true
+		print (button + "     why not work??? "  + motion)
+	
 func char_state_handler():
 	if state_check(JAB): jab_state()
 	if state_check(MEMEHITBOX): neutralb_state()

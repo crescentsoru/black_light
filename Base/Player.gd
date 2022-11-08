@@ -2046,15 +2046,33 @@ func airattack_ok():
 	else:
 		return false
 
-func check_motion(motion): #basic thing till I replace it w better thing 
+func check_motion_basic(motion): #basic thing till I replace it w better thing 
 	if len(currentmotion) < len(motion):
 		return false #prevents crash
 	if currentmotion.right(len(currentmotion)-len(motion)) == motion:
 		return true
 	else: return false
 
-
-
+func check_motion_prune5(motion):
+	var hasfives := false
+	if check_motion_basic(motion): return true
+	else:
+		for x in motion: #looks through string to see if there are 5 inputs
+			if x == "5":
+				hasfives = true
+		if hasfives: return false
+		else:
+			var prunedmotion = currentmotion
+			for x in len(prunedmotion):
+				if prunedmotion[x] == "5":
+					print ("ASS pruning 5 from " + prunedmotion + " at position " + str(x))
+					prunedmotion.erase(x,1)
+					print ("ASS New motion: " + prunedmotion)
+			
+			print ("ASS Final prunedmotion: " + prunedmotion)
+			pass
+	#same as _basic, but prunes 5s from the motion, unless the motion itself has 5 inputs
+	#I'll finish this later 
 
 
 	##################

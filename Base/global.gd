@@ -50,7 +50,7 @@ var spawn_4th := Vector2(5500,4900) #right center
 var spawn_5th := Vector2(5250,4900) #dead center
 
 
-var spawns = [Vector2(4110,4900), Vector2(6100,4900), Vector2(5000,4900), Vector2(5500,4900), Vector2(5250,4900)]
+var spawns = [Vector2(4110,4900), Vector2(5000,4900), Vector2(6100,4900),  Vector2(5500,4900), Vector2(5250,4900)]
 
 #Character
 
