@@ -55,7 +55,7 @@ func dtilt_state():
 func dsmash_state(): #dont smoke gas station weed
 	apply_gravity()
 	if frame == 4	:
-		create_hitbox(rectangle(200,64),300,50,95,50,6, \
+		create_hitbox(rectangle(200,64),140,90,120,70,6, \
 		{'type':'strike',
 		'path':[Vector2(96,120)],})
 	if frame == 15:

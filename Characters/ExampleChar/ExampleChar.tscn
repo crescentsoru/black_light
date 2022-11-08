@@ -2068,8 +2068,8 @@ script = ExtResource( 3 )
 modulate = Color( 1, 1, 1, 0.854902 )
 scale = Vector2( 0.992736, 1 )
 frames = ExtResource( 2 )
-animation = "dsmash"
-offset = Vector2( 31, 55 )
+animation = "ledgestandup"
+frame = 7
 
 [node name="Hurtbox" parent="." instance=ExtResource( 1 )]
 position = Vector2( 0, 18 )
