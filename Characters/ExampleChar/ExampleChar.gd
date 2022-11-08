@@ -54,7 +54,7 @@ func dtilt_state():
 	
 func dsmash_state(): #dont smoke gas station weed
 	apply_gravity()
-	if frame == 4:
+	if frame == 4	:
 		create_hitbox(rectangle(200,64),300,50,95,50,6, \
 		{'type':'strike',
 		'path':[Vector2(96,120)],})
@@ -74,7 +74,7 @@ func fair_state():
 		{'type':'strike',
 		'path':[Vector2(120,64)],})
 	if frame == 24: landinglag = hardland
-	if frame == 32:
+	if frame == 40:
 		state(AIR)
 
 func nair_state():
@@ -181,8 +181,8 @@ func attackcode():
 			state(UPB)
 		if inputheld(dodge) and inputpressed(attackA):
 			state(NEUTRALGRAB)
-		if motionqueue[-1] in ['1','2','3'] and inputpressed(attackA):
-			if inputpressed(down): #need to press down and attack on the same frame
+		if currentmotion[-1] in ['1','2','3'] and inputpressed(attackA):
+			if inputheld(down,smashattacksensitivity):
 				state(DSMASH)
 			else:
 				state(DTILT)

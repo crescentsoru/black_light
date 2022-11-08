@@ -2,12 +2,12 @@
 
 importer="wav"
 type="AudioStreamSample"
-path="res://.import/swoosh.wav-38038e19a80ec8af2189fa9285e73e82.sample"
+path="res://.import/swoosh.wav-48f107a68d3939a60f09c5fcb835a6bb.sample"
 
 [deps]
 
-source_file="res://Characters/Examplechar/GameplayAudio/swoosh.wav"
-dest_files=[ "res://.import/swoosh.wav-38038e19a80ec8af2189fa9285e73e82.sample" ]
+source_file="res://Characters/ExampleChar/GameplayAudio/swoosh.wav"
+dest_files=[ "res://.import/swoosh.wav-48f107a68d3939a60f09c5fcb835a6bb.sample" ]
 
 [params]
 
@@ -17,5 +17,7 @@ force/max_rate=false
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
-edit/loop=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
 compress/mode=0
