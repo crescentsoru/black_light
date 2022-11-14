@@ -21,9 +21,6 @@ margin_bottom = 207.0
 rect_scale = Vector2( 1.5, 1.5 )
 text = "Affordable text:
 "
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="p2_debug" type="RichTextLabel" parent="UI_persistent"]
 pause_mode = 2
@@ -65,7 +62,7 @@ collision_layer = 2
 collision_mask = 0
 
 [node name="Floor2" parent="Stage" instance=ExtResource( 3 )]
-position = Vector2( -2713, 3747 )
+position = Vector2( -1045, 3305 )
 rotation = 0.261799
 collision_layer = 2
 collision_mask = 0

@@ -4,7 +4,7 @@ extends Node
 
 var gamename = 'Blacklight'
 var gameversion = 'alpha v0.3 Lunar Eclipse'
-var versionstate = "Up to date"
+var versionstate = "In-Progress"
 var debug = true 
 
 
@@ -13,7 +13,7 @@ func _ready():
 
 
 
-	#Config stuff I don't understand
+	#Button config stuff I don't understand
 var p1_device = {'device':0,'axisx':0,'axisy':0,'keyboard':false,'joypad':true}
 
 
@@ -116,43 +116,6 @@ var player_data = {
 
 
 
-
-var p2_data = [
-	'ExampleChar',
-	0, 
-	'',
-	['p2_up','p2_down','p2_left','p2_right','p2_jump','p2_attackA','p2_attackB','p2_attackC','p2_attackD','p2_attackE','p2_attackF', 
-	'p2_dodge','p2_grab','p2_cstickdown','p2_cstickup','p2_cstickleft','p2_cstickright','p2_uptaunt','p2_sidetaunt','p2_downtaunt',
-	],
-	{}, 
-	]
-var p3_data = [
-	'',
-	0, 
-	'',
-	['p3_up','p3_down','p3_left','p3_right','p3_jump','p3_attackA','p3_attackB','p3_attackC','p3_attackD','p3_attackE','p3_attackF',
-	'p3_dodge','p3_grab','p3_cstickdown','p3_cstickup','p3_cstickleft','p3_cstickright','p3_uptaunt','p3_sidetaunt','p3_downtaunt',
-	],
-	{}, 
-	]
-var p4_data = [
-	'',
-	0, 
-	'',
-	['p4_up','p4_down','p4_left','p4_right','p4_jump','p4_attackA','p4_attackB','p4_attackC','p4_attackD','p4_attackE','p4_attackF', 
-	'p4_dodge','p4_grab','p4_cstickdown','p4_cstickup','p4_cstickleft','p4_cstickright','p4_uptaunt','p4_sidetaunt','p4_downtaunt',
-	],
-	{}, 
-	]
-var p5_data = [
-	'',
-	0, 
-	'',
-	['p5_up','p5_down','p5_left','p5_right','p5_jump','p5_attackA','p5_attackB','p5_attackC','p5_attackD','p5_attackE','p5_attackF', 
-	'p5_dodge','p5_grab','p5_cstickdown','p5_cstickup','p5_cstickleft','p5_cstickright','p5_uptaunt','p5_sidetaunt','p5_downtaunt',
-	],
-	{}, 
-	]
 
 
 

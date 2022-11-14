@@ -167,7 +167,7 @@ var airfriction = 3 #when stick is neutral during drifting, go back to 0,0 with 
 var jumpsquat = 4
 var shorthopspeed = 1600
 var fullhopspeed = 2900
-var airjumpspeed = 2700 #this is velocity.y not drifting
+var airjumpspeed = 3200 #this is velocity.y not drifting
 
 var airjump_max = 1
 var airjumps = 0 
@@ -993,7 +993,7 @@ func run_state():
 
 func skid_state():
 	platform_drop()
-	if frame >= 1 and inputpressed(jump): state(JUMPSQUAT) #makes RAR momentum consistent
+	if inputpressed(jump): state(JUMPSQUAT)
 	if frame >=0: apply_traction2x()
 	if frame == 20:
 			state(STAND)

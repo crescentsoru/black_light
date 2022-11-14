@@ -241,19 +241,19 @@ p2_grab={
 "events": [  ]
 }
 p2_cstickup={
-"deadzone": 0.5,
+"deadzone": 0.2,
 "events": [  ]
 }
 p2_cstickdown={
-"deadzone": 0.5,
+"deadzone": 0.2,
 "events": [  ]
 }
 p2_cstickleft={
-"deadzone": 0.5,
+"deadzone": 0.2,
 "events": [  ]
 }
 p2_cstickright={
-"deadzone": 0.5,
+"deadzone": 0.2,
 "events": [  ]
 }
 p2_pause={
