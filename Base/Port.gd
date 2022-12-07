@@ -421,22 +421,17 @@ func _ready():
 
 
 func _physics_process(delta):
-	if character != null: state_previous == character.state_previous
-	else: state_previous == "N/A"
+	if character != null: state_previous = character.state_previous
+	else: state_previous = "N/A"
 	
 	base_setanalog()
 	writebuffer()
 	motionqueueprocess()
 	cstick_processing()
 	
-	if inputpressed(left):
-		print("                     MISMATCH!   Port:")
-		print (buffer)
-		print ("-----------   Character:")
-		print (character.buffer)
+
 	frame+=1
-	if buffer == character.buffer:
-		print ("MATCH!")
+
 
 
 func _process(delta):

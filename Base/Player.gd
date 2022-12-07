@@ -557,6 +557,7 @@ func inputheld(inp,below=900000000,above=0): #button held. pretty simple
 				return true
 			else: return false
 func inputpressed(inp,custombuffer=pressbuffer,prevstate='',erase=true): 
+	Port.inputpressed(inp,custombuffer,prevstate,erase)
 	for x in buffer:
 		if x[0] == inp:
 			if x[2] <= custombuffer:
@@ -796,7 +797,20 @@ func debug():
 		get_tree().change_scene("res://Menus/Button_config.tscn")
 
 
-
+	if Port.buffer != buffer:
+		print (str(global.gametime) + "       MISMATCH!!!!!!    " + state_previous + "    and on port is " + Port.state_previous)
+		print ("					BEGIN")
+		print(buffer)
+		print ("-----------------------------")
+		print (Port.buffer)
+		print ("					END")
+	if Port.buffer == buffer:
+		print (str(global.gametime) + "       MATCH!!!!!!" )
+		print ("					BEGIN")
+		print(buffer)
+		print ("-----------------------------")
+		print (Port.buffer)
+		print ("					END")
 
 func stand_state():
 	platform_drop()
