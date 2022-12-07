@@ -1,4 +1,5 @@
 Input config system- whoever wrote this https://pastebin.com/6T82HgW2
+I think it's taken from here actually: https://github.com/godotengine/godot-demo-projects/commit/9849c9edb9713cb1b3a5b27631f9ce06aae125ea
 
 
 	Kung Fu Man as seen in ExampleChar- Elecbyte
