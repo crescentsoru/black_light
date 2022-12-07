@@ -1,11 +1,28 @@
 extends Node2D
 
+#This is the port object. It records inputs and dispenses character nodes as its children,
+#which use those inputs for game logic.
+#Anything involving switching characters mid-game like Shielda or Squad Strike should use the Port system.
+
+
+
+
+
+
+
+
+
 	#Port stuff
-var playerindex = 0
-var stocks = 99
-var ledgegrabs = 0
+var playerindex := 0
+var stocks := 99
+var ledgegrabs := 0
 
+	#Shelda stuff
+#Some characters with character swaps will want to store these values. They are not to be used otherwise.
+var percentage := 0
+var stalingqueue = []
 
+var otherdata = {} #For any other info you want to store between characters/stocks.
 
 
 	##################
@@ -38,6 +55,9 @@ var cstickright = ''
 var uptaunt = ''
 var sidetaunt = ''
 var downtaunt = ''
+
+var frame = 0 #For staggering time between death and respawn.
+
 
 func initialize_buttons(buttonset):
 	up = buttonset[0]
@@ -188,7 +208,7 @@ var smashattacksensitivity = 3 #AKA stick sensitivity in Ultimate. That's litera
 
 func analogconvert(floatL,floatR,floatD,floatU):
 #Godot returns analog "strength" of actions as a float going from 0 to 1.
-#This function converts up/down/left/right inputs into a Vector2() which represents both axes as 256-bit digits.
+#This function converts up/down/left/right inputs into a Vector2() which represents both axes as 8-bit digits.
 	var analogX = 0
 	var analogY = 0
 	if floatL > floatR:
@@ -363,16 +383,24 @@ func motionappend(number):
 		motionqueue = motionqueue + number
 		motiontimer = 8
 
+func cstick_processing(): #Placeholder until I create analog c-stick
+	if inputpressed(cstickup):
+		motionqueue = "8"
+		buffer[5][2] = 1 #press A
+	if inputpressed(cstickdown):
+		motionqueue = "2"
+		buffer[5][2] = 1 #press A
+	if inputpressed(cstickleft):
+		motionqueue = "4" 
+		buffer[5][2] = 1 #press A
+	if inputpressed(cstickright):
+		motionqueue = "6" 
+		buffer[5][2] = 1 #press A
 
 			#####
 			#ACTUAL CODE
 			#####
 
-func forward():
-	pass
-
-func backward():
-	pass
 
 
 
@@ -385,13 +413,31 @@ var state_previous := "REFERENCE"
 var character = null
 
 
-func _ready():
-	pass
 
+func _ready():
+	replayprep()
+	process_priority = 301
+
+
+
+func _physics_process(delta):
+	if character != null: state_previous == character.state_previous
+	else: state_previous == "N/A"
+	
+	base_setanalog()
+	writebuffer()
+	motionqueueprocess()
+	cstick_processing()
+	
+	if inputpressed(left):
+		print("                     MISMATCH!   Port:")
+		print (buffer)
+		print ("-----------   Character:")
+		print (character.buffer)
+	frame+=1
+	if buffer == character.buffer:
+		print ("MATCH!")
 
 
 func _process(delta):
-	pass
-
-func _physics_process(delta):
 	pass

@@ -393,7 +393,7 @@ var releasebuffer = 4
 
 #After inputs come into the engine, EVERY input should be checked by using the data in the buffer variable,
 #or functions/vars that get their data on inputs from buffer, like motionqueue. 
-#buffer itself gets input data from base_inputheld(), which uses either player inputs,
+#buffer itself gets input data from base_inputheld(), which uses either player inputs
 #or recorded input data from replays, or potentially netcode(I am quite uninformed on netcode, though). 
 #To get inputs for the state machine and such, use the following functions that use buffer var:
 #	inputheld() is self_explanatory.
@@ -441,7 +441,7 @@ var analog_smash = 64 #how much distance the stick has to travel to be considere
 var smashattacksensitivity = 3 #AKA stick sensitivity in Ultimate. That's literally all it does
 func analogconvert(floatL,floatR,floatD,floatU):
 #Godot returns analog "strength" of actions as a float going from 0 to 1.
-#This function converts up/down/left/right inputs into a Vector2() which represents both axes as 256-bit digits.
+#This function converts up/down/left/right inputs into a Vector2() which represents both axes as 8-bit digits.
 	var analogX = 0
 	var analogY = 0
 	if floatL > floatR:
@@ -2413,7 +2413,7 @@ func prune_disabledplats(collisionlist): #removes platforms from a collision lis
 
 
 func _ready():
-	process_priority = 99 #Makes character code get executed later than hitbox code
+	process_priority = 450 #Makes character code get executed later than hitbox code
 	replayprep()
 	load_GameplayAudio()
 	$pECB.position = $ECB.position
@@ -2430,7 +2430,6 @@ func _physics_process(delta):
 	motionqueueprocess()
 #placeholder cstick update
 	cstick_processing()
-	#insert cstick code here. if a cstick input is held, completely wipe motionqueue and append the cstick input. Then, press the button in the buffer
 #if blockstop/hitstop > 0: ignore game logic, otherwise decrement hitstop
 
 #game logic.

@@ -63,8 +63,8 @@ func update_path(): #This is where the initial position of a hitbox is set, if y
 func on_area_enter(area): 
 	collisions.append(area)
 	if area.name.substr(0,7) == 'Hurtbox':
-		area.get_parent().process_priority = 89 #Do not change this!!! Fixes the impactstop offset bug, sort of 
-		creator.process_priority = 109
+		area.get_parent().process_priority = 410 #Do not change this!!! Fixes the impactstop offset bug, sort of 
+		creator.process_priority = 490
 	
 
 func on_area_exit(area):
