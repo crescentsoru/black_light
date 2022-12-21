@@ -3,6 +3,7 @@ extends Node2D
 #This is the port object. It records inputs and dispenses character nodes as its children,
 #which use those inputs for game logic.
 #Anything involving switching characters mid-game like Shielda or Squad Strike should use the Port system.
+#The Port node should NOT have extensions/inheritances. Player.gd should.
 
 
 
@@ -31,7 +32,7 @@ var otherdata = {} #For any other info you want to store between characters/stoc
 
 
 
-
+#This is the only part of the input code I can't just erase and move to Port unfortunately
 
 #Buttons
 #All the default values here should be overwritten by initialization
@@ -56,8 +57,9 @@ var uptaunt = ''
 var sidetaunt = ''
 var downtaunt = ''
 
-var frame = 0 #For staggering time between death and respawn.
-
+var frame = 0 #For replays.
+var frame_port = 0  #For staggering time between death and respawn. 
+var state_port := "" # same as frame_port
 
 func initialize_buttons(buttonset):
 	up = buttonset[0]
@@ -247,7 +249,7 @@ func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a
 				
 				analogstick = analogconvert(Input.get_action_strength(left),Input.get_action_strength(right),Input.get_action_strength(down),Input.get_action_strength(up))
 
-			analogstick = analogdeadzone_axis(analogstick,analog_deadzone) #Only really needed for airdodging and DI
+			analogstick = analogdeadzone_axis(analogstick,analog_deadzone) #Only really needed for DI
 			if currentreplay['analog'] == []:
 				currentreplay['analog'].append([global.gametime, analogstick.x, analogstick.y])
 			else:
@@ -343,8 +345,11 @@ func replayprep(): #called on _ready to make your character controllable or not
 		if playerindex == 2: currentreplay = global.fullreplay['p_data'][1][4]
 		if playerindex == 3: currentreplay = global.fullreplay['p_data'][2][4]
 
-var motionqueue = "5"
-var motiontimer = 8
+var motionqueue := "5"
+var currentmotion := "5"
+var motiontimer := 8
+
+
 func tiltinput(inp): #returns true if you have an analog input beyond analog_tilt on the control stick, which is 24 by default.
 	if inp == up: 
 		if analogstick.y <= 255 and analogstick.y > 128+analog_tilt: return true
@@ -354,6 +359,14 @@ func tiltinput(inp): #returns true if you have an analog input beyond analog_til
 		if analogstick.x >= 0 and analogstick.x < 128-analog_tilt: return true
 	if inp == right:
 		if analogstick.x <= 255 and analogstick.x > 128+analog_tilt: return true
+
+	
+	
+func motionappend(number):
+	if motionqueue[-1] != number:
+		motionqueue = motionqueue + number
+		motiontimer = 8
+
 func motionqueueprocess():
 	motiontimer = motiontimer - 1
 	if motiontimer == 0:
@@ -378,10 +391,40 @@ func motionqueueprocess():
 	elif tiltinput(up):
 		motionappend("8")
 	else: motionappend("5")
-func motionappend(number):
-	if motionqueue[-1] != number:
-		motionqueue = motionqueue + number
-		motiontimer = 8
+
+	if direction == 1:
+		currentmotion = motionqueue
+	else:
+		currentmotion = flipmotion(motionqueue) 
+
+
+func flipmotion(originalmotion): #motionqueue corrected for side
+	var result = ""
+	#This mirrors your motionqueue
+	for x in len(originalmotion):
+		if originalmotion[x] == "1":
+			result = result + "3"
+		elif originalmotion[x] == "3":
+			result = result + "1"
+		elif originalmotion[x] == "4":
+			result = result + "6"
+		elif originalmotion[x] == "6":
+			result = result + "4"
+		elif originalmotion[x] == "7":
+			result = result + "9"
+		elif originalmotion[x] == "9":
+			result = result + "7"
+		else:
+			result = result + originalmotion[x]
+	return result
+
+
+var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. Don't change this
+func analogdistance(): #returns how hard you're pressing your stick.x from 0 to -1
+	if analogstick.x <= 128:
+		return min(action_range, 128-analogstick.x) / action_range
+	if analogstick.x > 128:
+		return min(action_range,analogstick.x-128) / action_range
 
 func cstick_processing(): #Placeholder until I create analog c-stick
 	if inputpressed(cstickup):
@@ -397,12 +440,17 @@ func cstick_processing(): #Placeholder until I create analog c-stick
 		motionqueue = "6" 
 		buffer[5][2] = 1 #press A
 
-			#####
-			#ACTUAL CODE
-			#####
+				#3333333333333333333333333333#
+			##############PORT CODE###############
+				#3333333333333333333333333333#
 
 
-
+func death_checking():
+	pass
+	if stocks > 0:
+		pass
+	else:
+		pass
 
 
 			########################################
@@ -411,7 +459,7 @@ func cstick_processing(): #Placeholder until I create analog c-stick
 
 var state_previous := "REFERENCE"
 var character = null
-
+var direction = 1
 
 
 func _ready():
@@ -420,18 +468,49 @@ func _ready():
 
 
 
+
+func debug():
+	#function for testing, please do not use this for legit game logic
+
+			#replay
+
+	if Input.is_action_just_pressed("d_load"):
+		global.replaying = true
+		global.replay_loadfile_d()
+	if Input.is_action_just_pressed("d_save"):
+		global.replay_savefile() #will reload then save fullreplay to a JSON file
+	if Input.is_action_just_pressed("d_record"):
+		global.replaying = false
+		global.resetgame() #wipes the replay file
+	if Input.is_action_just_pressed("d_play"):
+		global.player_data[playerindex][4] = currentreplay
+
+
+		global.replaying = true
+		global.compilereplay()
+		global.resetgame()
+
 func _physics_process(delta):
-	if character != null: state_previous = character.state_previous
-	else: state_previous = "N/A"
+		#References must be set first
+	if character != null:
+		state_previous = character.state_previous
+		direction = character.direction
+	else:
+		state_previous = "N/A"
+	
+	
 	
 	base_setanalog()
 	writebuffer()
 	motionqueueprocess()
 	cstick_processing()
 	
+	death_checking()
+	
+	debug()
 
 	frame+=1
-
+	frame_port+=1 
 
 
 func _process(delta):

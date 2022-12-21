@@ -185,7 +185,7 @@ func attackcode():
 			state(JAB)
 		if (check_motion_basic("236") or check_motion_basic("2365")) and inputpressed(attackB): #placeholder
 			state(BIGPROJECTILE)
-		elif motionqueue[-1] == "5" and inputreleased(attackB):
+		elif motionqueue[-1] == "5" and inputpressed(attackB):
 			state(MEMEHITBOX)
 		if not airoptions_exhausted() and motionqueue[-1] in ['7','8','9'] and inputpressed(attackB):
 			if currentmotion[-1] == '7' : flip() #destroy this stupid shit later 

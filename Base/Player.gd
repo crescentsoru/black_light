@@ -141,7 +141,7 @@ var traction = 70
 
 var walk_accel = 85
 var walk_max = 1050
-var action_range = 80 #analog range for maximum walk acceleration, drifting, dashing and running. Don't change this
+
 var walk_tractionless = false #if true, won't add traction when your speed exceeds the max walk speed, like when you land from runjumps.
 
 var dashinitial = 1750 #initial burst of speed when you enter DASH. Not analog. 
@@ -268,6 +268,9 @@ var characterscale = 1
 		##INPUTS##
 	##################
 
+
+	#ALL OF THESE ARE COPIES OF THE PORT VALUES. 
+
 #Buttons
 #All the default values here should be overwritten by initialization
 var up = ''
@@ -312,30 +315,7 @@ func initialize_buttons(buttonset):
 	uptaunt = buttonset[17]
 	sidetaunt = buttonset[18]
 	downtaunt = buttonset[19]
-	currentreplay = {
-	'analog' : [],
-	up : [] ,
-	down : [],
-	left : [], 
-	right : [],
-	jump : [],
-	attackA : [],
-	attackB : [],
-	attackC : [],
-	attackD : [],
-	attackE : [],
-	attackF : [],
-	dodge : [],
-	grab : [],
-	cstickup : [],
-	cstickdown : [],
-	cstickleft : [],
-	cstickright : [],
-	uptaunt : [],
-	sidetaunt : [],
-	downtaunt : [],
-	
-}
+
 	buffer = [
 [buttonset[0],0,9000,9000],
 [buttonset[1],0,9000,9000],
@@ -387,144 +367,47 @@ var buffer = [
 [sidetaunt,0,9000,9000],
 [downtaunt,0,9000,9000],
 ]
-var pressbuffer = 4
-var releasebuffer = 4
 
-
-#After inputs come into the engine, EVERY input should be checked by using the data in the buffer variable,
-#or functions/vars that get their data on inputs from buffer, like motionqueue. 
-#buffer itself gets input data from base_inputheld(), which uses either player inputs
-#or recorded input data from replays, or potentially netcode(I am quite uninformed on netcode, though). 
-#To get inputs for the state machine and such, use the following functions that use buffer var:
-#	inputheld() is self_explanatory.
-#	inputpressed() checks for a pressbuffer.
-#	inputreleased() has its own buffer
-#	inputjustreleased() (no input buffer)
-#	inputjustpressed() (checks for an input press, has no input buffer)
-
-#   inputpressed() and inputreleased() have two optional params- custombuffer and prevstate.
-#	custombuffer lets you specify a specific frame amount. If you're not sure, then set it to pressbuffer.
-#	prevstate lets you ignore the input if the previous state is the same state as the one specified.
-var currentreplay = {
-	'analog' : [],
-	up : [] ,
-	down : [],
-	left : [], 
-	right : [],
-	jump : [],
-	attackA : [],
-	attackB : [],
-	attackC : [],
-	attackD : [],
-	attackE : [],
-	attackF : [],
-	dodge : [],
-	grab : [],
-	cstickup : [],
-	cstickdown : [],
-	cstickleft : [],
-	cstickright : [],
-	uptaunt : [],
-	sidetaunt : [],
-	downtaunt : [],
-	
-}
 var controllable = true #false when replay
 
-
-
-var analogstick = Vector2(128,128)
-var analogstick_prev = Vector2(128,128)
-var analog_deadzone = 24 #should probably be the same as analog_tilt
-var analog_tilt = 24 #how much distance you need for the game to consider something a tilt input rather than neutral
-var analog_smash = 64 #how much distance the stick has to travel to be considered an u/d/l/r/ or smash input
+var pressbuffer = 4
+var releasebuffer = 4
 var smashattacksensitivity = 3 #AKA stick sensitivity in Ultimate. That's literally all it does
-func analogconvert(floatL,floatR,floatD,floatU):
-#Godot returns analog "strength" of actions as a float going from 0 to 1.
-#This function converts up/down/left/right inputs into a Vector2() which represents both axes as 8-bit digits.
-	var analogX = 0
-	var analogY = 0
-	if floatL > floatR:
-		analogX = 128 - 128*floatL 
-	elif floatR > floatL:
-		analogX = 128 + 127*floatR
-	else: #if digital users input both left and right, go neutral
-		analogX = 128
-	#same thing for y axis
-	if floatD > floatU:
-		analogY = 128 - 128*floatD
-	elif floatU >= floatD:
-		analogY = 128 + 127*floatU
-	#return finished calculations
-	return Vector2(round(analogX),round(analogY))
-func analogdeadzone(stick,zone): #applies a center deadzone to a stick value
-	if not( stick.x <= 128-zone or stick.x >= 128+zone):
-		if not (stick.y <= 128-zone or stick.y >= 128+zone):
-			return Vector2(128,128)
-	return stick
 
-func analogdeadzone_axis(stick,zone): #applies an axis deadzone, accurate to Melee
-	var resultstick = Vector2(128,128)
-	if not( stick.x <= 128-zone or stick.x >= 128+zone):
-		resultstick.x = 128
-	else: resultstick.x = stick.x
-	if not (stick.y <= 128-zone or stick.y >= 128+zone):
-		resultstick.y = 128
-	else: resultstick.y = stick.y
-	return resultstick
+var analogstick = Vector2(128,128) #copies Port every frame
+var analogstick_prev = Vector2(128,128) #copies Port every frame
 
-func base_setanalog(): #sets the analogstick var to 0-255 values every frame w a deadzone
-		analogstick_prev = analogstick #For SDI
-		if controllable:
-			if left != "": #prevents error spam if a character doesn't have control stick inputs.
-				
-				analogstick = analogconvert(Input.get_action_strength(left),Input.get_action_strength(right),Input.get_action_strength(down),Input.get_action_strength(up))
-
-			analogstick = analogdeadzone_axis(analogstick,analog_deadzone) #Only really needed for airdodging and DI
-			if currentreplay['analog'] == []:
-				currentreplay['analog'].append([global.gametime, analogstick.x, analogstick.y])
-			else:
-				if [currentreplay['analog'][-1][1],currentreplay['analog'][-1][2]] != [analogstick.x,analogstick.y]:
-					currentreplay['analog'].append([global.gametime, analogstick.x, analogstick.y])
-		else: #if it's a replay
-			for x in currentreplay['analog']:
-				if x[0] == global.gametime:
-					analogstick = Vector2(x[1],x[2])
+func initialize_input_variables():
+#Takes on custom input values from Port. Ran when character is created. 
+	pressbuffer = Port.pressbuffer
+	releasebuffer = Port.releasebuffer
+	smashattacksensitivity = Port.smashattacksensitivity
+	
 
 
 
-func base_inputheld(inp):
-	if controllable:
-		if inp != "": #this line prevents massive lag in interpreter (and possibly exports) when a button isn't set. 
-			if Input.is_action_pressed(inp):
-				if inp in [up,down,left,right]:
-					if analogstick != Vector2(128,128):
-	#this code will break if there is no deadzone and analog_smash is at a small or 0 value. Please don't do that you have no reason to
-#The center is 128,128 like Melee.
-						if inp == up:
-							if analogstick.y <= 255 and analogstick.y >= 128+analog_smash:
-								return true
-						if inp == down:
-							if analogstick.y >= 0 and analogstick.y <= 128-analog_smash: #might take away the equals at the later check
-								return true
-						if inp == left:
-							if analogstick.x >= 0 and analogstick.x <= 128-analog_smash:
-								return true
-						if inp == right:
-							if analogstick.x <= 255 and analogstick.x >= 128+analog_smash:
-								return true
-				elif Input.get_action_strength(inp) >= 0.5: #If you use an analog stick for a button input,
-					return true # you need to press it at least halfway like the u/d/l/r inputs above
-				else: return false
-			else: return false
-	else:
-		for x in currentreplay:
-			if x == inp:
-				for n in currentreplay[x]:
-					if n[1] > global.gametime and n[0] <= global.gametime:
-						return true
 
-func cstick_processing(): #Placeholder until I create analog c-stick
+
+
+
+
+
+
+
+
+
+
+
+func base_setanalog(): #Sets the reference vars to their Port value here
+	analogstick = Port.analogstick
+	analogstick_prev = Port.analogstick_prev
+	
+	
+	motionqueue = Port.motionqueue
+	currentmotion = Port.currentmotion
+
+
+func cstick_processing(): #Placeholder until I create analog c-stick. Works only in Player.gd for some reason
 	if inputpressed(cstickup):
 		motionqueue = "8"
 		buffer[5][2] = 1 #press A
@@ -537,115 +420,41 @@ func cstick_processing(): #Placeholder until I create analog c-stick
 	if inputpressed(cstickright):
 		motionqueue = "6" 
 		buffer[5][2] = 1 #press A
-func writebuffer():
-	for x in buffer:
-		x[2]+=1
-		x[3]+=1
-		if base_inputheld(x[0]) and x[1] == 0:
-			x[2]=0
-			currentreplay[x[0]].append([global.gametime,0])
-		if base_inputheld(x[0]):
-			x[1]+=1
-		if not base_inputheld(x[0]) and x[1] != 0:
-			x[1]=0
-			x[3]=0
-			if currentreplay[x[0]] != []: currentreplay[x[0]][-1][1] = global.gametime
+
+
 func inputheld(inp,below=900000000,above=0): #button held. pretty simple
-	for x in buffer:
-		if x[0] == inp:
-			if x[1] > above and x[1] <= below:
-				return true
-			else: return false
+	return Port.inputheld(inp,below,above)
+
 func inputpressed(inp,custombuffer=pressbuffer,prevstate='',erase=true): 
-	Port.inputpressed(inp,custombuffer,prevstate,erase)
-	for x in buffer:
-		if x[0] == inp:
-			if x[2] <= custombuffer:
-				if state_previous != prevstate:
-					if erase: x[2] = custombuffer #can't use the same input to do 2 different actions. Please do not change erase if you don't know what you're doing.
-					return true 
-				else: return false
-			else: return false
+	return Port.inputpressed(inp,custombuffer,prevstate,erase)
+
 func inputreleased(inp,custombuffer=releasebuffer,prevstate=''):
-	Port.inputreleased(inp,custombuffer,prevstate)
-	for x in buffer:
-		if x[0] == inp:
-			if x[3] <= custombuffer:
-				if state_previous != prevstate:
-					x[3] = custombuffer #can't use the same input to do two different (release) actions.
-					return true 
-				else: return false
-			else: return false
+	return Port.inputreleased(inp,custombuffer,prevstate)
+
 func inputjustpressed(inp): #button pressed this frame, no buffer
-	Port.inputjustpressed(inp)
-	for x in buffer:
-		if x[0] == inp:
-			if x[2] == 0:
-				return true
-			else: return false
+	return Port.inputjustpressed(inp)
+
 func inputjustreleased(inp): #button released this frame, no buffer
-	Port.inputjustreleased(inp)
-	for x in buffer:
-		if x[0] == inp:
-			if x[3] == 0:
-				return true
-			else: return false
+	return Port.inputjustreleased(inp)
+
 func replayprep(): #called on _ready to make your character controllable or not
 	if global.replaying == true and global.fullreplay.has('p_data'): #Will still crash if it has garbage data, but why would it? 
 		controllable = false
-		currentreplay = global.fullreplay['p_data'][playerindex-1][4]
-		if playerindex == 1: currentreplay = global.fullreplay['p_data'][0][4]
-		if playerindex == 2: currentreplay = global.fullreplay['p_data'][1][4]
-		if playerindex == 3: currentreplay = global.fullreplay['p_data'][2][4]
+
 
 var motionqueue := "5"
 var currentmotion := "5" #same thing as motionqueue but side corrected 
 var motiontimer = 8
 func tiltinput(inp): #returns true if you have an analog input beyond analog_tilt on the control stick, which is 24 by default.
-	if inp == up: 
-		if analogstick.y <= 255 and analogstick.y > 128+analog_tilt: return true
-	if inp == down:
-		if analogstick.y >= 0 and analogstick.y < 128-analog_tilt: return true
-	if inp == left:
-		if analogstick.x >= 0 and analogstick.x < 128-analog_tilt: return true
-	if inp == right:
-		if analogstick.x <= 255 and analogstick.x > 128+analog_tilt: return true
-func motionqueueprocess():
-	motiontimer = motiontimer - 1
-	if motiontimer == 0:
-		motionqueue = motionqueue[-1]
-		motiontimer = 8
-	if tiltinput(left) and not tiltinput(right):
-		if tiltinput(down):
-			motionappend("1")
-		if tiltinput(up):
-			motionappend("7")
-		if not tiltinput(up) and not tiltinput(down):
-			motionappend("4")
-	elif tiltinput(right) and not tiltinput(left):
-		if tiltinput(down):
-			motionappend("3")
-		if tiltinput(up):
-			motionappend("9")
-		if not tiltinput(up) and not tiltinput(down):
-			motionappend("6")
-	elif tiltinput(down):
-		motionappend("2")
-	elif tiltinput(up):
-		motionappend("8")
-	else: motionappend("5")
-	
-	#current motion
-	if direction == 1:
-		currentmotion = motionqueue
-	else:
-		currentmotion = currentmotionprocess(motionqueue) 
+	return Port.tiltinput(inp)
+
+
 func motionappend(number):
 	if motionqueue[-1] != number:
 		motionqueue = motionqueue + number
 		motiontimer = 8
 
-func currentmotionprocess(originalmotion): #motionqueue corrected for side
+func flipmotion(originalmotion): #motionqueue corrected for side
 	var result = ""
 	#This mirrors your motionqueue
 	for x in len(originalmotion):
@@ -672,19 +481,17 @@ func state_exception(state_array):
 			return false
 	return true
 
-#dont forget to move this to Port
+#This shouldn't be in Port actually
 func forward():
 	if direction == 1:
-		return right
+		return Port.right
 	else:
-		return left
-	
-
+		return Port.left
 func backward():
 	if direction == 1:
-		return left
+		return Port.left
 	else:
-		return right
+		return Port.right
 
 
 
@@ -777,43 +584,13 @@ func update_debug_display():
 
 func debug():
 #function for testing, please do not use this for legit game logic
-	#replay
 
-	if Input.is_action_just_pressed("d_load"):
-		global.replaying = true
-		global.replay_loadfile_d()
-	if Input.is_action_just_pressed("d_save"):
-		global.replay_savefile() #will reload then save fullreplay to a JSON file
-	if Input.is_action_just_pressed("d_record"):
-		global.replaying = false
-		global.resetgame() #wipes the replay file
-	if Input.is_action_just_pressed("d_play"):
-		global.player_data[playerindex][4] = currentreplay
-
-
-		global.replaying = true
-		global.compilereplay()
-		global.resetgame()
 	if Input.is_action_just_pressed("d_a"):
 		move_and_collide(Vector2(0,5000))
 	if Input.is_action_just_released("d_b"):
 		get_tree().change_scene("res://Menus/Button_config.tscn")
 
-	
-	if Port.buffer != buffer:
-		print (str(global.gametime) + "       MISMATCH!!!!!!    " + state_previous + "    and on port is " + Port.state_previous)
-		print ("					BEGIN")
-		print(buffer)
-		print ("-----------------------------")
-		print (Port.buffer)
-		print ("					END")
-#	if Port.buffer == buffer and playerindex == 1:
-#		print (str(global.gametime) + "       MATCH!!!!!!" )
-#		print ("					BEGIN")
-#		print(buffer)
-#		print ("-----------------------------")
-#		print (Port.buffer)
-#		print ("					END")
+
 
 func stand_state():
 	platform_drop()
@@ -892,10 +669,8 @@ func crouchexit_state(): #AKA SquatRV
 	apply_traction2x()
 
 func analogdistance(): #returns how hard you're pressing your stick.x from 0 to -1
-	if analogstick.x <= 128:
-		return min(action_range, 128-analogstick.x) / action_range
-	if analogstick.x > 128:
-		return min(action_range,analogstick.x-128) / action_range
+	return Port.analogdistance()
+
 
 
 
@@ -2432,6 +2207,7 @@ func prune_disabledplats(collisionlist): #removes platforms from a collision lis
 func _ready():
 	process_priority = 450 #Makes character code get executed later than hitbox code
 	replayprep()
+	initialize_input_variables()
 	load_GameplayAudio()
 	$pECB.position = $ECB.position
 	$pECB.scale = $ECB.scale
@@ -2441,10 +2217,7 @@ func _ready():
 func _physics_process(delta):
 #inputs update
 	base_setanalog()
-#buffer update
-	writebuffer()
-#motionqueue update
-	motionqueueprocess()
+
 #placeholder cstick update
 	cstick_processing()
 #if blockstop/hitstop > 0: ignore game logic, otherwise decrement hitstop

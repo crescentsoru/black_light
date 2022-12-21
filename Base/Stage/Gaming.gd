@@ -28,6 +28,7 @@ func init_player(port):
 		get_node("Stage").call_deferred('add_child',portnode_instance)
 		portnode_instance.stocks = global.stockcount
 		portnode_instance.initialize_buttons(global.player_data[port][3])
+		portnode_instance.playerindex = port
 		
 		#Load Character
 		var character_load = load('res://Characters/' + global.player_data[port][0] + "/" + global.player_data[port][0] + ".tscn")
@@ -37,7 +38,7 @@ func init_player(port):
 		character_instance.position = global.spawns[port-1] + self.position 
 		character_instance.spawnpoint = character_instance.position
 		character_instance.playerindex = port
-		character_instance.initialize_buttons(global.player_data[port][3]) #figure out how to remove cleanly later
+		character_instance.initialize_buttons(global.player_data[port][3]) #I don't know how to remove this cleanly. this is the messiest part of the code
 		character_instance.stocks = global.stockcount #remove later
 		character_instance.Port = portnode_instance #ref to node
 		character_instance.FileSystemFolder = 'res://Characters/' + global.player_data[port][0] + "/"
@@ -66,7 +67,7 @@ var pausehold = 0 #increments every frame forward is held, if it's 30 then go re
 func update_debug_display(caller,textobj='p1_debug'):
 	$UI_persistent.get_node(textobj).text = "gametime= " + str(global.gametime) \
 	 + "\nvelocity= " + str(caller.velocity) + "\nmotionqueue= " + caller.currentmotion \
-	 + "\nstate= " + str(caller.state) + "\nframe= " + str(caller.frame) + " imp= " + str(caller.impactstop) + "\nanalog= " + str(caller.analogstick) \
+	 + "\nstate= " + str(caller.state) + "\nframe= " + str(caller.frame) + " imp= " + str(caller.impactstop) + "\nanalog= " + str(caller.Port.analogstick) \
 	+ "\n" + str(caller.stocks) + " stocks  " + str(caller.percentage/float(10)) + "%  " \
 	+ "\nattackstate = " + caller.attackstate \
 	+ "\nhitinvuln = " + str(caller.invulns["strike"])
