@@ -567,6 +567,7 @@ func inputpressed(inp,custombuffer=pressbuffer,prevstate='',erase=true):
 				else: return false
 			else: return false
 func inputreleased(inp,custombuffer=releasebuffer,prevstate=''):
+	Port.inputreleased(inp,custombuffer,prevstate)
 	for x in buffer:
 		if x[0] == inp:
 			if x[3] <= custombuffer:
@@ -576,12 +577,14 @@ func inputreleased(inp,custombuffer=releasebuffer,prevstate=''):
 				else: return false
 			else: return false
 func inputjustpressed(inp): #button pressed this frame, no buffer
+	Port.inputjustpressed(inp)
 	for x in buffer:
 		if x[0] == inp:
 			if x[2] == 0:
 				return true
 			else: return false
 func inputjustreleased(inp): #button released this frame, no buffer
+	Port.inputjustreleased(inp)
 	for x in buffer:
 		if x[0] == inp:
 			if x[3] == 0:
@@ -796,7 +799,7 @@ func debug():
 	if Input.is_action_just_released("d_b"):
 		get_tree().change_scene("res://Menus/Button_config.tscn")
 
-
+	
 	if Port.buffer != buffer:
 		print (str(global.gametime) + "       MISMATCH!!!!!!    " + state_previous + "    and on port is " + Port.state_previous)
 		print ("					BEGIN")
@@ -804,13 +807,13 @@ func debug():
 		print ("-----------------------------")
 		print (Port.buffer)
 		print ("					END")
-	if Port.buffer == buffer:
-		print (str(global.gametime) + "       MATCH!!!!!!" )
-		print ("					BEGIN")
-		print(buffer)
-		print ("-----------------------------")
-		print (Port.buffer)
-		print ("					END")
+#	if Port.buffer == buffer and playerindex == 1:
+#		print (str(global.gametime) + "       MATCH!!!!!!" )
+#		print ("					BEGIN")
+#		print(buffer)
+#		print ("-----------------------------")
+#		print (Port.buffer)
+#		print ("					END")
 
 func stand_state():
 	platform_drop()
