@@ -18,7 +18,7 @@ var grabbedoffset = Vector2(0,0)
 
 
 func _ready():
-	process_priority = 15 #After hitboxes, but before players
+	process_priority = 50 #After hitboxes, but before players
 	connect( "area_entered", self, "on_area_enter")
 	connect( "area_exited", self, "on_area_exit")
 func update_path():
@@ -34,8 +34,8 @@ func update_path():
 func on_area_enter(area):
 	collisions.append(area)
 	if area.name.substr(0,7) == 'Hurtbox':
-		area.get_parent().process_priority = 89 #Do not change this!!! Fixes the impactstop offset bug, sort of 
-		creator.process_priority = 109
+		area.get_parent().process_priority = 410 #Do not change this!!! Fixes the impactstop offset bug, sort of 
+		creator.process_priority = 490
 
 func on_area_exit(area):
 	if area in collisions: collisions.erase(area)

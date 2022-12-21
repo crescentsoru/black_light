@@ -24,19 +24,23 @@ func init_player(port):
 		#Load Port
 		var data = global.player_data[port]
 		var portnode_load = load("res://Base/Port.tscn")
-		var portnode_instance = portnode_load.instance()
+		var portnode_instance = portnode_load.instance() 
 		get_node("Stage").call_deferred('add_child',portnode_instance)
 		portnode_instance.stocks = global.stockcount
+		portnode_instance.initialize_buttons(global.player_data[port][3])
+		portnode_instance.playerindex = port
 		
 		#Load Character
 		var character_load = load('res://Characters/' + global.player_data[port][0] + "/" + global.player_data[port][0] + ".tscn")
 		var character_instance = character_load.instance()
 		portnode_instance.call_deferred('add_child',character_instance) #I forgot why call_deferred was good I'm just copying stuff
+		portnode_instance.character = character_instance
 		character_instance.position = global.spawns[port-1] + self.position 
 		character_instance.spawnpoint = character_instance.position
 		character_instance.playerindex = port
-		character_instance.initialize_buttons(global.player_data[port][3])
+		character_instance.initialize_buttons(global.player_data[port][3]) #I don't know how to remove this cleanly. this is the messiest part of the code
 		character_instance.stocks = global.stockcount #remove later
+		character_instance.Port = portnode_instance #ref to node
 		character_instance.FileSystemFolder = 'res://Characters/' + global.player_data[port][0] + "/"
 		$Stage/Camera.targets.append(character_instance)
 
@@ -53,7 +57,6 @@ func initialize_players():
 	init_player(5)
 
 
-
 var pause_default = false
 var ispause = false
 var whopause = '' #the player who paused the game is specified here
@@ -64,7 +67,7 @@ var pausehold = 0 #increments every frame forward is held, if it's 30 then go re
 func update_debug_display(caller,textobj='p1_debug'):
 	$UI_persistent.get_node(textobj).text = "gametime= " + str(global.gametime) \
 	 + "\nvelocity= " + str(caller.velocity) + "\nmotionqueue= " + caller.currentmotion \
-	 + "\nstate= " + str(caller.state) + "\nframe= " + str(caller.frame) + " imp= " + str(caller.impactstop) + "\nanalog= " + str(caller.analogstick) \
+	 + "\nstate= " + str(caller.state) + "\nframe= " + str(caller.frame) + " imp= " + str(caller.impactstop) + "\nanalog= " + str(caller.Port.analogstick) \
 	+ "\n" + str(caller.stocks) + " stocks  " + str(caller.percentage/float(10)) + "%  " \
 	+ "\nattackstate = " + caller.attackstate \
 	+ "\nhitinvuln = " + str(caller.invulns["strike"])

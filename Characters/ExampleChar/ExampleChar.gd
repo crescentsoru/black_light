@@ -181,7 +181,7 @@ func upb_state():
 
 func attackcode():
 	if groundnormal_ok():
-		if motionqueue[-1] == "5" and inputpressed(attackA):
+		if motionqueue[-1] == "5" and inputheld(attackA,4):
 			state(JAB)
 		if (check_motion_basic("236") or check_motion_basic("2365")) and inputpressed(attackB): #placeholder
 			state(BIGPROJECTILE)

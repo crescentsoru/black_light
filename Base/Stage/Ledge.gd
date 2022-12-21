@@ -15,7 +15,7 @@ var collisions = []
 
 
 func _ready():
-	process_priority = 31 #I don't FUCKING know
+	process_priority = 150 #I don't FUCKING know
 	connect( "area_entered", self, "on_area_enter")
 	connect( "area_exited", self, "on_area_exit")
 	connect( "body_entered", self, "on_body_enter")
