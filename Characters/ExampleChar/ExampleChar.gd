@@ -42,8 +42,9 @@ func _ready():
 func jab_state():
 	apply_gravity()
 	if frame == 2: #frame 3 jab
-		create_hitbox(rectangle(80,90),80,30,95,50,9, \
-		{'type':'strike',
+		create_hitbox(
+		{ pol = rectangle(80,90), dmg = 80, kbb = 30, kbg = 95, ang = 50, dur = 9, 
+			'type':'strike',
 		'path':[Vector2(96,-64)],})
 	if frame == 17:
 		grabinvuln(500)
@@ -53,8 +54,8 @@ func jab_state():
 func dtilt_state():
 	apply_gravity()
 	if frame == 3: #essentially a crouching 4f jab
-		create_hitbox(rectangle(90,80),80,30,95,50,10, \
-		{'type':'strike',
+		create_hitbox( { pol = rectangle(90,80), dmg = 80, kbb = 30, kbg = 95, ang = 60, dur = 10, 
+			'type':'strike',
 		'path':[Vector2(96,64)],})
 	if frame == 15:
 		grabinvuln(500)
@@ -64,8 +65,8 @@ func dtilt_state():
 func dsmash_state(): #dont smoke gas station weed
 	apply_gravity()
 	if frame == 4:
-		create_hitbox(rectangle(200,64),135,70,120,70,6, \
-		{'type':'strike',
+		create_hitbox( { pol = rectangle(200,64), dmg = 135, kbb = 70, kbg = 120, ang = 70, dur = 6, 
+			'type':'strike',
 		'path':[Vector2(96,120)],})
 	if frame == 25:
 		state(STAND)
@@ -78,8 +79,8 @@ func fair_state():
 	if frame == 6:
 		playsfx("swoosh.wav")
 		landinglag = 11
-		create_hitbox(rectangle(200,64),160,45,115,40,16, \
-		{'type':'strike',
+		create_hitbox({ pol = rectangle(200,60), dmg = 160, kbb = 45, kbg = 115, ang = 40, dur = 16, 
+			'type':'strike',
 		'path':[Vector2(120,64)],})
 	if frame == 24: landinglag = hardland
 	if frame == 40:
@@ -91,8 +92,8 @@ func nair_state():
 	if frame == 0: landinglag = hardland
 	if frame == 3: landinglag = 8
 	if frame == 3: 
-		create_hitbox(rectangle(80,64),70,60,140,98,3, \
-		{'type':'strike',
+		create_hitbox({ pol = rectangle(80,64), dmg = 70, kbb = 60, kbg = 140, ang = 98, dur = 3, 
+			'type':'strike',
 		'path':[Vector2(150,0)],})
 	if frame == 18:
 		landinglag = hardland
@@ -104,8 +105,8 @@ func neutralb_state():
 	breverse()
 	rooted = true
 	if frame == 8:
-		create_hitbox(rectangle(128,64),120,10,100,290,9000, \
-		{'type':'projectile', 'hitstopmod':1.0,
+		create_hitbox({ pol = rectangle(128,64), dmg = 120, kbb = 10, kbg = 100, ang = 290, dur = 9000, 
+			'type':'projectile', 'hitstopmod':1.0,
 		'path':[Vector2(96,0)],
 		'speedX':1750, 'speedY':0, 'sprite':'red',
 		'blockstun_mult':0.4
@@ -121,8 +122,8 @@ func bigprojectile_state():
 	apply_traction()
 	apply_gravity()
 	if frame == 20:
-		create_hitbox(rectangle(128,64),140,70,90,50,9000, \
-		{'type':'projectile', 'hitstopmod':1.0,
+		create_hitbox({ pol = rectangle(128,64), dmg = 140, kbb = 70, kbg = 90, ang = 50, dur = 9000, 
+			'type':'projectile', 'hitstopmod':1.0,
 		'path':[Vector2(96,0)],
 		'speedX':4000, 'speedY':0, 'sprite':'red',
 		})
@@ -151,16 +152,16 @@ func upb_state():
 		check_landing()
 	
 	if frame == 6:
-		create_hitbox(rectangle(98,128),40,100,35,100,1, \
-		{'type':'strike',
+		create_hitbox({pol = rectangle(98,128), dmg = 40, kbb = 100, kbg = 35, ang = 100, dur = 1, 
+			'type':'strike',
 		'path':[Vector2(98,0)],})
 	if frame == 8:
 		if inputheld(left) and direction == -1 and velocity.x > -1200:
 			velocity.x = -1200
 		if inputheld(right) and direction == 1 and velocity.x < 1200:
 			velocity.x = 1200
-		create_hitbox(rectangle(84,220),110,50,125,80,12, \
-		{'type':'strike',
+		create_hitbox({ pol = rectangle(84,220), dmg = 110, kbb = 50, kbg = 125, ang = 80, dur = 12, 
+			'type':'strike',
 		'path':[Vector2(128,-102)],})
 	
 	if frame == 12:

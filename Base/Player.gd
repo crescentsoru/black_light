@@ -1233,11 +1233,10 @@ func uthrow_state(): pass  #please replace this in character scripts
 
 
 func dthrow_state(): #please replace
-	
-	
 	if frame == 7:
-		create_hitbox(rectangle(320,320),90,80,70,85,1, \
-		{'type':'strike','hitstopmod':0,
+		create_hitbox(
+		{ pol = rectangle(320,320), dmg = 90, kbb = 80, kbg = 70, ang = 85, dur = 1, #alternate Lua-style syntax for dictionaries
+			'type':'strike','hitstopmod':0,
 		'path':[Vector2(96,-64)],})
 
 	if frame == 30:
@@ -1259,26 +1258,35 @@ func fthrow_state(): #pl re
 	##HITBOXES##
 	##################
 
-func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
+func create_hitbox(hitboxdict):
 	var hitbox_load = load('res://Base/Hitbox.tscn')
 	var hitbox_inst = hitbox_load.instance()
 	get_parent().add_child(hitbox_inst) #Why does this work w the port system wtf
 	hitbox_inst.creator = self
 	hitbox_inst.createdstate = state
 	hitbox_inst.direction = direction
-	hitbox_inst.get_node('polygon').set_polygon(polygon) #Revolver Ocelot
-	hitbox_inst.damage_base = damage
-	hitbox_inst.kb_base = kb_base
-	hitbox_inst.kb_growth = kb_growth
-	hitbox_inst.angle = angle
-	hitbox_inst.duration = duration
+	
+			#Important vars begin
+	if hitboxdict.has('polygon'): hitbox_inst.get_node('polygon').set_polygon(hitboxdict.polygon)
+	if hitboxdict.has('pol'): hitbox_inst.get_node('polygon').set_polygon(hitboxdict.pol) #shorthand
+	if hitboxdict.has('damage'): hitbox_inst.damage_base = hitboxdict.damage
+	if hitboxdict.has('dmg'): hitbox_inst.damage_base = hitboxdict.dmg #shorthand
+	if hitboxdict.has('kb_base'): hitbox_inst.kb_base = hitboxdict.kb_base
+	if hitboxdict.has('kbb'): hitbox_inst.kb_base = hitboxdict.kbb #shorthand
+	if hitboxdict.has('kb_growth'): hitbox_inst.kb_growth = hitboxdict.kb_growth
+	if hitboxdict.has('kbg'): hitbox_inst.kb_growth = hitboxdict.kbg #shorthand
+	if hitboxdict.has('angle'): hitbox_inst.angle = hitboxdict.angle
+	if hitboxdict.has('ang'): hitbox_inst.angle = hitboxdict.ang #shorthand
+	if hitboxdict.has('duration'): hitbox_inst.duration = hitboxdict.duration
+	if hitboxdict.has('dur'): hitbox_inst.duration = hitboxdict.dur #shorthand
+			#Important vars end
 	if hitboxdict.has('stalingentry'):
 		hitbox_inst.stalingentry = hitboxdict['stalingentry']
-	else: hitbox_inst.stalingentry = self.state
-	hitbox_inst.damage = apply_staling(damage,hitbox_inst.stalingentry)
+	else: hitbox_inst.stalingentry = state
+	hitbox_inst.damage = apply_staling(hitbox_inst.damage_base,hitbox_inst.stalingentry)
 	if hitboxdict.has('id'):
 		hitbox_inst.id = hitboxdict['id']
-	else: hitbox_inst.id = damage #The hitbox w higher damage will have higher id by default. 
+	else: hitbox_inst.id = hitbox_inst.damage_base #The hitbox w higher damage will have higher id by default. 
 	if hitboxdict.has('type'):
 		if hitboxdict.has('type_interaction'):
 			hitbox_inst.hitboxtype = hitboxdict['type']
@@ -1313,7 +1321,7 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	if hitboxdict.has('group'):
 		hitbox_inst.group = hitboxdict['group'] #you better know what you're doing. It's best to involve gametime in the definition 
 	else:
-		hitbox_inst.group = self.name + self.state + str(global.gametime)
+		hitbox_inst.group = name + state + str(global.gametime)
 	if hitboxdict.has('hitboxpriority'): #Transcendent priority. 0= regular, 1= transcendent.
 		hitbox_inst.hitboxpriority = hitboxdict['hitboxpriority']
 	if hitboxdict.has('meteorcancel'): #-1= unconditionally uncancellable, 0= melee behavior, 1= unconditionally cancellable 
@@ -1361,7 +1369,7 @@ func create_hitbox(polygon,damage,kb_base,kb_growth,angle,duration,hitboxdict):
 	if hitboxdict.has('sprite'): #technically can be used for anything but projectiles are making the most out of this
 		hitbox_inst.get_node('hitboxsprite').animation = hitboxdict['sprite']
 	else:#this probably results in interpreter lag memes but only for 1 frame hopefully
-		hitbox_inst.get_node('hitboxsprite').animation = self.state #there is probably a better way to handle this
+		hitbox_inst.get_node('hitboxsprite').animation = state #there is probably a better way to handle this
 	if hitboxdict.has('rage_growth'): #lol
 		pass
 
@@ -1372,9 +1380,9 @@ func create_grabbox(polygon,duration,path,grabbingstate,grabbedstate,groundednes
 	var grabbox = grabbox_load.instance()
 	get_parent().add_child(grabbox)
 	grabbox.creator = self
-	grabbox.createdstate = self.state
-	grabbox.position = self.position
-	grabbox.direction = self.direction
+	grabbox.createdstate = state
+	grabbox.position = position
+	grabbox.direction = direction
 	grabbox.get_node('polygon').set_polygon(polygon)
 	grabbox.duration = duration
 	grabbox.grabbedoffset = posoffset
@@ -1461,8 +1469,8 @@ func sdi(normal):
 	if grounded and hitstunknockback < 80: #Forbidden SDI check for grounded attacks
 		var space_state = get_world_2d().direct_space_state
 		move_and_collide(Vector2(normal.y*70,0))
-		var ray_standing = space_state.intersect_ray(self.global_position+ecb_down(), Vector2(0,0),[self],collision_mask) #for getting the floor you're on
-		var ray_y = space_state.intersect_ray(self.global_position+ecb_down(), Vector2(0,normal.x*-70),[self],collision_mask)
+		var ray_standing = space_state.intersect_ray(global_position+ecb_down(), Vector2(0,0),[self],collision_mask) #for getting the floor you're on
+		var ray_y = space_state.intersect_ray(global_position+ecb_down(), Vector2(0,normal.x*-70),[self],collision_mask)
 	#	rint ("STANDING: " + str(ray_standing) + "  " + str(global.gametime))
 	#	rint ("RAY_Y:" + str(ray_y) + "  " + str(global.gametime) )
 	else: #Air SDI
@@ -1706,7 +1714,7 @@ func apply_staling(dmgvalue,entry):
 	var stalingtable = [0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09]
 	for x in len(stalingqueue): #I wrote this in Broken Levee and it works so I'm not bothering to rewrite it
 		if entry == stalingqueue[x]:
-			if (x + (9-len(stalingqueue))) == 8 and self.attackstate == 'hit': pass #what the fuck is any of this? 
+			if (x + (9-len(stalingqueue))) == 8 and attackstate == 'hit': pass #what the fuck is any of this? 
 			else:dmgmod = dmgmod + stalingtable[x + (9-len(stalingqueue))]
 	return round(dmgvalue - (dmgvalue*dmgmod))
 
@@ -1833,9 +1841,9 @@ func attackcode():
 
 
 func enable_platform(): #enables platform collision
-	self.set_collision_mask_bit(2,true)
+	set_collision_mask_bit(2,true)
 func disable_platform(): #disables platform collision
-	self.set_collision_mask_bit(2,false)
+	set_collision_mask_bit(2,false)
 
 func aerial_acceleration(drift=1.0,ff=true):
 	#drift lets you set custom drift potential to use for specials.
@@ -2054,7 +2062,7 @@ func collision_handler(delta): #For platform/floor/wall collision.
 
 	$pECB.current_ecbcheck() #lets you die, done before pECB update so it's essentially the same as checking current frame collision 
 	$pECB.position = $ECB.position + velocity/60 #projected ECB pos calculation
-	if not (prune_disabledplats($pECB.collisions) != self.collisions and rooted):
+	if not (prune_disabledplats($pECB.collisions) != collisions and rooted):
 		if impactstop == 0:
 			velocity = move_and_slide(velocity, Vector2(0, -1))
 		#var collision = move_and_collide(velocity/60)
@@ -2065,8 +2073,8 @@ func collision_handler(delta): #For platform/floor/wall collision.
 	if velocity.y < 0: disable_platform()
 	for x in $pECB.collisions: #post velocity move check for pECB
 		if x.name.substr(0,4) == 'Plat': #Yes this means that proper plat collision relies on naming the platform objects properly
-			if (self.position.x >= x.position.x and self.position.x <= x.position.x + 64*x.scale.x): #Prevents colliding w platforms from the side
-				if not in_platform and velocity.y >= 0 and self.position.y < x.position.y:
+			if (position.x >= x.position.x and position.x <= x.position.x + 64*x.scale.x): #Prevents colliding w platforms from the side
+				if not in_platform and velocity.y >= 0 and position.y < x.position.y:
 					pecbgrounded = true
 					enable_platform()
 					rotation = x.rotation # I can't believe slopes are this easy

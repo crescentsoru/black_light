@@ -11,9 +11,9 @@ var fuckshit = 0
 var direction = 1
 
 
-var damage = 3
-var damage_base = 3 #the value you use if you don't want staling to mess with things
-var kb_base = 15
+var damage = 90
+var damage_base = 90 #the value you use if you don't want staling to mess with things
+var kb_base = 35
 var kb_growth = 100
 var angle = 30
 var duration = 10
@@ -127,3 +127,9 @@ func _physics_process(delta):
 	if hitboxtype_interaction != 'strike' or (hitboxtype_interaction == 'strike' and creator.impactstop == 0):
 		frame+=1
 	if frame == duration: queue_free()
+
+
+
+#Note- as seen in the 0.3 trailer, the direction projectiles send defenders at is determined by their position relative
+#to the center of the projectile. Hitstun direction for projectiles instead should be completely static and dependent
+#only on the direction value it has on impact. 
