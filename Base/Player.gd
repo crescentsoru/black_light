@@ -269,7 +269,7 @@ var characterscale = 1
 	##################
 
 
-	#ALL OF THESE ARE COPIES OF THE PORT VALUES. 
+#These are all the same as Port. Both sets of input variables are necessary. 
 
 #Buttons
 #All the default values here should be overwritten by initialization
@@ -316,57 +316,7 @@ func initialize_buttons(buttonset):
 	sidetaunt = buttonset[18]
 	downtaunt = buttonset[19]
 
-	buffer = [
-[buttonset[0],0,9000,9000],
-[buttonset[1],0,9000,9000],
-[buttonset[2],0,9000,9000],
-[buttonset[3],0,9000,9000],
-[buttonset[4],0,9000,9000],
-[buttonset[5],0,9000,9000],
-[buttonset[6],0,9000,9000],
-[buttonset[7],0,9000,9000],
-[buttonset[8],0,9000,9000],
-[buttonset[9],0,9000,9000],
-[buttonset[10],0,9000,9000],
-[buttonset[11],0,9000,9000],
-[buttonset[12],0,9000,9000],
-[buttonset[13],0,9000,9000],
-[buttonset[14],0,9000,9000],
-[buttonset[15],0,9000,9000],
-[buttonset[16],0,9000,9000],
-[buttonset[17],0,9000,9000],
-[buttonset[18],0,9000,9000],
-[buttonset[19],0,9000,9000],
-]
 
-
-
-#x[0] = input name
-#x[1] = frames the input has been held
-#x[2] = frames since this button has been pressed last (standard buffer)
-#x[3] = frames since this button has been released
-var buffer = [
-[up,0,9000,9000],
-[down,0,9000,9000],
-[left,0,9000,9000],
-[right,0,9000,9000],
-[jump,0,9000,9000],
-[attackA,0,9000,9000],
-[attackB,0,9000,9000],
-[attackC,0,9000,9000],
-[attackD,0,9000,9000],
-[attackE,0,9000,9000],
-[attackF,0,9000,9000],
-[dodge,0,9000,9000],
-[grab,0,9000,9000],
-[cstickup,0,9000,9000],
-[cstickdown,0,9000,9000],
-[cstickleft,0,9000,9000],
-[cstickright,0,9000,9000],
-[uptaunt,0,9000,9000],
-[sidetaunt,0,9000,9000],
-[downtaunt,0,9000,9000],
-]
 
 var controllable = true #false when replay
 
@@ -377,49 +327,22 @@ var smashattacksensitivity = 3 #AKA stick sensitivity in Ultimate. That's litera
 var analogstick = Vector2(128,128) #copies Port every frame
 var analogstick_prev = Vector2(128,128) #copies Port every frame
 
+var motionqueue := "5" #copies Port value.
+var currentmotion := "5" #copies Port value. Same thing as motionqueue but side corrected 
+
+
 func initialize_input_variables():
 #Takes on custom input values from Port. Ran when character is created. 
 	pressbuffer = Port.pressbuffer
 	releasebuffer = Port.releasebuffer
 	smashattacksensitivity = Port.smashattacksensitivity
-	
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-func base_setanalog(): #Sets the reference vars to their Port value here
+func update_input_refs(): #Sets the reference vars to their Port value here
 	analogstick = Port.analogstick
 	analogstick_prev = Port.analogstick_prev
-	
-	
 	motionqueue = Port.motionqueue
 	currentmotion = Port.currentmotion
-
-
-func cstick_processing(): #Placeholder until I create analog c-stick. Works only in Player.gd for some reason
-	if inputpressed(cstickup):
-		motionqueue = "8"
-		buffer[5][2] = 1 #press A
-	if inputpressed(cstickdown):
-		motionqueue = "2"
-		buffer[5][2] = 1 #press A
-	if inputpressed(cstickleft):
-		motionqueue = "4" 
-		buffer[5][2] = 1 #press A
-	if inputpressed(cstickright):
-		motionqueue = "6" 
-		buffer[5][2] = 1 #press A
 
 
 func inputheld(inp,below=900000000,above=0): #button held. pretty simple
@@ -437,51 +360,9 @@ func inputjustpressed(inp): #button pressed this frame, no buffer
 func inputjustreleased(inp): #button released this frame, no buffer
 	return Port.inputjustreleased(inp)
 
-func replayprep(): #called on _ready to make your character controllable or not
-	if global.replaying == true and global.fullreplay.has('p_data'): #Will still crash if it has garbage data, but why would it? 
-		controllable = false
-
-
-var motionqueue := "5"
-var currentmotion := "5" #same thing as motionqueue but side corrected 
-var motiontimer = 8
 func tiltinput(inp): #returns true if you have an analog input beyond analog_tilt on the control stick, which is 24 by default.
 	return Port.tiltinput(inp)
 
-
-func motionappend(number):
-	if motionqueue[-1] != number:
-		motionqueue = motionqueue + number
-		motiontimer = 8
-
-func flipmotion(originalmotion): #motionqueue corrected for side
-	var result = ""
-	#This mirrors your motionqueue
-	for x in len(originalmotion):
-		if originalmotion[x] == "1":
-			result = result + "3"
-		elif originalmotion[x] == "3":
-			result = result + "1"
-		elif originalmotion[x] == "4":
-			result = result + "6"
-		elif originalmotion[x] == "6":
-			result = result + "4"
-		elif originalmotion[x] == "7":
-			result = result + "9"
-		elif originalmotion[x] == "9":
-			result = result + "7"
-		else:
-			result = result + originalmotion[x]
-	return result
-
-var animexception = [] #this will be useful later for the AIR state 
-func state_exception(state_array):
-	for each_state in state_array:
-		if state == each_state:
-			return false
-	return true
-
-#This shouldn't be in Port actually
 func forward():
 	if direction == 1:
 		return Port.right
@@ -492,6 +373,26 @@ func backward():
 		return Port.left
 	else:
 		return Port.right
+
+
+func replayprep(): #called on _ready to make your character controllable or not
+	if global.replaying == true and global.fullreplay.has('p_data'): #Will still crash if it has garbage data, but why would it? 
+		controllable = false
+
+
+
+
+
+
+
+var animexception = [] #this will be useful later for the AIR state 
+func state_exception(state_array):
+	for each_state in state_array:
+		if state == each_state:
+			return false
+	return true
+
+
 
 
 
@@ -2216,10 +2117,8 @@ func _ready():
 
 func _physics_process(delta):
 #inputs update
-	base_setanalog()
+	update_input_refs()
 
-#placeholder cstick update
-	cstick_processing()
 #if blockstop/hitstop > 0: ignore game logic, otherwise decrement hitstop
 
 #game logic.
@@ -2241,13 +2140,6 @@ func framechange(): #increments the frames, decrements the impactstop timer and 
 		frame+=1
 	if impactstop > 0:
 		impactstop-=1
-
-
-
-
-
-
-
 
 
 
