@@ -8,9 +8,20 @@ const BIGPROJECTILE = 'bigprojectile'
 #[0]= State you're switching to
 #[1]= The first frame you can cancel from. Not adding a last frame restriction for this character, do what you want with your chars
 #[2]= Input. TO DO: add shorthands for stuff like upb so it checks all diagonals. Also s at the start for smash attacks instead of [3]
-#[3]= Smash attack. If false, tilt input is ok, if true, smash input necessary
 
 
+#Input notation to implement later:
+#pre-move smash/tilt character. if "s", smash input is required. If "t", tilt is required. If it doesn't exist, either is fine.
+#Any direction can be replaced by these letters:
+#'u' = 7/8/9
+#'d' = 1/2/3
+#'f' = 3/6/9 (no need to use)
+#'b' = 1/4/7 (no need to use)
+
+#after directions and A/B/C/D/E/F buttons(please use capitalization it'll look nicer) are parsed, an input type can be specified.
+#no letter after button or 'p' = press input.
+#'r' = release input, with releasebuffer.
+#n = negative edge, both press and release are used. 
 
 const gatlings = {
 	JAB :[

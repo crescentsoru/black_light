@@ -68,7 +68,7 @@ func update_debug_display(caller,textobj='p1_debug'):
 	$UI_persistent.get_node(textobj).text = "gametime= " + str(global.gametime) \
 	 + "\nvelocity= " + str(caller.velocity) + "\nmotionqueue= " + caller.currentmotion \
 	 + "\nstate= " + str(caller.state) + "\nframe= " + str(caller.frame) + " imp= " + str(caller.impactstop) + "\nanalog= " + str(caller.Port.analogstick) \
-	+ "\n" + str(caller.stocks) + " stocks  " + str(caller.percentage/float(10)) + "%  " \
+	+ "\n" + str(caller.Port.stocks) + " stocks  " + str(caller.percentage/float(10)) + "%  " \
 	+ "\nattackstate = " + caller.attackstate \
 	+ "\nhitinvuln = " + str(caller.invulns["strike"])
 #the fact that dividing returns an integer by default is easily one of the worst features they put into gdscript from python

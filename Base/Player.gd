@@ -1415,7 +1415,7 @@ func square(wid):
 
 func fuckingdie(): #highly placeholder
 	position = spawnpoint
-	if maincharacter: stocks-=1
+	if maincharacter: Port.stocks-=1
 	else: queue_free()
 	percentage = 0
 	state(AIR)
