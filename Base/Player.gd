@@ -244,10 +244,10 @@ var killed = false #for Puff lol
 var stalingqueue = []
 
 #ukemi = ground tech. Please do not change these values, there's a reason a certain game made ground tech frame data universal
-var ukemineutral_end := 26
-var ukemineutral_invuln := 20
-var ukemiroll_end := 40
-var ukemiroll_invuln := 20
+const ukemineutral_end := 26
+const ukemineutral_invuln := 20
+const ukemiroll_end := 40
+const ukemiroll_invuln := 20
 
 
 #ledge
@@ -273,26 +273,26 @@ var characterscale = 1
 
 #Buttons
 #All the default values here should be overwritten by initialization
-var up = ''
-var down = 'p1_down' 
-var left = ''
-var right = ''
-var jump = ''
-var attackA = '' #the A button
-var attackB = '' #AKA special
-var attackC = '' 
-var attackD = '' #extra attacks will be useful if the engine gets repurposed for 2D fighters
-var attackE = ''
-var attackF = ''
-var dodge = ''
-var grab = ''
-var cstickup = ''
-var cstickdown = ''
-var cstickleft = ''
-var cstickright = ''
-var uptaunt = ''
-var sidetaunt = ''
-var downtaunt = ''
+var up := ''
+var down := 'p1_down' 
+var left := ''
+var right := ''
+var jump := ''
+var attackA := '' #the A button
+var attackB := '' #AKA special
+var attackC := '' 
+var attackD := '' #extra attacks will be useful if the engine gets repurposed for 2D fighters
+var attackE := ''
+var attackF := ''
+var dodge := ''
+var grab := ''
+var cstickup := ''
+var cstickdown := ''
+var cstickleft := ''
+var cstickright := ''
+var uptaunt := ''
+var sidetaunt := ''
+var downtaunt := ''
 
 func initialize_buttons(buttonset):
 	up = buttonset[0]
@@ -1635,6 +1635,8 @@ func hit_success(hitbox):
 			else:
 				hitstunangle = hitstunangle * -1 # bounce
 				state(HITSTUN)
+		else:
+			state(HITSTUN)
 	else:
 		grounded = false
 		state(HITSTUN)
