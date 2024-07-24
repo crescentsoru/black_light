@@ -165,8 +165,8 @@ var fastfall_speed = 2375
 var airfriction = 3 #when stick is neutral during drifting, go back to 0,0 with this vel per frame 
 
 var jumpsquat = 4
-var shorthopspeed = 1600
-var fullhopspeed = 2900
+var shorthopspeed = 1700
+var fullhopspeed = 3000
 var airjumpspeed = 3200 #this is velocity.y not drifting
 
 var airjump_max = 1
@@ -1964,7 +1964,6 @@ func load_GameplayAudio():
 			var filepath = FileSystemFolder + "GameplayAudio/" + x
 			if (filepath.right(len(filepath)-4)) == ".wav": #Only loads file if it's a wav, maybe later add ogg 
 				charactersounds.append([x,load(filepath)]) #needs to be a list w a name so I can reference it in playsfx()
-		
 	else:
 		print("GameplayAudio folder does not exist. Character will not play unique sounds. Please move audio to a folder called GameplayAudio placed in character folder root.")
 
@@ -1976,7 +1975,7 @@ func playsfx(soundname):
 			add_child(audiostream)
 			audiostream.stream = x[1]
 			audiostream.play()
-		else:
+		else: #this is a logical problem fix later 
 			print ("Sound " + soundname + " missing.")
 
 

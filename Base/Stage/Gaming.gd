@@ -70,7 +70,7 @@ func update_debug_display(caller,textobj='p1_debug'):
 	 + "\nstate= " + str(caller.state) + "\nframe= " + str(caller.frame) + " imp= " + str(caller.impactstop) + "\nanalog= " + str(caller.Port.analogstick) \
 	+ "\n" + str(caller.Port.stocks) + " stocks  " + str(caller.percentage/float(10)) + "%  " \
 	+ "\nattackstate = " + caller.attackstate \
-	+ "\nhitinvuln = " + str(caller.invulns["strike"])
+	+ "\nstate_called = " + str(caller.state_called)
 #the fact that dividing returns an integer by default is easily one of the worst features they put into gdscript from python
 #like what the fuck who wants this specific behavior in a scripting language
 
